@@ -1,4 +1,4 @@
-package com.fitfit.app.view.screen.mainScreen
+package com.fitfit.app.ui.screen.mainScreen
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

@@ -7,7 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Scaffold
 import com.fitfit.app.ui.theme.FitFitTheme
-import com.fitfit.app.view.screen.mainScreen.MainScreen
+import com.fitfit.app.ui.screen.mainScreen.MainScreen
 
 
 class MainActivity : ComponentActivity() {
