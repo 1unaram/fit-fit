@@ -1,4 +1,4 @@
-package com.fitfit.app.model
+package com.fitfit.app.data
 
 data class User(
     val id: String = "",

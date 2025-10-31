@@ -1,7 +1,4 @@
-package com.fitfit.app.controller
-
-import com.google.firebase.Firebase
-import com.google.firebase.database.database
+package com.fitfit.app.viewmodel
 
 fun firebaseController() {
 
