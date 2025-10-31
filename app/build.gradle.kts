@@ -5,6 +5,9 @@ plugins {
 
     // Firebase
     id("com.google.gms.google-services")
+
+    // RoomDB
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -44,6 +47,9 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.compose.runtime.livedata)
+    val roomVersion = "2.8.3"
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -65,4 +71,12 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-database")
+
+    // RoomDB
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
 }
