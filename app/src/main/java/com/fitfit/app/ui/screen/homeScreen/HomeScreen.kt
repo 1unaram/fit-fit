@@ -13,12 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.UserViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    userViewModel: UserViewModel = viewModel()
+    userViewModel: UserViewModel = viewModel(),
+    clothesViewModel: ClothesViewModel = viewModel()
 ) { Scaffold { innerPadding ->
         Row(
             modifier = Modifier.fillMaxHeight().padding(innerPadding),
@@ -35,11 +37,20 @@ fun HomeScreen(
                 // Test
                 Button(
                     onClick = {
-                        userViewModel.addUser("u1", "Test User")
+                        userViewModel.addUser("U1", "Test User")
                     }
                 ) {
                     Text("Add User")
                 }
+
+                Button(
+                    onClick = {
+                        clothesViewModel.insertClothes("T1", "Test Clothes", "Top")
+                    }
+                ) {
+                    Text("Add Clothes")
+                }
+
 
             }
         }

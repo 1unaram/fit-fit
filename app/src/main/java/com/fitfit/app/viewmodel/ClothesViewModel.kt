@@ -21,7 +21,7 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
         allClothes = repository.getAllClothes().asLiveData()
     }
 
-    fun insertClothes(cid: String, name: String, category: String, brand: String = "", color: String = "") = viewModelScope.launch {
+    fun insertClothes(cid: String, name: String, category: String) = viewModelScope.launch {
         val clothes = ClothesEntity(
             cid = cid,
             name = name,
