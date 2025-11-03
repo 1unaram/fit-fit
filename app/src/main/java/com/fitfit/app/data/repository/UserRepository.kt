@@ -17,18 +17,23 @@ class UserRepository(private val userDao: UserDao) {
 
     // Room에 사용자 추가 & Firebase 동기화
     suspend fun addUser(user: UserEntity) {
-        val userId = userDao.addUser(user)
-        syncToFirebase(userId)
+        userDao.addUser(user)
+        syncToFirebase(user.uid)
+    }
+
+    suspend fun updateUser(user: UserEntity) {
+        userDao.updateUser(user.copy(isSynced = false))
+        syncToFirebase(user.uid)
     }
 
     // Firebase로 동기화
-    private suspend fun syncToFirebase(userId: Long) {
+    private suspend fun syncToFirebase(uid: String) {
         try {
-            val userEntity = userDao.getUserById(userId) ?: return
-            val firebaseUser = User.fromEntity(userEntity, userId.toString())
+            val userEntity = userDao.getUserById(uid) ?: return
+            val firebaseUser = User.fromEntity(userEntity)
 
-            firebaseDB.child(userId.toString()).setValue(firebaseUser).await()
-            userDao.markAsSynced(userId)
+            firebaseDB.child(uid).setValue(firebaseUser).await()
+            userDao.markAsSynced(uid)
         } catch (e: Exception) {
             e.printStackTrace()
         }

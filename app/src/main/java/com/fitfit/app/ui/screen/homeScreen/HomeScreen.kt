@@ -9,7 +9,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,7 +35,7 @@ fun HomeScreen(
                 // Test
                 Button(
                     onClick = {
-                        userViewModel.addUser("Test User")
+                        userViewModel.addUser("u1", "Test User")
                     }
                 ) {
                     Text("Add User")

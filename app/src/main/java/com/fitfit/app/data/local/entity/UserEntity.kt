@@ -6,12 +6,15 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "users")
 data class UserEntity(
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     @ColumnInfo(name = "uid")
-    val id: Long = 0,
+    var uid: String,
 
     @ColumnInfo(name = "username")
     var username: String,
+
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long = System.currentTimeMillis(),
 
     @ColumnInfo(name = "is_synced")
     var isSynced: Boolean = false

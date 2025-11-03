@@ -1,8 +1,11 @@
 package com.fitfit.app.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import com.fitfit.app.data.local.entity.ClothesEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -19,6 +22,12 @@ interface ClothesDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertClothes(clothes: ClothesEntity)
+
+    @Update
+    suspend fun updateClothes(clothes: ClothesEntity)
+
+    @Delete
+    suspend fun deleteClothes(clothes: ClothesEntity)
 
     @Query("UPDATE clothes SET is_synced = 1 WHERE cid = :cid")
     suspend fun markAsSynced(cid: String)

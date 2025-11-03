@@ -20,8 +20,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         allUsers = repository.getAllUsers().asLiveData()
     }
 
-    fun addUser(name: String) = viewModelScope.launch {
-        val user = UserEntity(username = name)
+    fun addUser(uid: String, username: String) = viewModelScope.launch {
+        val user = UserEntity(uid = uid, username = username)
         repository.addUser(user)
     }
 }

@@ -2,6 +2,7 @@ package com.fitfit.app.data.repository
 
 import com.fitfit.app.data.local.dao.ClothesDao
 import com.fitfit.app.data.local.entity.ClothesEntity
+import com.fitfit.app.data.model.Clothes
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await

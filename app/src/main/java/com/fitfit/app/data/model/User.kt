@@ -3,16 +3,18 @@ package com.fitfit.app.data.model
 import com.fitfit.app.data.local.entity.UserEntity
 
 data class User (
-    val id: String = "",
-    val username: String = ""
+    val uid: String = "",
+    val username: String = "",
+    val createdAt: Long = 0
 ) {
-    constructor() : this("", "")
+    constructor() : this("", "", 0)
 
     companion object {
-        fun fromEntity(entity: UserEntity, firebaseId: String): User {
+        fun fromEntity(entity: UserEntity): User {
             return User (
-                id = firebaseId,
-                username = entity.username
+                uid = entity.uid,
+                username = entity.username,
+                createdAt = entity.createdAt
             )
         }
     }
