@@ -1,4 +1,4 @@
-package com.fitfit.app.ui.screen.clothesScreen
+package com.fitfit.app.ui.screen.outfitsScreen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +16,7 @@ import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.UserViewModel
 
 @Composable
-fun ClothesScreen(
+fun OutfitsScreen(
     navController: NavController,
     userViewModel: UserViewModel = viewModel(),
     clothesViewModel: ClothesViewModel = viewModel()
@@ -31,7 +31,7 @@ fun ClothesScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text="Clothes Screen!"
+                    text="Outfits Screen!"
                 )
             }
         }

@@ -1,4 +1,4 @@
-package com.fitfit.app.ui.screen.outfitScreen.components
+package com.fitfit.app.ui.screen.outfitsScreen.components
 
 import androidx.compose.runtime.Composable
 

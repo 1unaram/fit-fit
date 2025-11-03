@@ -1,16 +1,18 @@
 package com.fitfit.app.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.fitfit.app.ui.screen.clothesScreen.ClothesScreen
 import com.fitfit.app.ui.screen.homeScreen.HomeScreen
+import com.fitfit.app.ui.screen.outfitsScreen.OutfitsScreen
 
 object Screens {
     const val HOME = "home"
+    const val CLOTHES = "clothes"
+    const val OUTFITS = "outfits"
 }
-
 
 @Composable
 fun AppNavigation() {
@@ -18,15 +20,10 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screens.HOME
+        startDestination = Screens.OUTFITS
     ) {
         composable(Screens.HOME) { HomeScreen(navController=navController) }
+        composable(Screens.CLOTHES) { ClothesScreen(navController=navController) }
+        composable(Screens.OUTFITS) { OutfitsScreen(navController=navController) }
     }
-}
-
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun AppNavigationPreview() {
-    AppNavigation()
 }

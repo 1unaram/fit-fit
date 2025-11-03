@@ -15,7 +15,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             FitFitTheme {
                 AppNavigation()
-
             }
         }
     }
