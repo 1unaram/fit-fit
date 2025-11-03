@@ -3,16 +3,22 @@ package com.fitfit.app.data.local.database
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.fitfit.app.data.local.dao.ClothesDao
 import com.fitfit.app.data.local.dao.UserDao
+import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.UserEntity
 
 @Database(
-    entities = [UserEntity::class],
-    version = 1,
+    entities = [
+        UserEntity::class,
+        ClothesEntity::class
+    ],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase: RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun clothesDao(): ClothesDao
 
     companion object {
         @Volatile
