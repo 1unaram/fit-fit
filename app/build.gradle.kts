@@ -79,4 +79,11 @@ dependencies {
 
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+
+    // Retrofit (HTTP 클라이언트)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // OkHttp (로깅용)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 }
