@@ -1,9 +1,7 @@
-package com.fitfit.app.ui.screen.homeScreen
+package com.fitfit.app.ui.screen.loginScreen
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -12,28 +10,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.UserViewModel
 
 @Composable
-fun HomeScreen(
+fun LoginScreen(
     navController: NavController,
     userViewModel: UserViewModel = viewModel(),
-    clothesViewModel: ClothesViewModel = viewModel()
-) { Scaffold { innerPadding ->
+) {
+    Scaffold { innerPadding ->
         Row(
             modifier = Modifier.fillMaxHeight().padding(innerPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(innerPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text="Home Screen!"
-                )
-            }
+            Text(
+                text = "Logged in not yet!"
+            )
         }
-
     }
 }
