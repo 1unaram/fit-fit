@@ -7,18 +7,18 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.fitfit.app.data.local.entity.ClothesEntity
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ClothesDao {
-    @Query("SELECT * FROM clothes ORDER BY created_at DESC")
-    fun getAllClothes(): Flow<List<ClothesEntity>>
 
-    @Query("SELECT * FROM clothes WHERE category = :category ORDER BY created_at DESC")
-    fun getClothesByCategory(category: String): Flow<List<ClothesEntity>>
+    @Query("SELECT * FROM clothes WHERE owner_uid = :uid ORDER BY created_at DESC")
+    fun getClothesByUser(uid: String): Flow<List<ClothesEntity>>
 
     @Query("SELECT * FROM clothes WHERE cid = :cid")
     suspend fun getClothesById(cid: String): ClothesEntity?
+
+    @Query("DELETE FROM clothes WHERE cid = :cid")
+    suspend fun deleteClothesById(cid: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertClothes(clothes: ClothesEntity)
@@ -29,6 +29,12 @@ interface ClothesDao {
     @Delete
     suspend fun deleteClothes(clothes: ClothesEntity)
 
-    @Query("UPDATE clothes SET is_synced = 1 WHERE cid = :cid")
+    @Query("UPDATE clothes SET isSynced = 1 WHERE cid = :cid")
     suspend fun markAsSynced(cid: String)
+
+    @Query("SELECT * FROM clothes WHERE ownerUid = :uid AND isSynced = 0")
+    suspend fun getUnsyncedClothes(uid: String): List<ClothesEntity>
+
+    @Query("DELETE FROM clothes WHERE ownerUid = :uid")
+    suspend fun deleteAllClothesByUser(uid: String)
 }

@@ -2,12 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 
     // Firebase
     id("com.google.gms.google-services")
 
-    // RoomDB
-    id("com.google.devtools.ksp")
 }
 
 android {
@@ -46,9 +46,11 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.constraintlayout)
+    val roomVersion = "2.8.3"
 
     implementation(libs.androidx.compose.runtime.livedata)
-    val roomVersion = "2.8.3"
+    implementation(libs.androidx.adapters)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -88,4 +90,10 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     // Preference Datastore
-    implementation("androidx.datastore:datastore-preferences:1.1.7")}
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+
+    // Json Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+
+}

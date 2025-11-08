@@ -1,21 +1,25 @@
 package com.fitfit.app.data.local.entity
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.fitfit.app.data.local.converters.ListConverter
 
 @Entity(tableName = "outfits")
+@TypeConverters(ListConverter::class)
 data class OutfitEntity(
     @PrimaryKey
-    @ColumnInfo(name = "oid")
     val oid: String,
 
-    @ColumnInfo(name = "name")
     val name: String,
 
-    @ColumnInfo(name = "created_at")
+    val ownerUid: String,
+
+    val clothesIds: List<String>,
+
     val createdAt: Long = System.currentTimeMillis(),
 
-    @ColumnInfo(name = "is_synced")
-    var isSynced: Boolean = false
+    var isSynced: Boolean = false,
+
+    var lastModified: Long = System.currentTimeMillis()
 )

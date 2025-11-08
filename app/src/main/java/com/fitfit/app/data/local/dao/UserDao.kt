@@ -7,12 +7,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.fitfit.app.data.local.entity.UserEntity
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
-    @Query("SELECT * FROM users ORDER BY created_at DESC")
-    fun getAllUsers(): Flow<List<UserEntity>>
 
     @Query("SELECT * FROM users WHERE uid = :uid")
     suspend fun getUserById(uid: String): UserEntity?
@@ -32,6 +29,9 @@ interface UserDao {
     @Delete
     suspend fun deleteUser(user: UserEntity)
 
-    @Query("UPDATE users SET is_synced = 1 WHERE uid = :uid")
-    suspend fun markAsSynced(uid: String)
+    @Query("UPDATE users SET isSynced = 1, lastModified = :timestamp WHERE uid = :uid")
+    suspend fun markAsSynced(uid: String, timestamp: Long = System.currentTimeMillis())
+
+    @Query("SELECT * FROM users WHERE isSynced = 0")
+    suspend fun getUnsyncedUsers(): List<UserEntity>
 }

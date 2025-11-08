@@ -1,9 +1,12 @@
 package com.fitfit.app.data.repository
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.fitfit.app.data.local.dao.UserDao
 import com.fitfit.app.data.local.entity.UserEntity
-import com.fitfit.app.data.model.User
+import com.fitfit.app.data.local.userPrefsDataStore
 import com.fitfit.app.data.util.IdGenerator
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
@@ -11,7 +14,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -19,67 +23,186 @@ class UserRepository(
     private val userDao: UserDao,
     private val context: Context
 ) {
-    private val firebaseDB = FirebaseDatabase.getInstance().reference.child("users")
+    private val firebaseUsersRef = FirebaseDatabase.getInstance().reference.child("users")
+    private val firebaseUsernamesRef = FirebaseDatabase.getInstance().reference.child("usernames")
     private val idGenerator = IdGenerator(context)
 
-    // Room에서 모든 사용자 가져오기
-    fun getAllUsers(): Flow<List<UserEntity>> {
-        return userDao.getAllUsers()
+    private suspend fun getCurrentUid(): String? {
+        return context.userPrefsDataStore.data.map {
+            it[stringPreferencesKey("current_uid")]
+        }.first()
     }
 
-    // Room에 사용자 추가 & Firebase 동기화
-    suspend fun insertUser(username: String, password: String) {
-        val uid = idGenerator.generateNextUserId()
-        val user = UserEntity(uid = uid, username = username, password = password)
-        userDao.insertUser(user)
-        syncToFirebase(uid)
-    }
-
-    // Username 중복 검사
+    // Firebase에서 username 중복 체크
     suspend fun isUsernameTaken(username: String): Boolean {
-        return userDao.getUserByUsername(username) != null
-    }
-
-    suspend fun updateUser(user: UserEntity) {
-        userDao.updateUser(user.copy(isSynced = false))
-        syncToFirebase(user.uid)
-    }
-
-    // Firebase로 동기화
-    private suspend fun syncToFirebase(uid: String) {
-        try {
-            val userEntity = userDao.getUserById(uid) ?: return
-            val firebaseUser = User.fromEntity(userEntity)
-
-            firebaseDB.child(uid).setValue(firebaseUser).await()
-            userDao.markAsSynced(uid)
+        return try {
+            val snapshot = firebaseUsernamesRef.child(username).get().await()
+            snapshot.exists()
         } catch (e: Exception) {
             e.printStackTrace()
+            true
         }
     }
 
-    private suspend fun deleteFromFirebase(uid: String) {
-        try {
-            firebaseDB.child(uid).removeValue().await()
+    // 회원가입
+    suspend fun registerUser(username: String, password: String): Result<String> {
+        return try {
+            // 1. 중복 체크
+            if (isUsernameTaken(username)) {
+                return Result.failure(Exception("이미 사용 중인 아이디입니다."))
+            }
+
+            // 2. uid 생성
+            val uid = idGenerator.generateNextUserId()
+
+            // 3. UserEntity 생성
+            val user = UserEntity(
+                uid = uid,
+                username = username,
+                password = password,
+                isSynced = false
+            )
+
+            // 4. Room에 저장
+            userDao.insertUser(user)
+
+            // 5. Firebase에 저장 (Transaction)
+            val updates = hashMapOf<String, Any>(
+                "/users/$uid" to mapOf(
+                    "uid" to uid,
+                    "username" to username,
+                    "password" to password,
+                    "createdAt" to user.createdAt,
+                    "lastModified" to user.lastModified
+                ),
+                "/usernames/$username" to uid
+            )
+
+            FirebaseDatabase.getInstance().reference.updateChildren(updates).await()
+
+            // 6. 동기화 완료 표시
+            userDao.markAsSynced(uid, System.currentTimeMillis())
+
+            Result.success(uid)
         } catch (e: Exception) {
             e.printStackTrace()
+            Result.failure(e)
         }
     }
 
-    // 실시간 삭제 동기화 시작
-    fun startRealtimeDeleteSync() {
-        firebaseDB.addChildEventListener(object : ChildEventListener {
+    // 로그인
+    suspend fun loginUser(username: String, password: String): Result<UserEntity> {
+        return try {
+            // 1. Firebase에서 uid 찾기
+            val uidSnapshot = firebaseUsernamesRef.child(username).get().await()
+
+            if (!uidSnapshot.exists()) {
+                return Result.failure(Exception("존재하지 않는 아이디입니다."))
+            }
+
+            val uid = uidSnapshot.value as? String
+                ?: return Result.failure(Exception("사용자 정보를 찾을 수 없습니다."))
+
+            // 2. Firebase에서 사용자 정보 가져오기
+            val userSnapshot = firebaseUsersRef.child(uid).get().await()
+
+            if (!userSnapshot.exists()) {
+                return Result.failure(Exception("사용자 정보를 찾을 수 없습니다."))
+            }
+
+            val firebaseUsername = userSnapshot.child("username").value as? String ?: ""
+            val firebasePassword = userSnapshot.child("password").value as? String ?: ""
+            val firebaseCreatedAt = userSnapshot.child("createdAt").value as? Long ?: 0L
+            val firebaseLastModified = userSnapshot.child("lastModified").value as? Long ?: 0L
+
+            // 3. 비밀번호 확인
+            if (firebasePassword != password) {
+                return Result.failure(Exception("비밀번호가 일치하지 않습니다."))
+            }
+
+            val user = UserEntity(
+                uid = uid,
+                username = firebaseUsername,
+                password = firebasePassword,
+                createdAt = firebaseCreatedAt,
+                lastModified = firebaseLastModified,
+                isSynced = true
+            )
+
+            // 4. Room에 저장
+            userDao.insertUser(user)
+
+            // 5. DataStore에 현재 uid 저장
+            context.userPrefsDataStore.edit { prefs ->
+                prefs[stringPreferencesKey("current_uid")] = uid
+                prefs[booleanPreferencesKey("is_logged_in")] = true
+            }
+
+            Result.success(user)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    // 로그아웃
+    suspend fun logout() {
+        val currentUid = getCurrentUid()
+
+        // DataStore 초기화
+        context.userPrefsDataStore.edit { it.clear() }
+
+        // 필요시 Room 데이터 삭제
+        currentUid?.let {
+            // userDao.deleteUserById(it) // 필요하면 활성화
+        }
+    }
+
+    // 실시간 동기화
+    fun startRealtimeSync() {
+        firebaseUsersRef.addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                syncUserFromFirebase(snapshot)
+            }
+
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                syncUserFromFirebase(snapshot)
+            }
+
             override fun onChildRemoved(snapshot: DataSnapshot) {
                 val uid = snapshot.key ?: return
-                // Room DB에서 삭제
                 CoroutineScope(Dispatchers.IO).launch {
                     userDao.deleteUserById(uid)
                 }
             }
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
+
             override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
             override fun onCancelled(error: DatabaseError) {}
         })
+    }
+
+    private fun syncUserFromFirebase(snapshot: DataSnapshot) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val uid = snapshot.child("uid").value as? String ?: return@launch
+                val username = snapshot.child("username").value as? String ?: ""
+                val password = snapshot.child("password").value as? String ?: ""
+                val createdAt = snapshot.child("createdAt").value as? Long ?: 0L
+                val lastModified = snapshot.child("lastModified").value as? Long ?: 0L
+
+                val user = UserEntity(
+                    uid = uid,
+                    username = username,
+                    password = password,
+                    createdAt = createdAt,
+                    lastModified = lastModified,
+                    isSynced = true
+                )
+
+                userDao.insertUser(user)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
