@@ -1,17 +1,23 @@
 package com.fitfit.app.data.repository
 
+import android.content.Context
 import com.fitfit.app.data.local.dao.OutfitDao
 import com.fitfit.app.data.local.entity.OutfitClothesCrossRef
 import com.fitfit.app.data.local.entity.OutfitEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.data.model.Outfit
+import com.fitfit.app.data.util.IdGenerator
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 
-class OutfitRepository(private val outfitDao: OutfitDao) {
+class OutfitRepository(
+    private val outfitDao: OutfitDao,
+    private val context: Context
+) {
 
     private val firebaseDb = FirebaseDatabase.getInstance().reference.child("outfits")
+    private val idGenerator = IdGenerator(context)
 
     fun getAllOutfitsWithClothes(): Flow<List<OutfitWithClothes>> {
         return outfitDao.getAllOutfitsWithClothes()
@@ -22,19 +28,22 @@ class OutfitRepository(private val outfitDao: OutfitDao) {
     }
 
     // Outfit 생성 및 옷 연결
-    suspend fun createOutfitWithClothes(outfit: OutfitEntity, clothesIds: List<String>) {
+    suspend fun createOutfitWithClothes(name: String, clothesIds: List<String>) {
         // 1. Outfit 생성
+        val oid = idGenerator.generateNextOutfitId()
+        val outfit = OutfitEntity(oid = oid, name = name)
+
         outfitDao.insertOutfit(outfit)
 
         // 2. 각 옷과 연결
         clothesIds.forEach { cid ->
             outfitDao.insertOutfitClothesCrossRef(
-                OutfitClothesCrossRef(oid = outfit.oid, cid = cid)
+                OutfitClothesCrossRef(oid = oid, cid = cid)
             )
         }
 
         // 3. Firebase 동기화
-        syncToFirebase(outfit.oid, clothesIds)
+        syncToFirebase(oid, clothesIds)
     }
 
     // Outfit에 옷 추가

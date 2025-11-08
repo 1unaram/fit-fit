@@ -1,24 +1,36 @@
 package com.fitfit.app.data.repository
 
+import android.content.Context
 import com.fitfit.app.data.local.dao.ClothesDao
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.model.Clothes
+import com.fitfit.app.data.util.IdGenerator
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 
-class ClothesRepository(private val clothesDao: ClothesDao) {
+class ClothesRepository(
+    private val clothesDao: ClothesDao,
+    private val context: Context
+) {
 
     private val firebaseDb = FirebaseDatabase.getInstance().reference.child("clothes")
+    private val idGenerator = IdGenerator(context)
 
     // 모든 옷 가져오기
     fun getAllClothes(): Flow<List<ClothesEntity>> {
         return clothesDao.getAllClothes()
     }
 
-    suspend fun insertClothes(clothes: ClothesEntity) {
+    suspend fun insertClothes(name: String, category: String) {
+        val cid = idGenerator.generateNextClothesId()
+        val clothes = ClothesEntity(
+            cid = cid,
+            name = name,
+            category = category
+        )
         clothesDao.insertClothes(clothes)
-        syncToFirebase(clothes.cid)  // cid 사용
+        syncToFirebase(cid)
     }
 
     private suspend fun syncToFirebase(cid: String) {

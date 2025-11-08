@@ -18,13 +18,12 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         val outfitDao = AppDatabase.getDatabase(application).outfitDao()
-        repository = OutfitRepository(outfitDao)
+        repository = OutfitRepository(outfitDao, application)
         allOutfitsWithClothes = repository.getAllOutfitsWithClothes().asLiveData()
     }
 
-    fun createOutfit(oid: String, name: String, clothesIds: List<String>) = viewModelScope.launch {
-        val outfit = OutfitEntity(oid = oid, name = name)
-        repository.createOutfitWithClothes(outfit, clothesIds)
+    fun createOutfit(name: String, clothesIds: List<String>) = viewModelScope.launch {
+        repository.createOutfitWithClothes(name, clothesIds)
     }
 
     fun addClothesToOutfit(oid: String, cid: String) = viewModelScope.launch {

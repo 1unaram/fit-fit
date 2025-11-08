@@ -18,7 +18,7 @@ import com.fitfit.app.data.local.entity.UserEntity
         OutfitEntity::class,
         OutfitClothesCrossRef::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase: RoomDatabase() {

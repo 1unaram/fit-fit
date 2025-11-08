@@ -37,7 +37,7 @@ fun HomeScreen(
                 // Test
                 Button(
                     onClick = {
-                        userViewModel.addUser("U1", "Test User")
+                        userViewModel.insertUser(username = "Test User", password = "1234")
                     }
                 ) {
                     Text("Add User")
@@ -45,7 +45,7 @@ fun HomeScreen(
 
                 Button(
                     onClick = {
-                        clothesViewModel.insertClothes("T1", "Test Clothes", "Top")
+                        clothesViewModel.insertClothes("Test Clothes", "Top")
                     }
                 ) {
                     Text("Add Clothes")

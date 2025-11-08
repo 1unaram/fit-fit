@@ -1,5 +1,6 @@
 package com.fitfit.app.viewmodel
 
+import android.R.attr.name
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -17,17 +18,12 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         val clothesDao = AppDatabase.getDatabase(application).clothesDao()
-        repository = ClothesRepository(clothesDao)
+        repository = ClothesRepository(clothesDao, application)
         allClothes = repository.getAllClothes().asLiveData()
     }
 
-    fun insertClothes(cid: String, name: String, category: String) = viewModelScope.launch {
-        val clothes = ClothesEntity(
-            cid = cid,
-            name = name,
-            category = category
-        )
-        repository.insertClothes(clothes)
+    fun insertClothes(name: String, category: String) = viewModelScope.launch {
+        repository.insertClothes(name, category)
     }
 
 //    fun updateClothes(clothes: ClothesEntity) = viewModelScope.launch {

@@ -16,12 +16,11 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         val userDao = AppDatabase.getDatabase(application).userDao()
-        repository = UserRepository(userDao)
+        repository = UserRepository(userDao, application)
         allUsers = repository.getAllUsers().asLiveData()
     }
 
-    fun addUser(uid: String, username: String) = viewModelScope.launch {
-        val user = UserEntity(uid = uid, username = username)
-        repository.addUser(user)
+    fun insertUser(username: String, password: String) = viewModelScope.launch {
+        repository.insertUser(username, password)
     }
 }

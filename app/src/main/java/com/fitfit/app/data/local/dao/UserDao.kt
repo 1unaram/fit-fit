@@ -18,7 +18,7 @@ interface UserDao {
     suspend fun getUserById(uid: String): UserEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addUser(user: UserEntity): Long
+    suspend fun insertUser(user: UserEntity): Long
 
     @Update
     suspend fun updateUser(user: UserEntity)
