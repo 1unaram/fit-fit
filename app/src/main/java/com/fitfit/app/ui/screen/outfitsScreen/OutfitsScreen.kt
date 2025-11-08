@@ -13,28 +13,30 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.fitfit.app.viewmodel.ClothesViewModel
+import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
 
 @Composable
 fun OutfitsScreen(
     navController: NavController,
     userViewModel: UserViewModel = viewModel(),
-    clothesViewModel: ClothesViewModel = viewModel()
+    clothesViewModel: ClothesViewModel = viewModel(),
+    outfitViewModel: OutfitViewModel = viewModel()
 ) {
     Scaffold { innerPadding ->
         Row(
-            modifier = Modifier.fillMaxHeight().padding(innerPadding),
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(innerPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(innerPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text="Outfits Screen!"
+                    text = "Outfits Screen!"
                 )
             }
         }
     }
-
 }
