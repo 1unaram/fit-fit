@@ -17,12 +17,13 @@ object Screens {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(isLoggedIn: Boolean) {
     val navController = rememberNavController()
+    val startDestination = if (isLoggedIn) Screens.HOME else Screens.LOGIN
 
     NavHost(
         navController = navController,
-        startDestination = Screens.HOME
+        startDestination = startDestination
     ) {
         composable(Screens.HOME) { HomeScreen(navController=navController) }
         composable(Screens.CLOTHES) { ClothesScreen(navController=navController) }

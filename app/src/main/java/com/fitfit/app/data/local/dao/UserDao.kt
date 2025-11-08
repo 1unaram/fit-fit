@@ -17,6 +17,12 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE uid = :uid")
     suspend fun getUserById(uid: String): UserEntity?
 
+    @Query("SELECT * FROM users WHERE username = :username")
+    suspend fun getUserByUsername(username: String): UserEntity?
+
+    @Query("DELETE FROM users WHERE uid = :uid")
+    suspend fun deleteUserById(uid: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUser(user: UserEntity): Long
 
