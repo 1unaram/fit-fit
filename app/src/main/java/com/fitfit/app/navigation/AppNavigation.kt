@@ -34,7 +34,7 @@ fun AppNavigation() {
         startDestination = startDestination
     ) {
         composable(Screens.LOGIN) {
-            LoginScreen(navController = navController, viewModel = userViewModel)
+            LoginScreen(navController = navController, userViewModel = userViewModel)
         }
         composable(Screens.HOME) {
             HomeScreen(navController = navController, userViewModel = userViewModel)

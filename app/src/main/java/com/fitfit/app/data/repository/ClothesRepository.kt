@@ -1,7 +1,6 @@
 package com.fitfit.app.data.repository
 
 import android.content.Context
-import kotlinx.coroutines.flow.Flow
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.fitfit.app.data.local.dao.ClothesDao
 import com.fitfit.app.data.local.entity.ClothesEntity
@@ -14,6 +13,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -32,9 +32,7 @@ class ClothesRepository(
         }.first()
     }
 
-    /**
-     * 현재 사용자의 옷 목록 가져오기
-     */
+    // ### 현재 사용자의 옷 목록 불러오기 ###
     suspend fun getClothesByCurrentUser(): Flow<List<ClothesEntity>>? {
         return try {
             val uid = getCurrentUid() ?: return null
@@ -44,14 +42,10 @@ class ClothesRepository(
         }
     }
 
-    /**
-     * 옷 추가 (Room 먼저 → Firebase 동기화)
-     */
+    // ### 옷 추가 (RoomDB 저장 -> Firebase 동기화) ###
     suspend fun insertClothes(
         name: String,
-        category: String,
-        brand: String = "",
-        color: String = ""
+        category: String
     ): Result<String> {
         return try {
             val currentUid = getCurrentUid()
@@ -80,9 +74,7 @@ class ClothesRepository(
         }
     }
 
-    /**
-     * 옷 수정
-     */
+    // ### 옷 수정 ###
     suspend fun updateClothes(clothes: ClothesEntity): Result<Unit> {
         return try {
             val updatedClothes = clothes.copy(
@@ -100,9 +92,7 @@ class ClothesRepository(
         }
     }
 
-    /**
-     * 옷 삭제
-     */
+    // ### 옷 삭제 ###
     suspend fun deleteClothes(cid: String): Result<Unit> {
         return try {
             val clothes = clothesDao.getClothesById(cid)
@@ -125,9 +115,7 @@ class ClothesRepository(
         }
     }
 
-    /**
-     * Firebase로 업로드
-     */
+    // Firebase 동기화
     private suspend fun syncToFirebase(clothes: ClothesEntity) {
         try {
             val firebaseRef = firebaseClothesRef
@@ -143,9 +131,7 @@ class ClothesRepository(
         }
     }
 
-    /**
-     * 동기화되지 않은 데이터 재동기화
-     */
+    // 동기화 되지 않은 데이터 동기화
     suspend fun syncUnsyncedData() {
         val currentUid = getCurrentUid() ?: return
         val unsyncedClothes = clothesDao.getUnsyncedClothes(currentUid)
@@ -155,9 +141,7 @@ class ClothesRepository(
         }
     }
 
-    /**
-     * Firebase 실시간 동기화
-     */
+    // Firebase 실시간 동기화 시작
     fun startRealtimeSync(uid: String) {
         val firebaseUserClothesRef = firebaseClothesRef.child(uid)
 

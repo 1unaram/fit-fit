@@ -27,9 +27,7 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
     private val _deleteState = MutableStateFlow<ClothesOperationState>(ClothesOperationState.Idle)
     val deleteState: StateFlow<ClothesOperationState> = _deleteState
 
-    /**
-     * 현재 사용자의 옷 목록 로드
-     */
+    // ### 현재 사용자의 옷 목록 불러오기 ###
     fun loadClothes() = viewModelScope.launch {
         repository.getClothesByCurrentUser()
             ?.catch { e ->
@@ -46,9 +44,7 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
      */
     fun insertClothes(
         name: String,
-        category: String,
-        brand: String = "",
-        color: String = ""
+        category: String
     ) = viewModelScope.launch {
         _insertState.value = ClothesOperationState.Loading
 
@@ -63,7 +59,7 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
             return@launch
         }
 
-        val result = repository.insertClothes(name, category, brand, color)
+        val result = repository.insertClothes(name, category)
 
         result.onSuccess { cid ->
             _insertState.value = ClothesOperationState.Success("옷이 추가되었습니다.")

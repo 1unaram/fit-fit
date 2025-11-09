@@ -28,15 +28,15 @@ import com.fitfit.app.viewmodel.UserViewModel
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: UserViewModel = viewModel(),
+    userViewModel: UserViewModel = viewModel(),
 ) {
-    val registerState by viewModel.registerState.collectAsState()
-    val loginState by viewModel.loginState.collectAsState()
+    val registerState by userViewModel.registerState.collectAsState()
+    val loginState by userViewModel.loginState.collectAsState()
 
     // 회원가입 성공 시 자동 로그인
     LaunchedEffect(registerState) {
         if (registerState is RegisterState.Success) {
-            viewModel.loginUser("testuser", "1234")
+            userViewModel.loginUser("testuser", "1234")
         }
     }
 
@@ -66,7 +66,7 @@ fun LoginScreen(
         // 테스트용 회원가입 버튼
         Button(
             onClick = {
-                viewModel.registerUser("testuser", "1234")
+                userViewModel.registerUser("testuser", "1234")
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = registerState !is RegisterState.Loading && loginState !is LoginState.Loading
@@ -85,7 +85,7 @@ fun LoginScreen(
         // 테스트용 로그인 버튼
         Button(
             onClick = {
-                viewModel.loginUser("testuser", "1234")
+                userViewModel.loginUser("testuser", "1234")
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = registerState !is RegisterState.Loading && loginState !is LoginState.Loading

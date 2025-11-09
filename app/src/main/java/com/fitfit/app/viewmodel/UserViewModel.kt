@@ -23,9 +23,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentUser = MutableStateFlow<UserEntity?>(null)
     val currentUser: StateFlow<UserEntity?> = _currentUser
 
-    /**
-     * 회원가입
-     */
+    // ### 회원 가입 ###
     fun registerUser(username: String, password: String) = viewModelScope.launch {
         _registerState.value = RegisterState.Loading
 
@@ -55,9 +53,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * 로그인
-     */
+    // ### 로그인 ###
     fun loginUser(username: String, password: String) = viewModelScope.launch {
         _loginState.value = LoginState.Loading
 
@@ -83,9 +79,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * 로그아웃
-     */
+    // ### 로그아웃 ###
     fun logout() = viewModelScope.launch {
         repository.logout()
         _currentUser.value = null
@@ -93,9 +87,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         _registerState.value = RegisterState.Idle
     }
 
-    /**
-     * 상태 초기화
-     */
+    // 상태 초기화
     fun resetRegisterState() {
         _registerState.value = RegisterState.Idle
     }
@@ -104,9 +96,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         _loginState.value = LoginState.Idle
     }
 
-    /**
-     * 실시간 동기화 시작
-     */
+    // 실시간 동기화 시작
     fun startRealtimeSync() {
         repository.startRealtimeSync()
     }
