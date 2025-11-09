@@ -54,4 +54,19 @@ class WeatherRepository(
             )
         )
     }
+
+    fun getTimemachineWeather(
+        latitude: Double,
+        longitude: Double,
+        timestamp: Long
+    ): Flow<Result<OneCallWeatherResponse>> = flow {
+        emit(
+            weatherApiCall.fetchTimemachineWeather(
+                latitude,
+                longitude,
+                timestamp,
+                apiKey
+            )
+        )
+    }
 }

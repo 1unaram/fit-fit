@@ -111,4 +111,7 @@ dependencies {
     // Location
     implementation("com.google.android.gms:play-services-location:21.1.0")
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+
+    // Coli - Image Loading
+    implementation("io.coil-kt:coil-compose:2.5.0")
 }

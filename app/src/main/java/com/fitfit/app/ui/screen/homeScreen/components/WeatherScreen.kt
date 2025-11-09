@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -32,6 +31,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fitfit.app.BuildConfig
 import com.fitfit.app.data.util.LocationHelper
+import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.viewmodel.WeatherUiState
 import com.fitfit.app.viewmodel.WeatherViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -84,6 +84,7 @@ fun WeatherScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+//            .verticalScroll(rememberScrollState())
     ) {
         // 권한이 거부된 경우
         if (!locationPermissions.allPermissionsGranted) {
@@ -136,7 +137,11 @@ fun WeatherScreen(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        WeatherIcon(weather.current.weather.firstOrNull()?.icon ?: "", "현재 날씨 아이콘")
                         Text("현재 날씨", style = MaterialTheme.typography.headlineSmall)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("온도: ${weather.current.temp}°C")
@@ -187,11 +192,10 @@ fun WeatherScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-                    LazyColumn {
-                        items(dailyList) { daily ->
+                    Column {
+                        dailyList.forEach { daily ->
                             Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
+                                modifier = Modifier                                    .fillMaxWidth()
                                     .padding(vertical = 4.dp)
                             ) {
                                 Row(

@@ -93,4 +93,24 @@ class WeatherViewModel(
                 }
         }
     }
+
+    fun fetchTimemachineWeather(latitude: Double, longitude: Double, timestamp: Long) {
+        viewModelScope.launch {
+            _weatherState.value = WeatherUiState.Loading
+
+            repository.getTimemachineWeather(latitude, longitude, timestamp)
+                .collect { result ->
+                    result.fold(
+                        onSuccess = { weatherResponse ->
+                            _weatherState.value = WeatherUiState.Success(weatherResponse)
+                        },
+                        onFailure = { exception ->
+                            _weatherState.value = WeatherUiState.Error(
+                                exception.message ?: "알 수 없는 오류가 발생했습니다"
+                            )
+                        }
+                    )
+                }
+        }
+    }
 }

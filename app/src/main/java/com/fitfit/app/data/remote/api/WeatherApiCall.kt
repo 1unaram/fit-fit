@@ -30,14 +30,37 @@ class WeatherApiCall {
                 lon = longitude,
                 appid = apiKey,
                 exclude = exclude,
-                units = "metric", // 섭씨 사용
-                lang = "kr" // 한국어 설명
+                units = "metric"
             )
             handleResponse(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
+
+    suspend fun fetchTimemachineWeather(
+        latitude: Double,
+        longitude: Double,
+        timestamp: Long,
+        apiKey: String
+    ): Result<OneCallWeatherResponse> = withContext(Dispatchers.IO) {
+        try {
+            val response = apiService.getTimemachineWeather(
+                lat = latitude,
+                lon = longitude,
+                timestamp = timestamp,
+                appid = apiKey,
+                units = "metric"
+            )
+            handleResponse(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+
 
     private fun <T> handleResponse(response: Response<T>): Result<T> {
         return if (response.isSuccessful && response.body() != null) {
