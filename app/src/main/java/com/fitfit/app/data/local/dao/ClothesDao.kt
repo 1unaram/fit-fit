@@ -7,11 +7,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.fitfit.app.data.local.entity.ClothesEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ClothesDao {
 
-    @Query("SELECT * FROM clothes WHERE owner_uid = :uid ORDER BY created_at DESC")
+    @Query("SELECT * FROM clothes WHERE ownerUid = :uid ORDER BY createdAt DESC")
     fun getClothesByUser(uid: String): Flow<List<ClothesEntity>>
 
     @Query("SELECT * FROM clothes WHERE cid = :cid")

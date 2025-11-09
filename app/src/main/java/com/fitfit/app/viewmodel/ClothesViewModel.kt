@@ -1,16 +1,14 @@
 package com.fitfit.app.viewmodel
 
-import android.R.attr.name
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.fitfit.app.data.local.database.AppDatabase
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.repository.ClothesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class ClothesViewModel(application: Application) : AndroidViewModel(application) {
