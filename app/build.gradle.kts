@@ -22,6 +22,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // OpenWeather API Key
+        val properties = org.jetbrains.kotlin.konan.properties.Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        }
+        buildConfigField(
+            "String",
+            "OPENWEATHER_API_KEY",
+            "\"${properties.getProperty("OPENWEATHER_API_KEY", "")}\""
+        )
     }
 
     buildTypes {
@@ -42,12 +54,13 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
-    implementation(libs.androidx.constraintlayout)
     val roomVersion = "2.8.3"
+    implementation(libs.androidx.constraintlayout)
 
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.adapters)
