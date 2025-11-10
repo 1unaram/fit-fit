@@ -1,5 +1,6 @@
 package com.fitfit.app.ui.screen.homeScreen.components
 
+import android.app.Application
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,13 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.fitfit.app.BuildConfig
 import com.fitfit.app.data.util.LocationHelper
 import com.fitfit.app.ui.components.WeatherIcon
-import com.fitfit.app.viewmodel.WeatherUiState
+import com.fitfit.app.viewmodel.OpenWeatherState
 import com.fitfit.app.viewmodel.WeatherViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -43,17 +41,11 @@ import java.util.Locale
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun WeatherScreen(
-    weatherViewModel: WeatherViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return WeatherViewModel(BuildConfig.OPENWEATHER_API_KEY) as T
-            }
-        }
-    )
-) {
+fun WeatherScreen() {
     val context = LocalContext.current
+    val application = context.applicationContext as Application
+
+    val weatherViewModel: WeatherViewModel = viewModel()
     val locationHelper = remember { LocationHelper(context) }
     val weatherState by weatherViewModel.weatherState.collectAsState()
     var isLoadingLocation by remember { mutableStateOf(false) }
@@ -119,16 +111,16 @@ fun WeatherScreen(
         }
 
         when (weatherState) {
-            is WeatherUiState.Idle -> {
+            is OpenWeatherState.Idle -> {
                 Text("날씨 정보를 불러오는 중...")
             }
 
-            is WeatherUiState.Loading -> {
+            is OpenWeatherState.Loading -> {
                 CircularProgressIndicator()
             }
 
-            is WeatherUiState.Success -> {
-                val weather = (weatherState as WeatherUiState.Success).weatherData
+            is OpenWeatherState.Success -> {
+                val weather = (weatherState as OpenWeatherState.Success).weatherData
 
                 // 현재 날씨
                 Card(
@@ -217,8 +209,8 @@ fun WeatherScreen(
                 }
             }
 
-            is WeatherUiState.Error -> {
-                val errorMessage = (weatherState as WeatherUiState.Error).message
+            is OpenWeatherState.Error -> {
+                val errorMessage = (weatherState as OpenWeatherState.Error).message
                 Text(
                     "오류: $errorMessage",
                     color = MaterialTheme.colorScheme.error
