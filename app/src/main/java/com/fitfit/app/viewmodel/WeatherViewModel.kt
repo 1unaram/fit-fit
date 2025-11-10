@@ -44,7 +44,10 @@ class WeatherViewModel(
     private val _weatherState = MutableStateFlow<WeatherUiState>(WeatherUiState.Idle)
     val weatherState: StateFlow<WeatherUiState> = _weatherState.asStateFlow()
 
-     // # 전체 날씨 정보 가져오기 (현재 + 예보)
+    private val _weatherCardState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
+    val weatherCardState: StateFlow<WeatherCardUiState> = _weatherCardState.asStateFlow()
+
+     // ### 전체 날씨 정보 가져오기 (현재 + 예보) ###
     fun fetchOneCallWeather(latitude: Double, longitude: Double) {
         viewModelScope.launch {
             _weatherState.value = WeatherUiState.Loading
@@ -65,10 +68,7 @@ class WeatherViewModel(
         }
     }
 
-    // [+] Weather Card 날씨 정보 가져오기
-    private val _weatherCardState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
-    val weatherCardState: StateFlow<WeatherCardUiState> = _weatherCardState.asStateFlow()
-
+    // ### Weather Card 날씨 정보 가져오기 ###
     fun getWeatherCardData(latitude: Double, longitude: Double) {
         viewModelScope.launch {
             _weatherCardState.value = WeatherCardUiState.Loading
