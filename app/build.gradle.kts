@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,6 +10,9 @@ plugins {
 
     // RoomDB
     id("com.google.devtools.ksp")
+
+    // hilt
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -46,6 +51,9 @@ android {
 }
 
 dependencies {
+
+    implementation ("com.google.dagger:hilt-android:2.48")
+    ksp ("com.google.dagger:hilt-compiler:2.48")
 
     implementation(libs.androidx.compose.runtime.livedata)
     val roomVersion = "2.8.3"

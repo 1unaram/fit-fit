@@ -20,7 +20,7 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screens.OUTFITS
+        startDestination = Screens.HOME
     ) {
         composable(Screens.HOME) { HomeScreen(navController=navController) }
         composable(Screens.CLOTHES) { ClothesScreen(navController=navController) }
