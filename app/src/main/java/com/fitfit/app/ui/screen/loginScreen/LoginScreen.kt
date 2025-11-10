@@ -37,6 +37,7 @@ fun LoginScreen(
     LaunchedEffect(registerState) {
         if (registerState is RegisterState.Success) {
             userViewModel.loginUser("testuser", "1234")
+            userViewModel.logout()
         }
     }
 
