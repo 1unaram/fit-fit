@@ -82,7 +82,7 @@ class WeatherViewModel(
                                 currentTemperature = weatherResponse.current.temp,
                                 todayMinTemperature = weatherResponse.daily?.firstOrNull()?.temp?.min,
                                 todayMaxTemperature = weatherResponse.daily?.firstOrNull()?.temp?.max,
-                                todayWeatherDescription = weatherResponse.current.weather.firstOrNull()?.description,
+                                todayWeatherDescription = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.description,
                                 probabilityOfPrecipitation = (weatherResponse.daily?.firstOrNull()?.pop?.times(
                                     100
                                 ))?.toInt() ?: 0,
