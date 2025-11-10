@@ -9,6 +9,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+// WeatherCard용 데이터 클래스
+data class WeatherCardData(
+    val todayWeatherIconCode: String?,
+    val currentTemperature: Double,
+    val todayMinTemperature: Double?,
+    val todayMaxTemperature: Double?,
+    val todayWeatherDescription: String?,
+    val probabilityOfPrecipitation: Int,
+    val windSpeed: Double?
+)
+
+sealed class WeatherCardUiState {
+    object Idle : WeatherCardUiState()
+    object Loading : WeatherCardUiState()
+    data class Success(val cardData: WeatherCardData) : WeatherCardUiState()
+    data class Error(val message: String) : WeatherCardUiState()
+}
+
+// 전체 날씨 정보용 UI 상태 클래스
 sealed class WeatherUiState {
     object Idle : WeatherUiState()
     object Loading : WeatherUiState()
@@ -25,9 +44,7 @@ class WeatherViewModel(
     private val _weatherState = MutableStateFlow<WeatherUiState>(WeatherUiState.Idle)
     val weatherState: StateFlow<WeatherUiState> = _weatherState.asStateFlow()
 
-    /**
-     * 전체 날씨 정보 가져오기 (현재 + 예보)
-     */
+     // # 전체 날씨 정보 가져오기 (현재 + 예보)
     fun fetchOneCallWeather(latitude: Double, longitude: Double) {
         viewModelScope.launch {
             _weatherState.value = WeatherUiState.Loading
@@ -40,7 +57,42 @@ class WeatherViewModel(
                         },
                         onFailure = { exception ->
                             _weatherState.value = WeatherUiState.Error(
-                                exception.message ?: "알 수 없는 오류가 발생했습니다"
+                                exception.message ?: "Error occurred"
+                            )
+                        }
+                    )
+                }
+        }
+    }
+
+    // [+] Weather Card 날씨 정보 가져오기
+    private val _weatherCardState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
+    val weatherCardState: StateFlow<WeatherCardUiState> = _weatherCardState.asStateFlow()
+
+    fun getWeatherCardData(latitude: Double, longitude: Double) {
+        viewModelScope.launch {
+            _weatherCardState.value = WeatherCardUiState.Loading
+
+            repository.getCurrentAndDailyWeather(latitude, longitude)
+                .collect { result ->
+                    result.fold(
+                        onSuccess = { weatherResponse ->
+                            val cardData = WeatherCardData(
+                                todayWeatherIconCode = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.icon,
+                                currentTemperature = weatherResponse.current.temp,
+                                todayMinTemperature = weatherResponse.daily?.firstOrNull()?.temp?.min,
+                                todayMaxTemperature = weatherResponse.daily?.firstOrNull()?.temp?.max,
+                                todayWeatherDescription = weatherResponse.current.weather.firstOrNull()?.description,
+                                probabilityOfPrecipitation = (weatherResponse.daily?.firstOrNull()?.pop?.times(
+                                    100
+                                ))?.toInt() ?: 0,
+                                windSpeed = weatherResponse.daily?.firstOrNull()?.windSpeed
+                            )
+                            _weatherCardState.value = WeatherCardUiState.Success(cardData)
+                        },
+                        onFailure = { exception ->
+                            _weatherCardState.value = WeatherCardUiState.Error(
+                                exception.message ?: "Error occurred"
                             )
                         }
                     )
@@ -63,7 +115,7 @@ class WeatherViewModel(
                         },
                         onFailure = { exception ->
                             _weatherState.value = WeatherUiState.Error(
-                                exception.message ?: "알 수 없는 오류가 발생했습니다"
+                                exception.message ?: "Error occurred"
                             )
                         }
                     )
@@ -86,7 +138,7 @@ class WeatherViewModel(
                         },
                         onFailure = { exception ->
                             _weatherState.value = WeatherUiState.Error(
-                                exception.message ?: "알 수 없는 오류가 발생했습니다"
+                                exception.message ?: "Error occurred"
                             )
                         }
                     )
@@ -106,7 +158,7 @@ class WeatherViewModel(
                         },
                         onFailure = { exception ->
                             _weatherState.value = WeatherUiState.Error(
-                                exception.message ?: "알 수 없는 오류가 발생했습니다"
+                                exception.message ?: "Error occurred"
                             )
                         }
                     )

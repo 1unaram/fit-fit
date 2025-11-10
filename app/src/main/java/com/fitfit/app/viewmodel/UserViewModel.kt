@@ -49,7 +49,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         result.onSuccess { uid ->
             _registerState.value = RegisterState.Success(uid)
         }.onFailure { exception ->
-            _registerState.value = RegisterState.Failure(exception.message ?: "회원가입 실패")
+            _registerState.value = RegisterState.Failure(exception.message ?: "Registration failed")
         }
     }
 
@@ -59,12 +59,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
         // 입력 검증
         if (username.isBlank()) {
-            _loginState.value = LoginState.Failure("아이디를 입력해주세요.")
+            _loginState.value = LoginState.Failure("Fill in your username.")
             return@launch
         }
 
         if (password.isBlank()) {
-            _loginState.value = LoginState.Failure("비밀번호를 입력해주세요.")
+            _loginState.value = LoginState.Failure("Fill in your password.")
             return@launch
         }
 
@@ -75,7 +75,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             _currentUser.value = user
             _loginState.value = LoginState.Success(user)
         }.onFailure { exception ->
-            _loginState.value = LoginState.Failure(exception.message ?: "로그인 실패")
+            _loginState.value = LoginState.Failure(exception.message ?: "Login failed")
         }
     }
 

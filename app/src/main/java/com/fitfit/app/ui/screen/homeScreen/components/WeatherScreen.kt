@@ -84,7 +84,6 @@ fun WeatherScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-//            .verticalScroll(rememberScrollState())
     ) {
         // 권한이 거부된 경우
         if (!locationPermissions.allPermissionsGranted) {
