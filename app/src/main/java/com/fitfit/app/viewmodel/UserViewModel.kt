@@ -29,17 +29,17 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
         // 입력 검증
         if (username.isBlank()) {
-            _registerState.value = RegisterState.Failure("아이디를 입력해주세요.")
+            _registerState.value = RegisterState.Failure("Fill in your username.")
             return@launch
         }
 
         if (password.isBlank()) {
-            _registerState.value = RegisterState.Failure("비밀번호를 입력해주세요.")
+            _registerState.value = RegisterState.Failure("Fill in your password.")
             return@launch
         }
 
         if (password.length < 4) {
-            _registerState.value = RegisterState.Failure("비밀번호는 4자 이상이어야 합니다.")
+            _registerState.value = RegisterState.Failure("Password must be at least 4 characters long.")
             return@launch
         }
 

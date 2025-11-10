@@ -1,5 +1,7 @@
 package com.fitfit.app.ui.screen.homeScreen
 
+import FilterSelectScreen
+import FilterState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -76,6 +78,13 @@ fun HomeScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+
+            FilterSelectScreen(
+                initialFilter = FilterState(3, "Sunny", "Casual"),
+                onDismiss = { /* TODO */ },
+                onSave = { /* TODO */ }
+            )
+
             // 사용자 정보
             Card(
                 modifier = Modifier.fillMaxWidth()
