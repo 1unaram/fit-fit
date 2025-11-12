@@ -1,3 +1,4 @@
+import android.R.attr.contentDescription
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -9,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fitfit.app.ui.components.WeatherIcon
+import kotlin.math.roundToInt
 
 data class FilterState(
     val temperature: Int = 3,
@@ -35,53 +39,59 @@ fun FilterSelectScreen(
 ) {
     var filterState by remember { mutableStateOf(initialFilter) }
 
-    Card(
+    Box(
         modifier = Modifier
             .width(294.dp)
-            .height(373.dp),
-        shape = RoundedCornerShape(16.67.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 3.33.dp
-        )
+            .height(373.dp)
+            .shadow(
+                elevation = 16.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color(0x22000000),
+                spotColor = Color(0x33000000)
+            )
+            .background(Color.White, shape = RoundedCornerShape(16.dp))
+            .border(1.dp, Color.White, shape = RoundedCornerShape(16.dp))
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Column( modifier = Modifier
+            .padding(21.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ){
             // Close Button
-            IconButton(
-                onClick = onDismiss,
+            Row(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 12.dp, end = 12.dp)
-                    .size(22.dp)
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                Color(0x99E8F2FF),
-                                Color(0xCCE8F2FF)
-                            )
-                        ),
-                        shape = RoundedCornerShape(6.67.dp)
-                    )
-                    .shadow(1.33.dp, RoundedCornerShape(6.67.dp))
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
                 Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = Color(0xFF141B34),
-                    modifier = Modifier.size(15.dp)
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = "cancel icon",
+                    //tint = Color(0xFF141B34),
+                    modifier = Modifier
+                        .size(25.dp)
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFE8F2FF),
+                                    Color(0xFFDDE4ED)
+                                )
+                            ),
+                            shape = RoundedCornerShape(6.667.dp)
+                        )
+                        .shadow(
+                            elevation = 6.dp,
+                            shape = RoundedCornerShape(6.667.dp),
+                            spotColor = Color(0x338CADCF)
+                        )
+                        .border(
+                            0.5.dp, Color(0x443A4B67), RoundedCornerShape(6.667.dp)
+                        )
                 )
             }
 
             // Main Content
             Column(
                 modifier = Modifier
-                    .width(252.dp)
-                    .align(Alignment.TopCenter)
-                    .padding(top = 33.dp, start = 21.dp, end = 21.dp),
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(17.67.dp),
                 horizontalAlignment = Alignment.Start
             ) {
@@ -130,11 +140,14 @@ fun FilterSelectScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemperatureSectionCompact(
     selectedValue: Int,
     onValueChange: (Int) -> Unit
 ) {
+    var sliderPosition by remember { mutableFloatStateOf(0f) }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(5.dp)
@@ -161,59 +174,53 @@ fun TemperatureSectionCompact(
                         text = temp.toString(),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (temp == selectedValue) Color.Black else Color(0xFF8E8E93),
+                        color = if (temp == sliderPosition.roundToInt()) Color.Black else Color(0xFF8E8E93),
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .weight(1f)
-                            .clickable { onValueChange(temp) }
                     )
                 }
             }
 
             // Slider
-            Box(
-                modifier = Modifier
-                    .width(252.dp)
-                    .height(25.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                // Slider Bar
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(7.dp)
-                        .align(Alignment.Center)
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0x99E8F2FF),
-                                    Color(0xCCE8F2FF)
-                                )
-                            ),
-                            shape = RoundedCornerShape(13.33.dp)
-                        )
-                        .shadow(1.33.dp, RoundedCornerShape(13.33.dp))
-                )
-
-                // Slider Ball
-                Box(
-                    modifier = Modifier
-                        .size(25.dp)
-                        .offset(x = ((selectedValue - 1) * (252 - 25) / 9).dp)
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color.White,
-                                    Color(0xFFE6E6E6)
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                        .border(0.33.dp, Color.White, CircleShape)
-                        .shadow(1.33.dp, CircleShape)
-                        .clickable { }
-                )
-            }
+            Slider(
+                value = sliderPosition,
+                onValueChange = { sliderPosition = it },
+                valueRange = 1f..10f,
+                steps = 8, // (10 - 1) - 1 = 8 (10개의 점)
+                modifier = Modifier.width(252.dp),
+                track = {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(7.dp)
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        Color(0x99E8F2FF),
+                                        Color(0xCCE8F2FF)
+                                    )
+                                ),
+                                shape = RoundedCornerShape(13.33.dp)
+                            )
+                            .shadow(1.33.dp, RoundedCornerShape(13.33.dp))
+                    )
+                },
+                thumb = {
+                    Box(
+                        Modifier
+                            .size(25.dp)
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(Color.White, Color(0xFFE6E6E6))
+                                ),
+                                shape = CircleShape
+                            )
+                            .border(0.33.dp, Color.White, CircleShape)
+                            .shadow(1.33.dp, CircleShape)
+                    )
+                }
+            )
         }
     }
 }
@@ -247,7 +254,6 @@ fun WeatherSectionCompact(
                     ),
                     shape = RoundedCornerShape(6.67.dp)
                 )
-                .padding(vertical = 13.dp, horizontal = 7.67.dp)
                 .shadow(1.33.dp, RoundedCornerShape(6.67.dp)),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
@@ -267,19 +273,23 @@ fun WeatherSectionCompact(
 fun WeatherIconCompact(
     weather: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
+    val iconCode = when (weather) {
+        "Sunny" -> "01d"
+        "Cloud" -> "02d"
+        "Rain" -> "09d"
+        "Snow" -> "13d"
+        else -> "01d"
+    }
+
     IconButton(
         onClick = onClick,
         modifier = Modifier.size(43.33.dp)
     ) {
-        // Weather icon placeholder
-        Icon(
-            imageVector = Icons.Default.Close, // Replace with actual weather icons
-            contentDescription = weather,
-            tint = Color(0xFF8E8E93),
-            modifier = Modifier.fillMaxSize()
-        )
+        WeatherIcon(
+            iconCode = iconCode,
+            contentDescription = weather)
     }
 }
 
@@ -290,7 +300,7 @@ fun OccasionSectionCompact(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+        verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         Text(
             text = "Occasion",
@@ -300,23 +310,35 @@ fun OccasionSectionCompact(
         )
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(7.67.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(76.dp)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0x99E8F2FF),
+                            Color(0xCCE8F2FF)
+                        )
+                    ),
+                    shape = RoundedCornerShape(6.67.dp)
+                )
+                .shadow(1.33.dp, RoundedCornerShape(6.67.dp))
+                .padding(vertical = 10.dp, horizontal = 8.dp),
         ) {
             // First Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.33.dp)
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 OccasionChipCompact("Wedding", selectedOccasion == "Wedding", onOccasionSelected)
                 OccasionChipCompact("Workday", selectedOccasion == "Workday", onOccasionSelected, true)
                 OccasionChipCompact("Workout", selectedOccasion == "Workout", onOccasionSelected)
             }
-
+            Spacer(modifier = Modifier.height(4.dp))
             // Second Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.33.dp)
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 OccasionChipCompact("Travel", selectedOccasion == "Travel", onOccasionSelected)
                 OccasionChipCompact("Normal", selectedOccasion == "Normal", onOccasionSelected)
@@ -340,6 +362,21 @@ fun OccasionChipCompact(
         )
         isHighlighted && text == "School" -> Brush.linearGradient(
             colors = listOf(Color(0xB3FAEED9), Color(0xB3F6CC84))
+        )
+        isHighlighted && text == "Date" -> Brush.linearGradient(
+            colors = listOf(Color(0xB3FFD7DC), Color(0xB3F9B2B6))
+        )
+        isHighlighted && text == "Normal" -> Brush.linearGradient(
+            colors = listOf(Color(0xB3F3F6FC), Color(0xB3E1E6F8))
+        )
+        isHighlighted && text == "Travel" -> Brush.linearGradient(
+            colors = listOf(Color(0xB3D7FFEB), Color(0xB3BEEAD9))
+        )
+        isHighlighted && text == "Wedding" -> Brush.linearGradient(
+            colors = listOf(Color(0xB3FFE6FA), Color(0xB3E8B3F8))
+        )
+        isHighlighted && text == "Workout" -> Brush.linearGradient(
+            colors = listOf(Color(0xB3EAF9FC), Color(0xB3B3F8F6))
         )
         else -> Brush.linearGradient(
             colors = listOf(Color(0xB3FFFFFF), Color(0xB3E6E6E6))
