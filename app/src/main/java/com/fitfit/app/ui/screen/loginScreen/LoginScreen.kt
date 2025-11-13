@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -32,6 +33,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -61,7 +64,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(112.dp))
 
             // Login Main Card
-            LoginMainCard()
+            LoginMainCard(userViewModel)
 
             Spacer(modifier = Modifier.height(38.dp))
 
@@ -74,7 +77,7 @@ fun LoginScreen(
 }
 
 @Composable
-fun LoginMainCard() {
+fun LoginMainCard(userViewModel: UserViewModel) {
     Card(
         modifier = Modifier
             .width(294.dp)
@@ -102,7 +105,7 @@ fun LoginMainCard() {
             LoginInputFields()
 
             // Login Button
-            LoginButton()
+            LoginButton(userViewModel)
         }
     }
 }
@@ -209,19 +212,23 @@ fun InputField(
                     color = Color(0x26000000),
                     shape = RoundedCornerShape(7.dp)
                 )
-                .padding(horizontal = 8.dp, vertical = 13.dp),
+                .padding(horizontal = 8.dp, vertical = 6.dp),
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             textStyle = TextStyle(
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 color = Color.Black
             ),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Text,
+                imeAction = if (isPassword) ImeAction.Done else ImeAction.Next
+            )
         )
     }
 }
 
 @Composable
-fun LoginButton() {
+fun LoginButton(userViewModel: UserViewModel) {
     Box(
         modifier = Modifier
             .width(200.dp)
@@ -240,7 +247,9 @@ fun LoginButton() {
                 color = Color(0x26000000),
                 shape = RoundedCornerShape(13.dp)
             )
-            .clickable { /* Handle login */ },
+            .clickable {
+                // userViewModel.loginUser()
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(
