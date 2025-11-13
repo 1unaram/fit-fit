@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                         // Weather 동기화
                         weatherViewModel.startRealtimeSync(user.uid)
                         weatherViewModel.syncUnsyncedData()
-                        weatherViewModel.loadWeathers()
+                        weatherViewModel.loadWeathersFromDB()
                     }
                 }
 

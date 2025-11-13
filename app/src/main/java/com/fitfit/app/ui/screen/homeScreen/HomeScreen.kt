@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.fitfit.app.ui.screen.homeScreen.components.WeatherScreen
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
@@ -200,8 +199,6 @@ fun HomeScreen(
             ) {
                 Text("테스트 코디 생성")
             }
-
-            WeatherScreen()
         }
 
     }

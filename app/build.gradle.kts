@@ -59,6 +59,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.material3)
     val roomVersion = "2.8.3"
     implementation(libs.androidx.constraintlayout)
 
@@ -114,4 +115,7 @@ dependencies {
 
     // Coli - Image Loading
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // Icon
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
 }
