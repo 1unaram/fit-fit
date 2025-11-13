@@ -14,6 +14,7 @@ class IdGenerator(context: Context) {
         private const val USER_COUNTER_KEY = "user_counter"
         private const val CLOTHES_COUNTER_KEY = "clothes_counter"
         private const val OUTFIT_COUNTER_KEY = "outfit_counter"
+        private const val WEATHER_COUNTER_KEY = "weather_counter"
     }
 
     // 다음 User ID 생성 (u1, u2, u3...)
@@ -40,10 +41,19 @@ class IdGenerator(context: Context) {
         return "o$nextCount"
     }
 
+    // 다음 Weather ID 생성 (w1, w2, w3...)
+    fun generateNextWeatherId(): String {
+        val currentCount = prefs.getInt(WEATHER_COUNTER_KEY, 0)
+        val nextCount = currentCount + 1
+        prefs.edit { putInt(WEATHER_COUNTER_KEY, nextCount) }
+        return "w$nextCount"
+    }
+
     // 현재 카운터 값 조회 (필요 시)
     fun getCurrentUserCount(): Int = prefs.getInt(USER_COUNTER_KEY, 0)
     fun getCurrentClothesCount(): Int = prefs.getInt(CLOTHES_COUNTER_KEY, 0)
     fun getCurrentOutfitCount(): Int = prefs.getInt(OUTFIT_COUNTER_KEY, 0)
+    fun getCurrentWeatherCount(): Int = prefs.getInt(WEATHER_COUNTER_KEY, 0)
 
     // 카운터 초기화 (테스트용)
     fun resetCounters() {

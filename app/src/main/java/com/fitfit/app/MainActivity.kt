@@ -7,17 +7,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.fitfit.app.data.local.userPrefsDataStore
 import com.fitfit.app.navigation.AppNavigation
 import com.fitfit.app.ui.theme.FitFitTheme
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
-import kotlinx.coroutines.flow.map
+import com.fitfit.app.viewmodel.WeatherViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -29,6 +25,7 @@ class MainActivity : ComponentActivity() {
                 val userViewModel: UserViewModel = viewModel()
                 val clothesViewModel: ClothesViewModel = viewModel()
                 val outfitViewModel: OutfitViewModel = viewModel()
+                val weatherViewModel: WeatherViewModel = viewModel()
 
                 val currentUser by userViewModel.currentUser.collectAsState()
 
@@ -48,6 +45,11 @@ class MainActivity : ComponentActivity() {
                         outfitViewModel.syncUnsyncedData()
                         outfitViewModel.loadOutfits()
                         outfitViewModel.loadOutfitsWithClothes()
+
+                        // Weather 동기화
+                        weatherViewModel.startRealtimeSync(user.uid)
+                        weatherViewModel.syncUnsyncedData()
+                        weatherViewModel.loadWeathers()
                     }
                 }
 
