@@ -78,6 +78,10 @@ fun LoginScreen(
 
 @Composable
 fun LoginMainCard(userViewModel: UserViewModel) {
+
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
     Card(
         modifier = Modifier
             .width(294.dp)
@@ -102,10 +106,19 @@ fun LoginMainCard(userViewModel: UserViewModel) {
             LoginTitle()
 
             // Login Input Fields
-            LoginInputFields()
+            LoginInputFields(
+                username = username,
+                password = password,
+                onUsernameChange = { username = it },
+                onPasswordChange = { password = it }
+            )
 
             // Login Button
-            LoginButton(userViewModel)
+            LoginButton(
+                username = username,
+                password = password,
+                userViewModel = userViewModel
+            )
         }
     }
 }
@@ -146,7 +159,12 @@ fun LoginTitle() {
 }
 
 @Composable
-fun LoginInputFields() {
+fun LoginInputFields(
+    username: String,
+    password: String,
+    onUsernameChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .width(247.dp),
@@ -155,13 +173,17 @@ fun LoginInputFields() {
         // User Name Input
         InputField(
             label = "User Name",
-            placeholder = ""
+            placeholder = "",
+            value = username,
+            onValueChange = onUsernameChange
         )
 
         // Password Input
         InputField(
             label = "Password",
             placeholder = "",
+            value = password,
+            onValueChange = onPasswordChange,
             isPassword = true
         )
     }
@@ -171,10 +193,10 @@ fun LoginInputFields() {
 fun InputField(
     label: String,
     placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
     isPassword: Boolean = false
 ) {
-    var text by remember { mutableStateOf("") }
-
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -193,8 +215,8 @@ fun InputField(
 
         // Input Field
         BasicTextField(
-            value = text,
-            onValueChange = { text = it },
+            value = value,
+            onValueChange = onValueChange,
             modifier = Modifier
                 .width(163.dp)
                 .height(30.dp)
@@ -228,7 +250,11 @@ fun InputField(
 }
 
 @Composable
-fun LoginButton(userViewModel: UserViewModel) {
+fun LoginButton(
+    username: String,
+    password: String,
+    userViewModel: UserViewModel
+) {
     Box(
         modifier = Modifier
             .width(200.dp)
@@ -248,7 +274,7 @@ fun LoginButton(userViewModel: UserViewModel) {
                 shape = RoundedCornerShape(13.dp)
             )
             .clickable {
-                // userViewModel.loginUser()
+                userViewModel.loginUser(username, password)
             },
         contentAlignment = Alignment.Center
     ) {
