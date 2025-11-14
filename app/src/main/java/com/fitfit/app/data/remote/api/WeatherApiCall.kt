@@ -1,6 +1,7 @@
 package com.fitfit.app.data.remote.api
 
 import com.fitfit.app.data.remote.model.OneCallWeatherResponse
+import com.fitfit.app.data.remote.model.TimeMachineWeatherResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
@@ -44,7 +45,7 @@ class WeatherApiCall {
         longitude: Double,
         timestamp: Long,
         apiKey: String
-    ): Result<OneCallWeatherResponse> = withContext(Dispatchers.IO) {
+    ): Result<TimeMachineWeatherResponse> = withContext(Dispatchers.IO) {
         try {
             val response = apiService.getTimemachineWeather(
                 lat = latitude,

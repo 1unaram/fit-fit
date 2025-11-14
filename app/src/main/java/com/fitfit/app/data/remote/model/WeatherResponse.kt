@@ -295,3 +295,71 @@ data class WeatherAlert(
     @SerializedName("tags")
     val tags: List<String>? = null
 )
+
+// Open Weather Time Machine API 응답
+data class TimeMachineWeatherResponse(
+    @SerializedName("lat")
+    val lat: Double,
+
+    @SerializedName("lon")
+    val lon: Double,
+
+    @SerializedName("timezone")
+    val timezone: String,
+
+    @SerializedName("timezone_offset")
+    val timezoneOffset: Int,
+
+    @SerializedName("data")
+    val data: List<TimeMachineData>
+)
+
+data class TimeMachineData(
+    @SerializedName("dt")
+    val dt: Long,
+
+    @SerializedName("sunrise")
+    val sunrise: Long? = null,
+
+    @SerializedName("sunset")
+    val sunset: Long? = null,
+
+    @SerializedName("temp")
+    val temp: Double,
+
+    @SerializedName("feels_like")
+    val feelsLike: Double,
+
+    @SerializedName("pressure")
+    val pressure: Int,
+
+    @SerializedName("humidity")
+    val humidity: Int,
+
+    @SerializedName("dew_point")
+    val dewPoint: Double,
+
+    @SerializedName("clouds")
+    val clouds: Int,
+
+    @SerializedName("visibility")
+    val visibility: Int? = null,
+
+    @SerializedName("wind_speed")
+    val windSpeed: Double,
+
+    @SerializedName("wind_deg")
+    val windDeg: Int,
+
+    @SerializedName("wind_gust")
+    val windGust: Double? = null,
+
+    @SerializedName("weather")
+    val weather: List<Weather>,
+
+    @SerializedName("rain")
+    val rain: Rain? = null,
+
+    @SerializedName("snow")
+    val snow: Snow? = null
+)

@@ -2,6 +2,7 @@ package com.fitfit.app.data.repository
 
 import com.fitfit.app.data.remote.api.WeatherApiCall
 import com.fitfit.app.data.remote.model.OneCallWeatherResponse
+import com.fitfit.app.data.remote.model.TimeMachineWeatherResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -59,7 +60,7 @@ class OpenWeatherRepository(
         latitude: Double,
         longitude: Double,
         timestamp: Long
-    ): Flow<Result<OneCallWeatherResponse>> = flow {
+    ): Flow<Result<TimeMachineWeatherResponse>> = flow {
         emit(
             weatherApiCall.fetchTimemachineWeather(
                 latitude,

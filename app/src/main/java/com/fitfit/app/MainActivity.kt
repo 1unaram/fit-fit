@@ -8,12 +8,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.fitfit.app.data.local.database.AppDatabase
+import com.fitfit.app.data.repository.OutfitRepository
 import com.fitfit.app.navigation.AppNavigation
 import com.fitfit.app.ui.theme.FitFitTheme
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
 import com.fitfit.app.viewmodel.WeatherViewModel
+import kotlinx.coroutines.delay
 
 
 class MainActivity : ComponentActivity() {
@@ -50,6 +53,25 @@ class MainActivity : ComponentActivity() {
                         weatherViewModel.startRealtimeSync(user.uid)
                         weatherViewModel.syncUnsyncedData()
                         weatherViewModel.loadWeathersFromDB()
+                    }
+                }
+
+                // Outfit Repository 설정
+                LaunchedEffect(Unit) {
+                    val outfitDao = AppDatabase.getDatabase(this@MainActivity).outfitDao()
+                    val outfitClothesDao = AppDatabase.getDatabase(this@MainActivity).outfitClothesDao()
+                    val outfitRepository =
+                        OutfitRepository(outfitDao, outfitClothesDao, this@MainActivity)
+
+                    weatherViewModel.setOutfitRepository(outfitRepository)
+                }
+
+                LaunchedEffect(Unit) {
+                    while (true) {
+                        delay(60_000) // 1분
+                        if (currentUser != null) {
+                            weatherViewModel.updatePendingOutfitWeather()
+                        }
                     }
                 }
 

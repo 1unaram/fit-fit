@@ -1,6 +1,7 @@
 package com.fitfit.app.data.remote.api
 
 import com.fitfit.app.data.remote.model.OneCallWeatherResponse
+import com.fitfit.app.data.remote.model.TimeMachineWeatherResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -40,5 +41,5 @@ interface WeatherApiService {
         @Query("dt") timestamp: Long,
         @Query("appid") appid: String,
         @Query("units") units: String = "metric"
-    ): Response<OneCallWeatherResponse>
+    ): Response<TimeMachineWeatherResponse>
 }

@@ -15,17 +15,15 @@ import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitClothesCrossRef
 import com.fitfit.app.data.local.entity.OutfitEntity
 import com.fitfit.app.data.local.entity.UserEntity
-import com.fitfit.app.data.local.entity.WeatherEntity
 
 @Database(
     entities = [
         UserEntity::class,
         ClothesEntity::class,
         OutfitEntity::class,
-        OutfitClothesCrossRef::class,
-        WeatherEntity::class
+        OutfitClothesCrossRef::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 @TypeConverters(ListConverter::class)

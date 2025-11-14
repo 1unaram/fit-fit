@@ -19,6 +19,22 @@ interface OutfitDao {
     @Query("SELECT * FROM outfits WHERE oid = :oid")
     suspend fun getOutfitById(oid: String): OutfitEntity?
 
+    @Transaction
+    @Query("SELECT * FROM outfits WHERE ownerUid = :uid ORDER BY createdAt DESC")
+    fun getOutfitsWithClothesByUser(uid: String): Flow<List<OutfitWithClothes>>
+
+    @Transaction
+    @Query("SELECT * FROM outfits WHERE oid = :oid")
+    suspend fun getOutfitWithClothes(oid: String): OutfitWithClothes?
+
+    // ========== 날씨 미조회 Outfit 조회 ==========
+    @Query("SELECT * FROM outfits WHERE ownerUid = :uid AND weatherFetched = 0")
+    suspend fun getOutfitsWithUnfetchedWeather(uid: String): List<OutfitEntity>
+
+    // ========= 날씨 업데이트 대기 중인 Outfit 조회 ==========
+    @Query("SELECT * FROM outfits WHERE weatherFetched = 0 AND wornEndTime < :currentTime")
+    suspend fun getPendingWeatherOutfits(currentTime: Long): List<OutfitEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOutfit(outfit: OutfitEntity)
 
@@ -31,13 +47,6 @@ interface OutfitDao {
     @Query("DELETE FROM outfits WHERE oid = :oid")
     suspend fun deleteOutfitById(oid: String)
 
-    @Transaction
-    @Query("SELECT * FROM outfits WHERE ownerUid = :uid ORDER BY createdAt DESC")
-    fun getOutfitsWithClothesByUser(uid: String): Flow<List<OutfitWithClothes>>
-
-    @Transaction
-    @Query("SELECT * FROM outfits WHERE oid = :oid")
-    suspend fun getOutfitWithClothes(oid: String): OutfitWithClothes?
 
     @Query("UPDATE outfits SET isSynced = 1 WHERE oid = :oid")
     suspend fun markAsSynced(oid: String)

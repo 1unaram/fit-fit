@@ -1,12 +1,14 @@
 package com.fitfit.app.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fitfit.app.BuildConfig
 import com.fitfit.app.data.local.database.AppDatabase
 import com.fitfit.app.data.local.entity.WeatherEntity
 import com.fitfit.app.data.repository.OpenWeatherRepository
+import com.fitfit.app.data.repository.OutfitRepository
 import com.fitfit.app.data.repository.WeatherRepository
 import com.fitfit.app.data.util.LocationManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,52 +21,25 @@ import kotlinx.coroutines.launch
 class WeatherViewModel(application: Application) : AndroidViewModel(application) {
     // ========= Repositories & LocationManager =========
     private val openWeatherRepository = OpenWeatherRepository(BuildConfig.OPENWEATHER_API_KEY)
-    private val weatherDao = AppDatabase.getDatabase(application).weatherDao()
-    private val weatherRepository = WeatherRepository(weatherDao, application)
     private val locationManager = LocationManager(application)
+    private var outfitRepository: OutfitRepository? = null
+
+    fun setOutfitRepository(repository: OutfitRepository) {
+        this.outfitRepository = repository
+    }
 
     // ========= State Flows =========
-
-    // Case1: HomeScreen WeatherCard 상태 플로우 (현재 날씨 from OpenWeatherAPI)
     private val _weatherCardState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
     val weatherCardState: StateFlow<WeatherCardUiState> = _weatherCardState.asStateFlow()
 
-    // Case2: OutfitAddCard 상태 플로우 (outfit 입었던 날씨 from OpenWeatherAPI)
-//    private val _outfitWeatherState = MutableStateFlow<OutfitWeatherState>(OutfitWeatherState.Idle)
-//    val outfitWeatherState: StateFlow<OutfitWeatherState> = _outfitWeatherState.asStateFlow()
-
-    // Case3: OutfitCard
     private val _isLoadingApi = MutableStateFlow(false)
-
     val isLoadingApi: StateFlow<Boolean> = _isLoadingApi
-    // ====== RoomDB 변수 및 상태 플로우 ======
 
-    private val _weatherList = MutableStateFlow<List<WeatherEntity>>(emptyList())
-    val weatherList: StateFlow<List<WeatherEntity>> = _weatherList
-
-    private val _weatherSaveToDBState =
-        MutableStateFlow<WeatherOperationState>(WeatherOperationState.Idle)
-    val weatherSaveToDBState: StateFlow<WeatherOperationState> = _weatherSaveToDBState
-
-    // ====== Location Manager ======
     private val _currentLocation = MutableStateFlow<LocationManager.Coordinates?>(null)
     val currentLocation: StateFlow<LocationManager.Coordinates?> = _currentLocation
 
-    // ### 현재 위치 가져오기 ###
-    fun getCurrentLocation() = viewModelScope.launch {
-        val result = locationManager.getCurrentLocation()
 
-        result.onSuccess { location ->
-            _currentLocation.value = LocationManager.Coordinates.fromLocation(location)
-        }.onFailure { exception ->
-            _weatherCardState.value = WeatherCardUiState.Failure(
-                exception.message ?: "위치를 가져올 수 없습니다."
-            )
-        }
-    }
-
-    // ====== OpenWeatherAPI 함수 ======
-    // ### Weather Card 날씨 정보 가져오기 ###
+    // ========== Case 1: HomeScreen WeatherCard ==========
     fun getWeatherCardData() = viewModelScope.launch {
         _isLoadingApi.value = true
         _weatherCardState.value = WeatherCardUiState.Loading
@@ -79,33 +54,29 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
             // 2. Weather Card용 날씨 정보 가져오기
             openWeatherRepository.getCurrentAndDailyWeather(
-                coordinates.latitude,
-                coordinates.longitude
+                coordinates.latitude, coordinates.longitude
             ).collect { result ->
-                result.fold(
-                    onSuccess = { weatherResponse ->
+                result.fold(onSuccess = { weatherResponse ->
 
-                        val cardData = WeatherCardData(
-                            todayWeatherIconCode = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.icon,
-                            currentTemperature = weatherResponse.current.temp,
-                            todayMinTemperature = weatherResponse.daily?.firstOrNull()?.temp?.min,
-                            todayMaxTemperature = weatherResponse.daily?.firstOrNull()?.temp?.max,
-                            todayWeatherDescription = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.description,
-                            probabilityOfPrecipitation = (weatherResponse.daily?.firstOrNull()?.pop?.times(
-                                100
-                            ))?.toInt() ?: 0,
-                            windSpeed = weatherResponse.daily?.firstOrNull()?.windSpeed
-                        )
-                        _weatherCardState.value = WeatherCardUiState.Success(cardData)
-                        _isLoadingApi.value = false
-                    },
-                    onFailure = { exception ->
-                        _weatherCardState.value = WeatherCardUiState.Failure(
-                            exception.message ?: "Error occurred"
-                        )
-                        _isLoadingApi.value = false
-                    }
-                )
+                    val cardData = WeatherCardData(
+                        todayWeatherIconCode = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.icon,
+                        currentTemperature = weatherResponse.current.temp,
+                        todayMinTemperature = weatherResponse.daily?.firstOrNull()?.temp?.min,
+                        todayMaxTemperature = weatherResponse.daily?.firstOrNull()?.temp?.max,
+                        todayWeatherDescription = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.description,
+                        probabilityOfPrecipitation = (weatherResponse.daily?.firstOrNull()?.pop?.times(
+                            100
+                        ))?.toInt() ?: 0,
+                        windSpeed = weatherResponse.daily?.firstOrNull()?.windSpeed
+                    )
+                    _weatherCardState.value = WeatherCardUiState.Success(cardData)
+                    _isLoadingApi.value = false
+                }, onFailure = { exception ->
+                    _weatherCardState.value = WeatherCardUiState.Failure(
+                        exception.message ?: "Error occurred"
+                    )
+                    _isLoadingApi.value = false
+                })
             }
         }.onFailure { exception ->
             _weatherCardState.value = WeatherCardUiState.Failure(
@@ -115,29 +86,55 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    // ========= Case 2: Outfit Screen - 날씨 자동 업데이트 =========
+    fun updatePendingOutfitWeather() = viewModelScope.launch {
+        val repository = outfitRepository ?: run {
+            Log.e("WeatherViewModel", "OutfitRepository not set")
+            return@launch
+        }
 
-    // ### 과거 날씨 정보 가져오기 ###
-//    fun fetchTimemachineWeather(latitude: Double, longitude: Double, timestamp: Long) {
-//        viewModelScope.launch {
-//            _openWeatherState.value = OpenWeatherState.Loading
-//
-//            openWeatherRepository.getTimemachineWeather(latitude, longitude, timestamp)
-//                .collect { result ->
-//                    result.fold(
-//                        onSuccess = { weatherResponse ->
-//                            _openWeatherState.value = OpenWeatherState.Success(weatherResponse)
-//                            _isLoadingApi.value = false
-//                        },
-//                        onFailure = { exception ->
-//                            _openWeatherState.value = OpenWeatherState.Failure(
-//                                exception.message ?: "Error occurred"
-//                            )
-//                            _isLoadingApi.value = false
-//                        }
-//                    )
-//                }
-//        }
-//    }
+        val pendingOutfits = repository.getPendingWeatherOutfits()
+
+        pendingOutfits.forEach { outfit ->
+            // 착용 시간대의 중간 시점 날씨 조회
+            val midTime = (outfit.wornStartTime + outfit.wornEndTime) / 2
+            getTimemachineWeather(outfit.oid, outfit.latitude, outfit.longitude, midTime)
+        }
+    }
+
+    private fun getTimemachineWeather(
+        oid: String, latitude: Double, longitude: Double, datetime: Long
+    ) {
+        viewModelScope.launch {
+            val repository = outfitRepository ?: return@launch
+
+            openWeatherRepository.getTimemachineWeather(
+                latitude, longitude, datetime
+            ).collect { result ->
+                result.fold(onSuccess = { weatherResponse ->
+                    val weatherData = weatherResponse.data.firstOrNull()
+
+                    if (weatherData != null) {
+                        repository.updateOutfitWeather(
+                            oid = oid,
+                            temperatureAvg = weatherData.temp,
+                            temperatureMin = weatherData.temp,
+                            temperatureMax = weatherData.temp,
+                            description = weatherData.weather.firstOrNull()?.description ?: "",
+                            iconCode = weatherData.weather.firstOrNull()?.icon ?: "",
+                            windSpeed = weatherData.windSpeed,
+                            precipitation = weatherData.rain?.`1h` ?: 0.0
+                        )
+                    }
+                }, onFailure = { exception ->
+                    Log.e(
+                        "WeatherViewModel",
+                        "Failed to fetch timemachine weather: ${exception.message}"
+                    )
+                })
+            }
+        }
+    }
 
     // ========== 동기화 관련 ==========
     fun syncUnsyncedData() = viewModelScope.launch {
@@ -149,66 +146,34 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // ====== RoomDB 함수 ======
-// ### 현재 사용자의 날씨 목록 로드 ###
+    // ### 현재 사용자의 날씨 목록 로드 ###
     fun loadWeathersFromDB() = viewModelScope.launch {
-        weatherRepository.getWeatherByCurrentUser()
-            ?.catch { e ->
+        weatherRepository.getWeatherByCurrentUser()?.catch { e ->
                 e.printStackTrace()
                 _weatherList.value = emptyList()
-            }
-            ?.collect { weatherList ->
+            }?.collect { weatherList ->
                 _weatherList.value = weatherList
             }
     }
 
-    // ### 날씨 저장 ###
-    fun insertWeather(
-        datetime: Long,
-        description: String,
-        temperatureAvg: Double,
-        temperatureMin: Double,
-        temperatureMax: Double,
-        precipitation: Double,
-        windSpeed: Double,
-        iconCode: String
-    ) = viewModelScope.launch {
-        _weatherSaveToDBState.value = WeatherOperationState.Loading
-
-        val result = weatherRepository.insertWeather(
-            datetime,
-            description,
-            temperatureAvg,
-            temperatureMin,
-            temperatureMax,
-            precipitation,
-            windSpeed,
-            iconCode
-        )
-
-        result.onSuccess {
-            _weatherSaveToDBState.value = WeatherOperationState.Success("날씨 정보가 저장되었습니다.")
-            loadWeathersFromDB()
-        }.onFailure { exception ->
-            _weatherSaveToDBState.value = WeatherOperationState.Failure(
-                exception.message ?: "날씨 정보 저장 실패"
-            )
-        }
-
+    // ====== 공통 기능 ======
+    fun hasLocationPermission(): Boolean {
+        return locationManager.hasLocationPermission()
     }
 
-    // ### 날씨 삭제 ###
-    fun deleteWeather(wid: String) = viewModelScope.launch {
-        val result = weatherRepository.deleteWeather(wid)
-        result.onSuccess {
-            loadWeathersFromDB()
+    fun getCurrentLocation() = viewModelScope.launch {
+        val result = locationManager.getCurrentLocation()
+        result.onSuccess { location ->
+            _currentLocation.value = LocationManager.Coordinates.fromLocation(location)
         }
     }
 
+    fun resetWeatherCardState() {
+        _weatherCardState.value = WeatherCardUiState.Idle
+    }
 }
 
-// Open Weather API 상태 클래스
-
-
+// =========== Open Weather API 상태 클래스 ===========
 // 날씨 작업 상태
 sealed class WeatherOperationState {
     object Idle : WeatherOperationState()
@@ -216,7 +181,6 @@ sealed class WeatherOperationState {
     data class Success(val message: String) : WeatherOperationState()
     data class Failure(val message: String) : WeatherOperationState()
 }
-
 
 // WeatherCard용 데이터 클래스
 data class WeatherCardData(
