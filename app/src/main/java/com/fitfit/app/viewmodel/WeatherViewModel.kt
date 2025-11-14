@@ -11,10 +11,14 @@ import com.fitfit.app.data.repository.OpenWeatherRepository
 import com.fitfit.app.data.repository.OutfitRepository
 import com.fitfit.app.data.repository.WeatherRepository
 import com.fitfit.app.data.util.LocationManager
+import com.fitfit.app.data.util.WeatherAggregator
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
@@ -96,54 +100,117 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         val pendingOutfits = repository.getPendingWeatherOutfits()
 
         pendingOutfits.forEach { outfit ->
-            // 착용 시간대의 중간 시점 날씨 조회
-            val midTime = (outfit.wornStartTime + outfit.wornEndTime) / 2
-            getTimemachineWeather(outfit.oid, outfit.latitude, outfit.longitude, midTime)
+            fetchAndAggregateWeatherForOutfit(
+                outfitId = outfit.oid,
+                wornStartTime = outfit.wornStartTime,
+                wornEndTime = outfit.wornEndTime,
+                latitude = outfit.latitude,
+                longitude = outfit.longitude
+            )
         }
     }
 
-    private fun getTimemachineWeather(
-        oid: String, latitude: Double, longitude: Double, datetime: Long
-    ) {
-        viewModelScope.launch {
-            val repository = outfitRepository ?: return@launch
+    /**
+     * 특정 Outfit의 시간 구간별 날씨를 조회하고 집계하여 업데이트
+     */
+    private fun fetchAndAggregateWeatherForOutfit(
+        outfitId: String,
+        wornStartTime: Long,
+        wornEndTime: Long,
+        latitude: Double,
+        longitude: Double
+    ) = viewModelScope.launch {
+        val repository = outfitRepository ?: return@launch
 
-            openWeatherRepository.getTimemachineWeather(
-                latitude, longitude, datetime
-            ).collect { result ->
-                result.fold(onSuccess = { weatherResponse ->
-                    val weatherData = weatherResponse.data.firstOrNull()
+        try {
+            // 1. 1시간 간격 타임스탬프 생성
+            val timestamps = WeatherAggregator.generateHourlyTimestamps(wornStartTime, wornEndTime)
 
-                    if (weatherData != null) {
-                        repository.updateOutfitWeather(
-                            oid = oid,
-                            temperatureAvg = weatherData.temp,
-                            temperatureMin = weatherData.temp,
-                            temperatureMax = weatherData.temp,
-                            description = weatherData.weather.firstOrNull()?.description ?: "",
-                            iconCode = weatherData.weather.firstOrNull()?.icon ?: "",
-                            windSpeed = weatherData.windSpeed,
-                            precipitation = weatherData.rain?.`1h` ?: 0.0
-                        )
-                    }
-                }, onFailure = { exception ->
-                    Log.e(
-                        "WeatherViewModel",
-                        "Failed to fetch timemachine weather: ${exception.message}"
-                    )
-                })
+            // 2. 각 타임스탬프별로 병렬로 날씨 조회
+            val weatherDataList = timestamps.map { timestamp ->
+                async {
+                    fetchWeatherAtTimestamp(latitude, longitude, timestamp)
+                }
+            }.awaitAll().filterNotNull()
+
+            if (weatherDataList.isEmpty()) {
+                return@launch
             }
+
+            // 3. 날씨 데이터 집계
+            val aggregated = WeatherAggregator.aggregateWeatherData(weatherDataList)
+
+            if (aggregated != null) {
+                // 4. DB 업데이트
+                repository.updateOutfitWeather(
+                    oid = outfitId,
+                    temperatureAvg = aggregated.temperatureAvg,
+                    temperatureMin = aggregated.temperatureMin,
+                    temperatureMax = aggregated.temperatureMax,
+                    description = aggregated.mostCommonDescription,
+                    iconCode = aggregated.mostCommonIcon,
+                    windSpeed = aggregated.windSpeedAvg,
+                    precipitation = aggregated.precipitationAvg
+                )
+            }
+
+        } catch (e: Exception) {
         }
     }
 
-    // ========== 동기화 관련 ==========
-    fun syncUnsyncedData() = viewModelScope.launch {
-        weatherRepository.syncUnsyncedData()
+    /**
+     * 특정 시간의 날씨 조회 (단일 API 호출)
+     */
+    private suspend fun fetchWeatherAtTimestamp(
+        latitude: Double,
+        longitude: Double,
+        timestamp: Long
+    ): WeatherAggregator.WeatherData? {
+        return try {
+            val result = openWeatherRepository.getTimemachineWeather(
+                latitude,
+                longitude,
+                timestamp / 1000 // 초 단위로 변환
+            ).first()
+
+            result.fold(
+                onSuccess = { response ->
+                    Log.d("WeatherViewModel", "API Response: lat=${response.lat}, lon=${response.lon}, data size=${response.data?.size}")
+
+                    // data 배열의 첫 번째 요소 사용
+                    response.data?.firstOrNull()?.let { data ->
+                        Log.d("WeatherViewModel", """
+                            Weather data found:
+                            - temp: ${data.temp}
+                            - weather: ${data.weather?.firstOrNull()?.description}
+                            - windSpeed: ${data.windSpeed}
+                            - rain: ${data.rain}
+                        """.trimIndent())
+
+                        WeatherAggregator.WeatherData(
+                            temperature = data.temp ?: 0.0,
+                            weatherDescription = data.weather?.firstOrNull()?.description ?: "알 수 없음",
+                            weatherIcon = data.weather?.firstOrNull()?.icon ?: "",
+                            windSpeed = data.windSpeed ?: 0.0,
+                            // rain 필드 수정: rain?.`1h` 대신 rain 객체의 1h 필드 접근
+                            precipitation = data.rain?.oneHour ?: 0.0  // 수정된 방식
+                        )
+                    } ?: run {
+                        Log.e("WeatherViewModel", "data array is empty or null")
+                        null
+                    }
+                },
+                onFailure = { exception ->
+                    Log.e("WeatherViewModel", "API call failed at timestamp $timestampInSeconds", exception)
+                    null
+                }
+            )
+        } catch (e: Exception) {
+            Log.e("WeatherViewModel", "Failed to fetch weather at timestamp $timestamp", e)
+            null
+        }
     }
 
-    fun startRealtimeSync(uid: String) {
-        weatherRepository.startRealtimeSync(uid)
-    }
 
     // ====== RoomDB 함수 ======
     // ### 현재 사용자의 날씨 목록 로드 ###
