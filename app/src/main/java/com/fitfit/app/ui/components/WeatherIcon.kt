@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
 @Composable
-fun WeatherIcon(iconCode: String, contentDescription: String?) {
+fun WeatherIcon(iconCode: String?, contentDescription: String?) {
     AsyncImage(
         model = "https://openweathermap.org/img/wn/$iconCode@2x.png",
         contentDescription = contentDescription,

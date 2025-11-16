@@ -42,4 +42,21 @@ interface WeatherApiService {
         @Query("appid") appid: String,
         @Query("units") units: String = "metric"
     ): Response<TimeMachineWeatherResponse>
+
+    //
+    @GET("geo/1.0/reverse")
+    suspend fun reverseGeocode(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("limit") limit: Int = 1,
+        @Query("appid") apiKey: String
+    ): List<OWGeoResult>
+
 }
+
+data class OWGeoResult(
+    val name: String,
+    val localNames: Map<String, String>?,
+    val country: String,
+    val state: String?
+)

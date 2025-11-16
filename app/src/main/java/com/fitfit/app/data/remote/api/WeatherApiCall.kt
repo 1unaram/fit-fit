@@ -60,6 +60,24 @@ class WeatherApiCall {
         }
     }
 
+    suspend fun reverseGeocode(
+        latitude: Double,
+        longitude: Double,
+        apiKey: String
+    ): Result<List<OWGeoResult>> = withContext(Dispatchers.IO) {
+        try {
+            val response = apiService.reverseGeocode(
+                lat = latitude,
+                lon = longitude,
+                limit = 1,
+                apiKey = apiKey
+            )
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
 
 

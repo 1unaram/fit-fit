@@ -1,5 +1,6 @@
 package com.fitfit.app.data.repository
 
+import com.fitfit.app.data.remote.api.OWGeoResult
 import com.fitfit.app.data.remote.api.WeatherApiCall
 import com.fitfit.app.data.remote.model.OneCallWeatherResponse
 import com.fitfit.app.data.remote.model.TimeMachineWeatherResponse
@@ -66,6 +67,19 @@ class OpenWeatherRepository(
                 latitude,
                 longitude,
                 timestamp,
+                apiKey
+            )
+        )
+    }
+
+    fun getLocationName(
+        latitude: Double,
+        longitude: Double
+    ): Flow<Result<List<OWGeoResult>>> = flow {
+        emit(
+            weatherApiCall.reverseGeocode(
+                latitude,
+                longitude,
                 apiKey
             )
         )

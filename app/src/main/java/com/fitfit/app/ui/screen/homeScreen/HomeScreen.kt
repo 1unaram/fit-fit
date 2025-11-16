@@ -29,9 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
+import com.fitfit.app.viewmodel.WeatherViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +41,8 @@ fun HomeScreen(
     navController: NavController,
     userViewModel: UserViewModel = viewModel(),
     clothesViewModel: ClothesViewModel = viewModel(),
-    outfitViewModel: OutfitViewModel = viewModel()
+    outfitViewModel: OutfitViewModel = viewModel(),
+    weatherViewModel: WeatherViewModel = viewModel()
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
     val clothesList by clothesViewModel.clothesList.collectAsState()
@@ -83,6 +86,23 @@ fun HomeScreen(
                 onDismiss = { /* TODO */ },
                 onSave = { /* TODO */ }
             )
+
+
+            // Weather Card
+            val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
+
+            Column(Modifier.padding(16.dp)) {
+                Text("오늘의 날씨", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(8.dp))
+                WeatherCard(state = weatherCardState)
+
+                // 새로고침 버튼 예시
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = { weatherViewModel.getWeatherCardData() }
+                ) { Text("날씨 새로고침") }
+            }
+
 
             // 사용자 정보
             Card(

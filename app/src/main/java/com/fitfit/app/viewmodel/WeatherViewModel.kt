@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 
@@ -49,35 +50,45 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         locationResult.onSuccess { location ->
 
             // 1. 현재 위치 가져오기
-            val coordinates = LocationManager.Coordinates.fromLocation(location)
-            _currentLocation.value = coordinates
+            val lat = location.latitude
+            val lon = location.longitude
+            _currentLocation.value = LocationManager.Coordinates(lat, lon)
 
             // 2. Weather Card용 날씨 정보 가져오기
-            openWeatherRepository.getCurrentAndDailyWeather(
-                coordinates.latitude, coordinates.longitude
-            ).collect { result ->
-                result.fold(onSuccess = { weatherResponse ->
-
-                    val cardData = WeatherCardData(
-                        todayWeatherIconCode = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.icon,
-                        currentTemperature = weatherResponse.current.temp,
-                        todayMinTemperature = weatherResponse.daily?.firstOrNull()?.temp?.min,
-                        todayMaxTemperature = weatherResponse.daily?.firstOrNull()?.temp?.max,
-                        todayWeatherDescription = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.description,
-                        probabilityOfPrecipitation = (weatherResponse.daily?.firstOrNull()?.pop?.times(
-                            100
-                        ))?.toInt() ?: 0,
-                        windSpeed = weatherResponse.daily?.firstOrNull()?.windSpeed
-                    )
-                    _weatherCardState.value = WeatherCardUiState.Success(cardData)
-                    _isLoadingApi.value = false
-                }, onFailure = { exception ->
-                    _weatherCardState.value = WeatherCardUiState.Failure(
-                        exception.message ?: "Error occurred"
-                    )
-                    _isLoadingApi.value = false
-                })
+            // Weather API와 Geo(위치명) API 병렬로 요청
+            val weatherDeferred = async {
+                openWeatherRepository.getCurrentAndDailyWeather(lat, lon).firstOrNull()
             }
+            val locationNameDeferred = async {
+                openWeatherRepository.getLocationName(lat, lon).firstOrNull()
+                    ?.getOrNull()?.firstOrNull()?.let { geoResult ->
+                        geoResult.name + (geoResult.state?.let { ", $it" } ?: "") + ", " + geoResult.country
+                    }
+            }
+
+            val weatherResult = weatherDeferred.await()
+            val locationName = locationNameDeferred.await()
+
+            weatherResult?.fold(onSuccess = { weatherResponse ->
+
+                val cardData = WeatherCardData(
+                    todayWeatherIconCode = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.icon,
+                    currentTemperature = weatherResponse.current.temp,
+                    todayMinTemperature = weatherResponse.daily?.firstOrNull()?.temp?.min,
+                    todayMaxTemperature = weatherResponse.daily?.firstOrNull()?.temp?.max,
+                    todayWeatherDescription = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.description,
+                    probabilityOfPrecipitation = (weatherResponse.daily?.firstOrNull()?.pop?.times(100))?.toInt() ?: 0,
+                    windSpeed = weatherResponse.daily?.firstOrNull()?.windSpeed,
+                    locationName = locationName
+                )
+                _weatherCardState.value = WeatherCardUiState.Success(cardData)
+                _isLoadingApi.value = false
+            }, onFailure = { exception ->
+                _weatherCardState.value = WeatherCardUiState.Failure(
+                    exception.message ?: "Error occurred"
+                )
+                _isLoadingApi.value = false
+            })
         }.onFailure { exception ->
             _weatherCardState.value = WeatherCardUiState.Failure(
                 exception.message ?: "Failed to get location"
@@ -151,6 +162,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             }
 
         } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -243,7 +255,8 @@ data class WeatherCardData(
     val todayMaxTemperature: Double?,
     val todayWeatherDescription: String?,
     val probabilityOfPrecipitation: Int,
-    val windSpeed: Double?
+    val windSpeed: Double?,
+    val locationName: String? = null
 )
 
 sealed class WeatherCardUiState {

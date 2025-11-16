@@ -32,7 +32,7 @@ class LocationManager(private val context: Context) {
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Result<Location> {
         if (!hasLocationPermission()) {
-            return Result.failure(Exception("위치 권한이 필요합니다."))
+            return Result.failure(Exception("No location permission granted"))
         }
 
         return try {
@@ -51,7 +51,7 @@ class LocationManager(private val context: Context) {
             // 2. 오래된 위치이거나 없으면 현재 위치 요청 (타임아웃 5초)
             val result = withTimeoutOrNull(3000) {
                 fusedLocationClient.getCurrentLocation(
-                    Priority.PRIORITY_HIGH_ACCURACY,
+                    Priority.PRIORITY_LOW_POWER,
                     null
                 ).await()
             }
