@@ -29,8 +29,17 @@ class MainActivity : ComponentActivity() {
                 val clothesViewModel: ClothesViewModel = viewModel()
                 val outfitViewModel: OutfitViewModel = viewModel()
                 val weatherViewModel: WeatherViewModel = viewModel()
-
                 val currentUser by userViewModel.currentUser.collectAsState()
+
+                // Outfit Repository 설정
+                LaunchedEffect(Unit) {
+                    val outfitDao = AppDatabase.getDatabase(this@MainActivity).outfitDao()
+                    val outfitClothesDao = AppDatabase.getDatabase(this@MainActivity).outfitClothesDao()
+                    val outfitRepository =
+                        OutfitRepository(outfitDao, outfitClothesDao, this@MainActivity)
+
+                    weatherViewModel.setOutfitRepository(outfitRepository)
+                }
 
                 // 로그인 상태에 따라 동기화 시작
                 LaunchedEffect(currentUser) {
@@ -48,29 +57,14 @@ class MainActivity : ComponentActivity() {
                         outfitViewModel.syncUnsyncedData()
                         outfitViewModel.loadOutfits()
                         outfitViewModel.loadOutfitsWithClothes()
-
-                        // Weather 동기화
-                        weatherViewModel.startRealtimeSync(user.uid)
-                        weatherViewModel.syncUnsyncedData()
-                        weatherViewModel.loadWeathersFromDB()
                     }
                 }
 
-                // Outfit Repository 설정
-                LaunchedEffect(Unit) {
-                    val outfitDao = AppDatabase.getDatabase(this@MainActivity).outfitDao()
-                    val outfitClothesDao = AppDatabase.getDatabase(this@MainActivity).outfitClothesDao()
-                    val outfitRepository =
-                        OutfitRepository(outfitDao, outfitClothesDao, this@MainActivity)
-
-                    weatherViewModel.setOutfitRepository(outfitRepository)
-                }
-
-                LaunchedEffect(Unit) {
-                    while (true) {
-                        delay(60_000) // 1분
-                        if (currentUser != null) {
+                LaunchedEffect(currentUser) {
+                    if (currentUser != null) {
+                        while (true) {
                             weatherViewModel.updatePendingOutfitWeather()
+                            delay(60_000) // 1분 간격. 리소스 여유따라 조정 가능
                         }
                     }
                 }

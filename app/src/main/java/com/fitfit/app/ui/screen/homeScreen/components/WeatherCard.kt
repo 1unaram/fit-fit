@@ -13,7 +13,6 @@ fun WeatherCard(
     data: WeatherCardData
 ) {
     val weatherViewModel: WeatherViewModel = viewModel()
-    val weatherList by weatherViewModel.weatherList.collectAsState()
     val isLoadingApi by weatherViewModel.isLoadingApi.collectAsState()
 
     LaunchedEffect(Unit) {

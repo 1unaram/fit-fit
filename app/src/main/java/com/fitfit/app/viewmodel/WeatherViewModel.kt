@@ -5,11 +5,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fitfit.app.BuildConfig
-import com.fitfit.app.data.local.database.AppDatabase
-import com.fitfit.app.data.local.entity.WeatherEntity
 import com.fitfit.app.data.repository.OpenWeatherRepository
 import com.fitfit.app.data.repository.OutfitRepository
-import com.fitfit.app.data.repository.WeatherRepository
 import com.fitfit.app.data.util.LocationManager
 import com.fitfit.app.data.util.WeatherAggregator
 import kotlinx.coroutines.async
@@ -17,7 +14,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -192,7 +188,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                             weatherDescription = data.weather?.firstOrNull()?.description ?: "알 수 없음",
                             weatherIcon = data.weather?.firstOrNull()?.icon ?: "",
                             windSpeed = data.windSpeed ?: 0.0,
-                            // rain 필드 수정: rain?.`1h` 대신 rain 객체의 1h 필드 접근
                             precipitation = data.rain?.oneHour ?: 0.0  // 수정된 방식
                         )
                     } ?: run {
@@ -201,7 +196,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     }
                 },
                 onFailure = { exception ->
-                    Log.e("WeatherViewModel", "API call failed at timestamp $timestampInSeconds", exception)
+//                    Log.e("WeatherViewModel", "API call failed at timestamp $timestampInSeconds", exception)
                     null
                 }
             )
@@ -213,15 +208,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
 
     // ====== RoomDB 함수 ======
-    // ### 현재 사용자의 날씨 목록 로드 ###
-    fun loadWeathersFromDB() = viewModelScope.launch {
-        weatherRepository.getWeatherByCurrentUser()?.catch { e ->
-                e.printStackTrace()
-                _weatherList.value = emptyList()
-            }?.collect { weatherList ->
-                _weatherList.value = weatherList
-            }
-    }
 
     // ====== 공통 기능 ======
     fun hasLocationPermission(): Boolean {

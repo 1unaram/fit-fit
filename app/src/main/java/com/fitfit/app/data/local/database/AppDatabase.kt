@@ -10,7 +10,6 @@ import com.fitfit.app.data.local.dao.ClothesDao
 import com.fitfit.app.data.local.dao.OutfitClothesDao
 import com.fitfit.app.data.local.dao.OutfitDao
 import com.fitfit.app.data.local.dao.UserDao
-import com.fitfit.app.data.local.dao.WeatherDao
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitClothesCrossRef
 import com.fitfit.app.data.local.entity.OutfitEntity
@@ -23,7 +22,7 @@ import com.fitfit.app.data.local.entity.UserEntity
         OutfitEntity::class,
         OutfitClothesCrossRef::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 @TypeConverters(ListConverter::class)
@@ -32,7 +31,6 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun clothesDao(): ClothesDao
     abstract fun outfitDao(): OutfitDao
     abstract fun outfitClothesDao(): OutfitClothesDao
-    abstract fun weatherDao(): WeatherDao
 
     companion object {
         @Volatile

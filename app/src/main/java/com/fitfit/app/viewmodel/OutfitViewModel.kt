@@ -77,17 +77,17 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
             return@launch
         }
 
-        val result = repository.createOutfit(name, clothesIds)
-
-        result.onSuccess { oid ->
-            _createState.value = OutfitOperationState.Success("코디가 생성되었습니다.")
-            loadOutfits()
-            loadOutfitsWithClothes()
-        }.onFailure { exception ->
-            _createState.value = OutfitOperationState.Failure(
-                exception.message ?: "코디 생성 실패"
-            )
-        }
+//        val result = repository.createOutfit(clothesIds)
+//
+//        result.onSuccess { oid ->
+//            _createState.value = OutfitOperationState.Success("코디가 생성되었습니다.")
+//            loadOutfits()
+//            loadOutfitsWithClothes()
+//        }.onFailure { exception ->
+//            _createState.value = OutfitOperationState.Failure(
+//                exception.message ?: "코디 생성 실패"
+//            )
+//        }
     }
 
     /**
@@ -106,17 +106,17 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
             return@launch
         }
 
-        val result = repository.updateOutfit(oid, name, clothesIds)
-
-        result.onSuccess {
-            _updateState.value = OutfitOperationState.Success("코디가 수정되었습니다.")
-            loadOutfits()
-            loadOutfitsWithClothes()
-        }.onFailure { exception ->
-            _updateState.value = OutfitOperationState.Failure(
-                exception.message ?: "코디 수정 실패"
-            )
-        }
+//        val result = repository.updateOutfit(oid, name, clothesIds)
+//
+//        result.onSuccess {
+//            _updateState.value = OutfitOperationState.Success("코디가 수정되었습니다.")
+//            loadOutfits()
+//            loadOutfitsWithClothes()
+//        }.onFailure { exception ->
+//            _updateState.value = OutfitOperationState.Failure(
+//                exception.message ?: "코디 수정 실패"
+//            )
+//        }
     }
 
     /**
