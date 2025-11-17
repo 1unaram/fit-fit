@@ -137,11 +137,11 @@ fun ClothesScreenExample (
                 }
             )
         }
-    ) { ㅂㅈ ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(ㅂㅈ)
+                .padding(paddingValues)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
