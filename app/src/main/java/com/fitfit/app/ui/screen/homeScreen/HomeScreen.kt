@@ -88,20 +88,26 @@ fun HomeScreen(
             )
 
 
-            // Weather Card
+            /* Weather Card 시작 */
             val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
+            val isLoading by weatherViewModel.isLoadingApi.collectAsState()
 
-            Column(Modifier.padding(16.dp)) {
-                Text("오늘의 날씨", style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(8.dp))
-                WeatherCard(state = weatherCardState)
-
-                // 새로고침 버튼 예시
-                Spacer(Modifier.height(8.dp))
-                Button(
-                    onClick = { weatherViewModel.getWeatherCardData() }
-                ) { Text("날씨 새로고침") }
+            // 화면이 처음 진입할 때 한 번만 호출
+            LaunchedEffect(Unit) {
+                weatherViewModel.getWeatherCardData()
             }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Text("Today's weather", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(8.dp))
+
+                WeatherCard(state = weatherCardState)
+            }
+            /* Weather Card 끝 */
 
 
             // 사용자 정보

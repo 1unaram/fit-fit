@@ -36,31 +36,17 @@ class LocationManager(private val context: Context) {
         }
 
         return try {
-            // 1. 마지막 위치 시도 (5분 이내의 최근 위치만 사용)
-            val lastLocation = fusedLocationClient.lastLocation.await()
-            if (lastLocation != null) {
-                val locationAge = System.currentTimeMillis() - lastLocation.time
-                val fiveMinutesInMillis = 5 * 60 * 1000
-
-                // 5분 이내의 최근 위치면 사용
-                if (locationAge < fiveMinutesInMillis) {
-                    return Result.success(lastLocation)
-                }
-            }
-
-            // 2. 오래된 위치이거나 없으면 현재 위치 요청 (타임아웃 5초)
-            val result = withTimeoutOrNull(3000) {
+            val result = withTimeoutOrNull(10000L) {
                 fusedLocationClient.getCurrentLocation(
-                    Priority.PRIORITY_LOW_POWER,
+                    Priority.PRIORITY_HIGH_ACCURACY,
                     null
                 ).await()
             }
             if (result != null) {
                 Result.success(result)
             } else {
-                Result.failure(Exception("위치 정보를 가져올 수 없습니다."))
+                Result.failure(Exception("Failed to get location: Timeout"))
             }
-
         } catch (e: Exception) {
             Result.failure(e)
         }

@@ -54,6 +54,8 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             val lon = location.longitude
             _currentLocation.value = LocationManager.Coordinates(lat, lon)
 
+            Log.d("WeatherViewModel", "Fetching weather for location: lat=$lat, lon=$lon")
+
             // 2. Weather Card용 날씨 정보 가져오기
             // Weather API와 Geo(위치명) API 병렬로 요청
             val weatherDeferred = async {

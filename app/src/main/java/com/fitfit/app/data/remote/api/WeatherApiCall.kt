@@ -78,9 +78,6 @@ class WeatherApiCall {
         }
     }
 
-
-
-
     private fun <T> handleResponse(response: Response<T>): Result<T> {
         return if (response.isSuccessful && response.body() != null) {
             Result.success(response.body()!!)
