@@ -3,6 +3,7 @@ package com.fitfit.app.data.util
 import java.util.concurrent.TimeUnit
 
 object WeatherAggregator {
+
     /**
      * 시작 시간부터 종료 시간까지 1시간 간격으로 타임스탬프 생성
      * @param startTime 시작 시간 (Unix timestamp millis)

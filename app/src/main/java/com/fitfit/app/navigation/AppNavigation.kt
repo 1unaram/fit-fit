@@ -7,7 +7,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.fitfit.app.ui.screen.clothesScreen.ClothesScreen
+import com.fitfit.app.ui.screen.clothesScreen.ClothesScreenExample
 import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
 import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
@@ -45,7 +45,7 @@ fun AppNavigation() {
             HomeScreen(navController = navController, userViewModel = userViewModel)
         }
         composable(Screens.CLOTHES) {
-            ClothesScreen(navController = navController)
+            ClothesScreenExample(navController = navController)
         }
         composable(Screens.OUTFITS) {
             OutfitsScreen(navController = navController)

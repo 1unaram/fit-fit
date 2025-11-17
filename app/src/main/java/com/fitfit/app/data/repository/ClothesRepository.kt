@@ -5,7 +5,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.fitfit.app.data.local.dao.ClothesDao
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.userPrefsDataStore
-import com.fitfit.app.data.model.Clothes
 import com.fitfit.app.data.util.IdGenerator
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
@@ -44,8 +43,10 @@ class ClothesRepository(
 
     // ### 옷 추가 (RoomDB 저장 -> Firebase 동기화) ###
     suspend fun insertClothes(
-        name: String,
-        category: String
+        imagePath: String,
+        category: String,
+        nickname: String,
+        storeUrl: String?
     ): Result<String> {
         return try {
             val currentUid = getCurrentUid()
@@ -53,41 +54,37 @@ class ClothesRepository(
 
             val cid = idGenerator.generateNextClothesId()
 
-            val clothes = ClothesEntity(
+            val entity = ClothesEntity(
                 cid = cid,
                 ownerUid = currentUid,
-                name = name,
+                imagePath = imagePath,
                 category = category,
+                nickname = nickname,
+                storeUrl = storeUrl,
                 isSynced = false
             )
 
-            // 1. Room에 저장
-            clothesDao.insertClothes(clothes)
+            clothesDao.insertClothes(entity)
 
-            // 2. Firebase에 동기화
-            syncToFirebase(clothes)
+            syncToFirebase(entity)
 
             Result.success(cid)
         } catch (e: Exception) {
-            e.printStackTrace()
             Result.failure(e)
         }
     }
 
     // ### 옷 수정 ###
-    suspend fun updateClothes(clothes: ClothesEntity): Result<Unit> {
+    suspend fun updateClothes(entity: ClothesEntity): Result<Unit> {
         return try {
-            val updatedClothes = clothes.copy(
-                isSynced = false,
-                lastModified = System.currentTimeMillis()
+            val updated = entity.copy(
+                lastModified = System.currentTimeMillis(),
+                isSynced = false
             )
-
-            clothesDao.updateClothes(updatedClothes)
-            syncToFirebase(updatedClothes)
-
+            clothesDao.updateClothes(updated)
+            syncToFirebase(updated)
             Result.success(Unit)
         } catch (e: Exception) {
-            e.printStackTrace()
             Result.failure(e)
         }
     }
@@ -98,64 +95,86 @@ class ClothesRepository(
             val clothes = clothesDao.getClothesById(cid)
                 ?: return Result.failure(Exception("옷을 찾을 수 없습니다."))
 
-            // 1. Room에서 삭제
             clothesDao.deleteClothesById(cid)
 
-            // 2. Firebase에서 삭제
-            firebaseClothesRef
-                .child(clothes.ownerUid)
-                .child(cid)
-                .removeValue()
-                .await()
+            firebaseClothesRef.child(clothes.ownerUid).child(cid).removeValue().await()
 
             Result.success(Unit)
         } catch (e: Exception) {
-            e.printStackTrace()
             Result.failure(e)
         }
     }
 
     // Firebase 동기화
-    private suspend fun syncToFirebase(clothes: ClothesEntity) {
+    private suspend fun syncToFirebase(entity: ClothesEntity) {
         try {
-            val firebaseRef = firebaseClothesRef
-                .child(clothes.ownerUid)
-                .child(clothes.cid)
+            val ref = firebaseClothesRef
+                .child(entity.ownerUid)
+                .child(entity.cid)
 
-            val clothesData = Clothes.fromEntity(clothes)
-            firebaseRef.setValue(clothesData).await()
+            val data = mapOf(
+                "cid" to entity.cid,
+                "category" to entity.category,
+                "nickname" to entity.nickname,
+                "storeUrl" to entity.storeUrl,
+                "createdAt" to entity.createdAt,
+                "lastModified" to entity.lastModified
+                // imagePath는 동기화하지 않음
+            )
 
-            clothesDao.markAsSynced(clothes.cid)
+            ref.setValue(data).await()
+            clothesDao.markAsSynced(entity.cid)
         } catch (e: Exception) {
-            e.printStackTrace()
+            // 네트워크 실패 시 isSynced는 false 그대로 (다음에 syncUnsyncedData로 처리)
         }
     }
 
     // 동기화 되지 않은 데이터 동기화
     suspend fun syncUnsyncedData() {
-        val currentUid = getCurrentUid() ?: return
-        val unsyncedClothes = clothesDao.getUnsyncedClothes(currentUid)
-
-        unsyncedClothes.forEach { clothes ->
-            syncToFirebase(clothes)
-        }
+        val uid = getCurrentUid() ?: return
+        val unsynced = clothesDao.getUnsyncedClothes(uid)
+        unsynced.forEach { syncToFirebase(it) }
     }
 
-    // Firebase 실시간 동기화 시작
     fun startRealtimeSync(uid: String) {
-        val firebaseUserClothesRef = firebaseClothesRef.child(uid)
-
-        firebaseUserClothesRef.addChildEventListener(object : ChildEventListener {
+        val ref = firebaseClothesRef.child(uid)
+        ref.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                syncClothesFromFirebase(snapshot, uid)
+                // imagePath는 로컬 전용이라 Firebase에서 받아올 필요 없음
+                val cid = snapshot.child("cid").getValue(String::class.java) ?: return
+                val category = snapshot.child("category").getValue(String::class.java) ?: ""
+                val nickname = snapshot.child("nickname").getValue(String::class.java) ?: ""
+                val storeUrl = snapshot.child("storeUrl").getValue(String::class.java)
+                val createdAt = snapshot.child("createdAt").getValue(Long::class.java) ?: 0L
+                val lastModified = snapshot.child("lastModified").getValue(Long::class.java) ?: 0L
+
+                // imagePath는 기존 로컬 값을 유지해야 하므로,
+                // 이미 로컬에 존재하면 imagePath를 그대로 유지
+                CoroutineScope(Dispatchers.IO).launch {
+                    val local = clothesDao.getClothesById(cid)
+                    val imagePath = local?.imagePath ?: ""
+
+                    val entity = ClothesEntity(
+                        cid = cid,
+                        ownerUid = uid,
+                        imagePath = imagePath,
+                        category = category,
+                        nickname = nickname,
+                        storeUrl = storeUrl,
+                        createdAt = createdAt,
+                        isSynced = true,
+                        lastModified = lastModified
+                    )
+                    clothesDao.insertClothes(entity)
+                }
             }
 
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                syncClothesFromFirebase(snapshot, uid)
+                onChildAdded(snapshot, previousChildName)
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
-                val cid = snapshot.key ?: return
+                val cid = snapshot.child("cid").getValue(String::class.java) ?: return
                 CoroutineScope(Dispatchers.IO).launch {
                     clothesDao.deleteClothesById(cid)
                 }
@@ -164,31 +183,5 @@ class ClothesRepository(
             override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
             override fun onCancelled(error: DatabaseError) {}
         })
-    }
-
-    private fun syncClothesFromFirebase(snapshot: DataSnapshot, uid: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val cid = snapshot.child("cid").value as? String ?: return@launch
-                val name = snapshot.child("name").value as? String ?: ""
-                val category = snapshot.child("category").value as? String ?: ""
-                val createdAt = snapshot.child("createdAt").value as? Long ?: 0L
-                val lastModified = snapshot.child("lastModified").value as? Long ?: 0L
-
-                val clothes = ClothesEntity(
-                    cid = cid,
-                    ownerUid = uid,
-                    name = name,
-                    category = category,
-                    createdAt = createdAt,
-                    lastModified = lastModified,
-                    isSynced = true
-                )
-
-                clothesDao.insertClothes(clothes)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
     }
 }

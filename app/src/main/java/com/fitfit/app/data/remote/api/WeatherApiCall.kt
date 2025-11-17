@@ -9,16 +9,6 @@ import retrofit2.Response
 class WeatherApiCall {
     private val apiService = RetrofitInstance.weatherApiService
 
-    /**
-     * One Call API 3.0으로 날씨 데이터 가져오기
-     *
-     * @param latitude 위도
-     * @param longitude 경도
-     * @param apiKey API 키
-     * @param exclude 제외할 데이터 부분 (쉼표로 구분, 예: "minutely,alerts")
-     *                 가능한 값: current, minutely, hourly, daily, alerts
-     * @return Result<OneCallWeatherResponse>
-     */
     suspend fun fetchOneCallWeather(
         latitude: Double,
         longitude: Double,
@@ -38,7 +28,6 @@ class WeatherApiCall {
             Result.failure(e)
         }
     }
-
 
     suspend fun fetchTimemachineWeather(
         latitude: Double,

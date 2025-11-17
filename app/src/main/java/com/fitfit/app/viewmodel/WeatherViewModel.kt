@@ -59,7 +59,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             // 2. Weather Card용 날씨 정보 가져오기
             // Weather API와 Geo(위치명) API 병렬로 요청
             val weatherDeferred = async {
-                openWeatherRepository.getCurrentAndDailyWeather(lat, lon).firstOrNull()
+                openWeatherRepository.getCurrentWeather(lat, lon).firstOrNull()
             }
             val locationNameDeferred = async {
                 openWeatherRepository.getLocationName(lat, lon).firstOrNull()
@@ -107,7 +107,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
 
         val pendingOutfits = repository.getPendingWeatherOutfits()
-
         pendingOutfits.forEach { outfit ->
             fetchAndAggregateWeatherForOutfit(
                 outfitId = outfit.oid,
@@ -148,7 +147,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
             // 3. 날씨 데이터 집계
             val aggregated = WeatherAggregator.aggregateWeatherData(weatherDataList)
-
             if (aggregated != null) {
                 // 4. DB 업데이트
                 repository.updateOutfitWeather(
@@ -210,7 +208,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     }
                 },
                 onFailure = { exception ->
-//                    Log.e("WeatherViewModel", "API call failed at timestamp $timestampInSeconds", exception)
                     null
                 }
             )
@@ -219,28 +216,9 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             null
         }
     }
-
-
-    // ====== RoomDB 함수 ======
-
-    // ====== 공통 기능 ======
-    fun hasLocationPermission(): Boolean {
-        return locationManager.hasLocationPermission()
-    }
-
-    fun getCurrentLocation() = viewModelScope.launch {
-        val result = locationManager.getCurrentLocation()
-        result.onSuccess { location ->
-            _currentLocation.value = LocationManager.Coordinates.fromLocation(location)
-        }
-    }
-
-    fun resetWeatherCardState() {
-        _weatherCardState.value = WeatherCardUiState.Idle
-    }
 }
 
-// =========== Open Weather API 상태 클래스 ===========
+// =========== State & Class ===========
 // 날씨 작업 상태
 sealed class WeatherOperationState {
     object Idle : WeatherOperationState()
