@@ -37,9 +37,7 @@ class OutfitRepository(
         }.first()
     }
 
-    /**
-     * 현재 사용자의 코디 목록 가져오기
-     */
+    // 현재 사용자의 코디 목록 가져오기
     suspend fun getOutfitsByCurrentUser(): Flow<List<OutfitEntity>>? {
         return try {
             val uid = getCurrentUid() ?: return null
@@ -49,9 +47,7 @@ class OutfitRepository(
         }
     }
 
-    /**
-     * 옷 포함 코디 목록 가져오기
-     */
+    // 현재 사용자의 코디와 옷 정보 함께 가져오기
     suspend fun getOutfitsWithClothesByCurrentUser(): Flow<List<OutfitWithClothes>>? {
         return try {
             val uid = getCurrentUid() ?: return null
@@ -61,13 +57,17 @@ class OutfitRepository(
         }
     }
 
-    /**
-     * 코디 생성
-     */
-    suspend fun createOutfit(name: String, clothesIds: List<String>): Result<String> {
+    // 코디 생성 (날씨 정보 없이)
+    suspend fun createOutfit(
+        clothesIds: List<String>,
+        wornStartTime: Long,
+        wornEndTime: Long,
+        latitude: Double,
+        longitude: Double
+    ): Result<String> {
         return try {
             val currentUid = getCurrentUid()
-                ?: return Result.failure(Exception("로그인이 필요합니다."))
+                ?: return Result.failure(Exception("Login required"))
 
             val oid = idGenerator.generateNextOutfitId()
 
@@ -75,8 +75,12 @@ class OutfitRepository(
             val outfit = OutfitEntity(
                 oid = oid,
                 ownerUid = currentUid,
-                name = name,
                 clothesIds = clothesIds,
+                wornStartTime = wornStartTime,
+                wornEndTime = wornEndTime,
+                latitude = latitude,
+                longitude = longitude,
+                weatherFetched = false,
                 isSynced = false
             )
 
@@ -100,16 +104,66 @@ class OutfitRepository(
         }
     }
 
-    /**
-     * 코디 수정
-     */
-    suspend fun updateOutfit(oid: String, name: String, clothesIds: List<String>): Result<Unit> {
+    // Outfit의 날씨 정보만 업데이트
+    suspend fun updateOutfitWeather(
+        oid: String,
+        temperatureAvg: Double,
+        temperatureMin: Double,
+        temperatureMax: Double,
+        description: String,
+        iconCode: String,
+        windSpeed: Double,
+        precipitation: Double
+    ): Result<Unit> {
         return try {
             val outfit = outfitDao.getOutfitById(oid)
-                ?: return Result.failure(Exception("코디를 찾을 수 없습니다."))
+                ?: return Result.failure(Exception("Outfit not found"))
 
             val updatedOutfit = outfit.copy(
-                name = name,
+                temperatureAvg = temperatureAvg,
+                temperatureMin = temperatureMin,
+                temperatureMax = temperatureMax,
+                description = description,
+                iconCode = iconCode,
+                windSpeed = windSpeed,
+                precipitation = precipitation,
+                weatherFetched = true,
+                isSynced = false,
+                lastModified = System.currentTimeMillis()
+            )
+
+            // 1. Outfit 업데이트
+            outfitDao.updateOutfit(updatedOutfit)
+
+            // 2. Firebase 동기화
+            syncToFirebase(updatedOutfit)
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    // 날씨 미조회 Outfit 목록 조회
+    suspend fun getOutfitsWithUnfetchedWeather(): List<OutfitEntity> {
+        val currentUid = getCurrentUid() ?: return emptyList()
+        return outfitDao.getOutfitsWithUnfetchedWeather(currentUid)
+    }
+
+    // 날씨 업데이트 대기 중인 Outfit 목록 조회
+    suspend fun getPendingWeatherOutfits(): List<OutfitEntity> {
+        val currentTime = System.currentTimeMillis()
+        return outfitDao.getPendingWeatherOutfits(currentTime)
+    }
+
+    // Outfit 수정
+    suspend fun updateOutfit(oid: String, clothesIds: List<String>): Result<Unit> {
+        return try {
+            val outfit = outfitDao.getOutfitById(oid)
+                ?: return Result.failure(Exception("Outfit not found"))
+
+            val updatedOutfit = outfit.copy(
                 clothesIds = clothesIds,
                 isSynced = false,
                 lastModified = System.currentTimeMillis()
@@ -136,13 +190,11 @@ class OutfitRepository(
         }
     }
 
-    /**
-     * 코디 삭제
-     */
+    // Outfit 삭제
     suspend fun deleteOutfit(oid: String): Result<Unit> {
         return try {
             val outfit = outfitDao.getOutfitById(oid)
-                ?: return Result.failure(Exception("코디를 찾을 수 없습니다."))
+                ?: return Result.failure(Exception("Outfit not found"))
 
             // 1. CrossRef 삭제
             outfitClothesDao.deleteCrossRefsByOutfit(oid)
@@ -164,9 +216,7 @@ class OutfitRepository(
         }
     }
 
-    /**
-     * Firebase로 업로드
-     */
+    // Firebase로 동기화
     private suspend fun syncToFirebase(outfit: OutfitEntity) {
         try {
             val firebaseRef = firebaseOutfitsRef
@@ -182,9 +232,7 @@ class OutfitRepository(
         }
     }
 
-    /**
-     * 동기화되지 않은 데이터 재동기화
-     */
+    // 미동기화 데이터 동기화
     suspend fun syncUnsyncedData() {
         val currentUid = getCurrentUid() ?: return
         val unsyncedOutfits = outfitDao.getUnsyncedOutfits(currentUid)
@@ -194,9 +242,7 @@ class OutfitRepository(
         }
     }
 
-    /**
-     * Firebase 실시간 동기화
-     */
+    // 실시간 동기화 시작
     fun startRealtimeSync(uid: String) {
         val firebaseUserOutfitsRef = firebaseOutfitsRef.child(uid)
 
@@ -222,30 +268,51 @@ class OutfitRepository(
         })
     }
 
+    // Firebase에서 Outfit 동기화
     private fun syncOutfitFromFirebase(snapshot: DataSnapshot, uid: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val oid = snapshot.child("oid").value as? String ?: return@launch
-                val name = snapshot.child("name").value as? String ?: ""
                 val clothesIds = (snapshot.child("clothesIds").value as? List<*>)
                     ?.mapNotNull { it as? String } ?: emptyList()
+                val wornStartTime = snapshot.child("wornStartTime").value as? Long ?: 0L
+                val wornEndTime = snapshot.child("wornEndTime").value as? Long ?: 0L
+                val latitude = snapshot.child("latitude").value as? Double ?: 0.0
+                val longitude = snapshot.child("longitude").value as? Double ?: 0.0
+                val description = snapshot.child("description").value as? String
+                val temperatureAvg = snapshot.child("temperatureAvg").value as? Double
+                val temperatureMin = snapshot.child("temperatureMin").value as? Double
+                val temperatureMax = snapshot.child("temperatureMax").value as? Double
+                val iconCode = snapshot.child("iconCode").value as? String
+                val windSpeed = snapshot.child("windSpeed").value as? Double
+                val precipitation = snapshot.child("precipitation").value as? Double
+                val weatherFetched = snapshot.child("weatherFetched").value as? Boolean ?: false
                 val createdAt = snapshot.child("createdAt").value as? Long ?: 0L
                 val lastModified = snapshot.child("lastModified").value as? Long ?: 0L
 
                 val outfit = OutfitEntity(
                     oid = oid,
                     ownerUid = uid,
-                    name = name,
                     clothesIds = clothesIds,
+                    wornStartTime = wornStartTime,
+                    wornEndTime = wornEndTime,
+                    latitude = latitude,
+                    longitude = longitude,
+                    description = description,
+                    temperatureAvg = temperatureAvg,
+                    temperatureMin = temperatureMin,
+                    temperatureMax = temperatureMax,
+                    iconCode = iconCode,
+                    windSpeed = windSpeed,
+                    precipitation = precipitation,
+                    weatherFetched = weatherFetched,
                     createdAt = createdAt,
-                    lastModified = lastModified,
-                    isSynced = true
+                    isSynced = true,
+                    lastModified = lastModified
                 )
 
-                // Outfit 저장
                 outfitDao.insertOutfit(outfit)
 
-                // CrossRef 재구성
                 outfitClothesDao.deleteCrossRefsByOutfit(oid)
                 clothesIds.forEach { cid ->
                     outfitClothesDao.insertCrossRef(

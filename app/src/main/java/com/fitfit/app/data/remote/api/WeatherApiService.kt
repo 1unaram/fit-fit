@@ -1,6 +1,7 @@
 package com.fitfit.app.data.remote.api
 
 import com.fitfit.app.data.remote.model.OneCallWeatherResponse
+import com.fitfit.app.data.remote.model.TimeMachineWeatherResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -40,5 +41,22 @@ interface WeatherApiService {
         @Query("dt") timestamp: Long,
         @Query("appid") appid: String,
         @Query("units") units: String = "metric"
-    ): Response<OneCallWeatherResponse>
+    ): Response<TimeMachineWeatherResponse>
+
+    //
+    @GET("geo/1.0/reverse")
+    suspend fun reverseGeocode(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("limit") limit: Int = 1,
+        @Query("appid") apiKey: String
+    ): List<OWGeoResult>
+
 }
+
+data class OWGeoResult(
+    val name: String,
+    val localNames: Map<String, String>?,
+    val country: String,
+    val state: String?
+)
