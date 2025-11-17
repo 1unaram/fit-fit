@@ -216,6 +216,17 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             null
         }
     }
+
+    fun getCurrentLocation() = viewModelScope.launch {
+        val result = locationManager.getCurrentLocation()
+        result.onSuccess { location ->
+            _currentLocation.value = LocationManager.Coordinates.fromLocation(location)
+        }
+    }
+
+    fun hasLocationPermission(): Boolean {
+        return locationManager.hasLocationPermission()
+    }
 }
 
 // =========== State & Class ===========

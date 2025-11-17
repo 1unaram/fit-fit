@@ -60,12 +60,15 @@ class OutfitRepository(
     // 코디 생성 (날씨 정보 없이)
     suspend fun createOutfit(
         clothesIds: List<String>,
+        occasion: List<String>,
+        comment: String?,
         wornStartTime: Long,
         wornEndTime: Long,
         latitude: Double,
         longitude: Double
     ): Result<String> {
         return try {
+
             val currentUid = getCurrentUid()
                 ?: return Result.failure(Exception("Login required"))
 
@@ -76,6 +79,8 @@ class OutfitRepository(
                 oid = oid,
                 ownerUid = currentUid,
                 clothesIds = clothesIds,
+                occasion = occasion,
+                comment = comment,
                 wornStartTime = wornStartTime,
                 wornEndTime = wornEndTime,
                 latitude = latitude,
@@ -275,6 +280,9 @@ class OutfitRepository(
                 val oid = snapshot.child("oid").value as? String ?: return@launch
                 val clothesIds = (snapshot.child("clothesIds").value as? List<*>)
                     ?.mapNotNull { it as? String } ?: emptyList()
+                val occasion = (snapshot.child("occasion").value as? List<*>)
+                    ?.mapNotNull { it as? String } ?: emptyList()
+                val comment = snapshot.child("comment").value as? String
                 val wornStartTime = snapshot.child("wornStartTime").value as? Long ?: 0L
                 val wornEndTime = snapshot.child("wornEndTime").value as? Long ?: 0L
                 val latitude = snapshot.child("latitude").value as? Double ?: 0.0
@@ -294,6 +302,8 @@ class OutfitRepository(
                     oid = oid,
                     ownerUid = uid,
                     clothesIds = clothesIds,
+                    occasion = occasion,
+                    comment = comment,
                     wornStartTime = wornStartTime,
                     wornEndTime = wornEndTime,
                     latitude = latitude,

@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     weatherViewModel.setOutfitRepository(outfitRepository)
-                    weatherViewModel.setOutfitRepository(outfitRepository)
+                    outfitViewModel.setOutfitRepository(outfitRepository)
                 }
 
                 // 로그인 상태에 따라 동기화 시작
@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                AppNavigation()
+                AppNavigation(outfitViewModel, weatherViewModel)
             }
 
         }

@@ -17,7 +17,9 @@ import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
 import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
 import com.fitfit.app.ui.screen.outfitsScreen.OutfitsScreen
+import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
+import com.fitfit.app.viewmodel.WeatherViewModel
 
 object Screens {
     const val HOME = "home"
@@ -28,7 +30,7 @@ object Screens {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(outfitViewModel: OutfitViewModel, weatherViewModel: WeatherViewModel) {
     val navController = rememberNavController()
     val userViewModel: UserViewModel = viewModel()
     val currentUser by userViewModel.currentUser.collectAsState()
@@ -95,10 +97,14 @@ fun AppNavigation() {
                 ClothesScreenExample(navController = navController)
             }
             composable(Screens.OUTFITS) {
-                OutfitsScreen(navController = navController)
+                OutfitsScreen(
+                    navController = navController,
+                    outfitViewModel = outfitViewModel,
+                    weatherViewModel = weatherViewModel
+                )
             }
             composable(Screens.REGISTER) {
-                 RegisterScreen(navController = navController, userViewModel = userViewModel)
+                RegisterScreen(navController = navController, userViewModel = userViewModel)
             }
         }
     }
