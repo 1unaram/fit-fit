@@ -23,7 +23,7 @@ class OpenWeatherRepository(
                 latitude,
                 longitude,
                 apiKey,
-                exclude = "minutely,hourly,daily,alerts"
+                exclude = "minutely,hourly,alerts"
             )
         )
     }

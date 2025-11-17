@@ -1,5 +1,6 @@
 package com.fitfit.app.ui.screen.homeScreen.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,7 +76,8 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
 
         Spacer(Modifier.width(16.dp))
 
-
+        // Debug
+        Log.d("WeatherCard", "WeatherMainContent: $cardData")
 
         // 왼쪽: 큰 텍스트(온도), 오른쪽: 세부정보
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
