@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 class OutfitViewModel(application: Application) : AndroidViewModel(application) {
     private val outfitDao = AppDatabase.getDatabase(application).outfitDao()
     private val outfitClothesDao = AppDatabase.getDatabase(application).outfitClothesDao()
-    private val repository = OutfitRepository(outfitDao, outfitClothesDao, application)
+    private val outfitRepository = OutfitRepository(outfitDao, outfitClothesDao, application)
 
     private val _outfitsList = MutableStateFlow<List<OutfitEntity>>(emptyList())
     val outfitsList: StateFlow<List<OutfitEntity>> = _outfitsList
@@ -32,11 +32,9 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
     private val _deleteState = MutableStateFlow<OutfitOperationState>(OutfitOperationState.Idle)
     val deleteState: StateFlow<OutfitOperationState> = _deleteState
 
-    /**
-     * 현재 사용자의 코디 목록 로드
-     */
+    // ### 현재 사용자의 코디 목록 불러오기 ###
     fun loadOutfits() = viewModelScope.launch {
-        repository.getOutfitsByCurrentUser()
+        outfitRepository.getOutfitsByCurrentUser()
             ?.catch { e ->
                 e.printStackTrace()
                 _outfitsList.value = emptyList()
@@ -46,77 +44,108 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
             }
     }
 
-    /**
-     * 옷 정보 포함 코디 목록 로드
-     */
+    // 옷 정보 포함 코디 목록 로드
     fun loadOutfitsWithClothes() = viewModelScope.launch {
-        repository.getOutfitsWithClothesByCurrentUser()
-            ?.catch { e ->
-                e.printStackTrace()
+        outfitRepository.getOutfitsWithClothesByCurrentUser()
+            ?.catch {
+                it.printStackTrace()
                 _outfitsWithClothes.value = emptyList()
             }
-            ?.collect { outfits ->
-                _outfitsWithClothes.value = outfits
+            ?.collect { list ->
+                _outfitsWithClothes.value = list
             }
     }
 
+    // ====== 생성 / 수정 / 삭제 ======
+
     /**
      * 코디 생성
+     *
+     * @param name 코디 이름
+     * @param clothesIds 포함된 옷 cid 리스트
+     * @param wornStartTime 착용 시작 시간 (millis)
+     * @param wornEndTime 착용 종료 시간 (millis)
+     * @param latitude 착용 위치 위도
+     * @param longitude 착용 위치 경도
+     * @param locationName 선택: 위치명 (Reverse Geocoding 결과)
      */
-    fun createOutfit(name: String, clothesIds: List<String>) = viewModelScope.launch {
+    fun createOutfit(
+        name: String,
+        clothesIds: List<String>,
+        wornStartTime: Long,
+        wornEndTime: Long,
+        latitude: Double,
+        longitude: Double,
+        locationName: String? = null
+    ) = viewModelScope.launch {
         _createState.value = OutfitOperationState.Loading
 
-        // 입력 검증
         if (name.isBlank()) {
             _createState.value = OutfitOperationState.Failure("코디 이름을 입력해주세요.")
             return@launch
         }
-
         if (clothesIds.isEmpty()) {
             _createState.value = OutfitOperationState.Failure("최소 한 개 이상의 옷을 선택해주세요.")
             return@launch
         }
+        if (wornEndTime <= wornStartTime) {
+            _createState.value = OutfitOperationState.Failure("착용 종료 시간이 시작 시간보다 늦어야 합니다.")
+            return@launch
+        }
 
-//        val result = repository.createOutfit(clothesIds)
-//
-//        result.onSuccess { oid ->
-//            _createState.value = OutfitOperationState.Success("코디가 생성되었습니다.")
-//            loadOutfits()
-//            loadOutfitsWithClothes()
-//        }.onFailure { exception ->
-//            _createState.value = OutfitOperationState.Failure(
-//                exception.message ?: "코디 생성 실패"
-//            )
-//        }
+        val result = outfitRepository.createOutfit(
+            clothesIds = clothesIds,
+            wornStartTime = wornStartTime,
+            wornEndTime = wornEndTime,
+            latitude = latitude,
+            longitude = longitude
+        )
+
+        result.onSuccess {
+            _createState.value = OutfitOperationState.Success("코디가 생성되었습니다.")
+            loadOutfits()
+            loadOutfitsWithClothes()
+        }.onFailure {
+            _createState.value = OutfitOperationState.Failure(
+                it.message ?: "코디 생성에 실패했습니다."
+            )
+        }
     }
 
     /**
-     * 코디 수정
+     * 코디 기본 정보 수정 (이름 + 옷 구성)
+     * 착용 시간/위치/날씨 통계는 별도 화면에서 수정한다고 가정
      */
-    fun updateOutfit(oid: String, name: String, clothesIds: List<String>) = viewModelScope.launch {
+    fun updateOutfit(
+        oid: String,
+        name: String,
+        clothesIds: List<String>
+    ) = viewModelScope.launch {
         _updateState.value = OutfitOperationState.Loading
 
         if (name.isBlank()) {
             _updateState.value = OutfitOperationState.Failure("코디 이름을 입력해주세요.")
             return@launch
         }
-
         if (clothesIds.isEmpty()) {
             _updateState.value = OutfitOperationState.Failure("최소 한 개 이상의 옷을 선택해주세요.")
             return@launch
         }
 
-//        val result = repository.updateOutfit(oid, name, clothesIds)
-//
-//        result.onSuccess {
-//            _updateState.value = OutfitOperationState.Success("코디가 수정되었습니다.")
-//            loadOutfits()
-//            loadOutfitsWithClothes()
-//        }.onFailure { exception ->
-//            _updateState.value = OutfitOperationState.Failure(
-//                exception.message ?: "코디 수정 실패"
-//            )
-//        }
+        val result = outfitRepository.updateOutfit(
+            oid = oid,
+            clothesIds = clothesIds
+        )
+
+        result.onSuccess {
+            _updateState.value = OutfitOperationState.Success("코디가 수정되었습니다.")
+            loadOutfits()
+            loadOutfitsWithClothes()
+        }.onFailure {
+            _updateState.value = OutfitOperationState.Failure(
+                it.message ?: "코디 수정에 실패했습니다."
+            )
+        }
     }
 
     /**
@@ -125,15 +154,15 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
     fun deleteOutfit(oid: String) = viewModelScope.launch {
         _deleteState.value = OutfitOperationState.Loading
 
-        val result = repository.deleteOutfit(oid)
+        val result = outfitRepository.deleteOutfit(oid)
 
-        result.onSuccess {
+        result.onSuccess { _:Unit ->
             _deleteState.value = OutfitOperationState.Success("코디가 삭제되었습니다.")
             loadOutfits()
             loadOutfitsWithClothes()
-        }.onFailure { exception ->
+        }.onFailure { e: Throwable ->
             _deleteState.value = OutfitOperationState.Failure(
-                exception.message ?: "코디 삭제 실패"
+                e.message ?: "코디 삭제에 실패했습니다."
             )
         }
     }
@@ -142,19 +171,15 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
      * 동기화되지 않은 데이터 재동기화
      */
     fun syncUnsyncedData() = viewModelScope.launch {
-        repository.syncUnsyncedData()
+        outfitRepository.syncUnsyncedData()
     }
 
-    /**
-     * 실시간 동기화 시작
-     */
+    // ====== Firebase 동기화 관련 ======
     fun startRealtimeSync(uid: String) {
-        repository.startRealtimeSync(uid)
+        outfitRepository.startRealtimeSync(uid)
     }
 
-    /**
-     * 상태 초기화
-     */
+    // ====== State 초기화 ======
     fun resetCreateState() {
         _createState.value = OutfitOperationState.Idle
     }

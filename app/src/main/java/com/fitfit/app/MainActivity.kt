@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
                         OutfitRepository(outfitDao, outfitClothesDao, this@MainActivity)
 
                     weatherViewModel.setOutfitRepository(outfitRepository)
+//                    outfitViewModel.set
                 }
 
                 // 로그인 상태에 따라 동기화 시작

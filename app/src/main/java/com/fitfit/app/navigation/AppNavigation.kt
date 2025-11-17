@@ -15,6 +15,7 @@ import com.fitfit.app.ui.navbar.BottomNavBar
 import com.fitfit.app.ui.screen.clothesScreen.ClothesScreenExample
 import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
+import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
 import com.fitfit.app.ui.screen.outfitsScreen.OutfitsScreen
 import com.fitfit.app.viewmodel.UserViewModel
 
@@ -23,6 +24,7 @@ object Screens {
     const val CLOTHES = "clothes"
     const val OUTFITS = "outfits"
     const val LOGIN = "login"
+    const val REGISTER = "register"
 }
 
 @Composable
@@ -94,6 +96,9 @@ fun AppNavigation() {
             }
             composable(Screens.OUTFITS) {
                 OutfitsScreen(navController = navController)
+            }
+            composable(Screens.REGISTER) {
+                 RegisterScreen(navController = navController, userViewModel = userViewModel)
             }
         }
     }
