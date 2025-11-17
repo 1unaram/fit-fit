@@ -10,9 +10,13 @@ data class ClothesEntity(
 
     val ownerUid: String,
 
-    val name: String,
+    val imagePath: String,
 
     val category: String,
+
+    val nickname: String,
+
+    val storeUrl: String? = null,
 
     val createdAt: Long = System.currentTimeMillis(),
 

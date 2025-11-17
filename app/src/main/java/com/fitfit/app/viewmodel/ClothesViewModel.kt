@@ -21,119 +21,62 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
     private val _insertState = MutableStateFlow<ClothesOperationState>(ClothesOperationState.Idle)
     val insertState: StateFlow<ClothesOperationState> = _insertState
 
-    private val _updateState = MutableStateFlow<ClothesOperationState>(ClothesOperationState.Idle)
-    val updateState: StateFlow<ClothesOperationState> = _updateState
-
-    private val _deleteState = MutableStateFlow<ClothesOperationState>(ClothesOperationState.Idle)
-    val deleteState: StateFlow<ClothesOperationState> = _deleteState
 
     // ### 현재 사용자의 옷 목록 불러오기 ###
     fun loadClothes() = viewModelScope.launch {
         repository.getClothesByCurrentUser()
-            ?.catch { e ->
-                e.printStackTrace()
-                _clothesList.value = emptyList()
-            }
-            ?.collect { clothes ->
-                _clothesList.value = clothes
-            }
+            ?.catch { _clothesList.value = emptyList() }
+            ?.collect { _clothesList.value = it }
     }
 
-    /**
-     * 옷 추가
-     */
+    // ### 옷 추가 ###
     fun insertClothes(
-        name: String,
-        category: String
+        imagePath: String,
+        category: String,
+        nickname: String,
+        storeUrl: String?
     ) = viewModelScope.launch {
         _insertState.value = ClothesOperationState.Loading
 
-        // 입력 검증
-        if (name.isBlank()) {
-            _insertState.value = ClothesOperationState.Failure("옷 이름을 입력해주세요.")
+        if (imagePath.isBlank()) {
+            _insertState.value = ClothesOperationState.Failure("사진을 선택해주세요.")
             return@launch
         }
-
         if (category.isBlank()) {
             _insertState.value = ClothesOperationState.Failure("카테고리를 선택해주세요.")
             return@launch
         }
+        if (nickname.isBlank()) {
+            _insertState.value = ClothesOperationState.Failure("이름(별칭)을 입력해주세요.")
+            return@launch
+        }
 
-        val result = repository.insertClothes(name, category)
-
-        result.onSuccess { cid ->
+        val result = repository.insertClothes(imagePath, category, nickname, storeUrl)
+        result.onSuccess {
             _insertState.value = ClothesOperationState.Success("옷이 추가되었습니다.")
-            loadClothes() // 목록 새로고침
-        }.onFailure { exception ->
-            _insertState.value = ClothesOperationState.Failure(
-                exception.message ?: "옷 추가 실패"
-            )
-        }
-    }
-
-    /**
-     * 옷 수정
-     */
-    fun updateClothes(clothes: ClothesEntity) = viewModelScope.launch {
-        _updateState.value = ClothesOperationState.Loading
-
-        val result = repository.updateClothes(clothes)
-
-        result.onSuccess {
-            _updateState.value = ClothesOperationState.Success("옷이 수정되었습니다.")
             loadClothes()
-        }.onFailure { exception ->
-            _updateState.value = ClothesOperationState.Failure(
-                exception.message ?: "옷 수정 실패"
-            )
+        }.onFailure { e ->
+            _insertState.value = ClothesOperationState.Failure(e.message ?: "옷 추가 실패")
         }
     }
 
-    /**
-     * 옷 삭제
-     */
+    // ### 옷 삭제 ###
     fun deleteClothes(cid: String) = viewModelScope.launch {
-        _deleteState.value = ClothesOperationState.Loading
-
-        val result = repository.deleteClothes(cid)
-
-        result.onSuccess {
-            _deleteState.value = ClothesOperationState.Success("옷이 삭제되었습니다.")
-            loadClothes()
-        }.onFailure { exception ->
-            _deleteState.value = ClothesOperationState.Failure(
-                exception.message ?: "옷 삭제 실패"
-            )
-        }
+        repository.deleteClothes(cid)
+        loadClothes()
     }
 
-    /**
-     * 동기화되지 않은 데이터 재동기화
-     */
+    // 동기화되지 않은 데이터 재동기화
     fun syncUnsyncedData() = viewModelScope.launch {
         repository.syncUnsyncedData()
     }
 
-    /**
-     * 실시간 동기화 시작
-     */
     fun startRealtimeSync(uid: String) {
         repository.startRealtimeSync(uid)
     }
 
-    /**
-     * 상태 초기화
-     */
     fun resetInsertState() {
         _insertState.value = ClothesOperationState.Idle
-    }
-
-    fun resetUpdateState() {
-        _updateState.value = ClothesOperationState.Idle
-    }
-
-    fun resetDeleteState() {
-        _deleteState.value = ClothesOperationState.Idle
     }
 }
 

@@ -197,17 +197,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = {
-                    clothesViewModel.insertClothes(
-                        name = "테스트 티셔츠",
-                        category = "상의"
-                    )
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("테스트 옷 추가")
-            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

@@ -12,38 +12,9 @@ class OpenWeatherRepository(
 ) {
     private val weatherApiCall = WeatherApiCall()
 
-    /**
-     * One Call API 3.0으로 전체 날씨 정보 가져오기
-     * (현재 날씨, 분/시간/일별 예보 모두 포함)
-     */
-    fun getOneCallWeather(
-        latitude: Double,
-        longitude: Double
-    ): Flow<Result<OneCallWeatherResponse>> = flow {
-        emit(weatherApiCall.fetchOneCallWeather(latitude, longitude, apiKey))
-    }
 
-    /**
-     * 현재 날씨와 일별 예보만 가져오기 (minutely, hourly, alerts 제외)
-     */
-    fun getCurrentAndDailyWeather(
-        latitude: Double,
-        longitude: Double
-    ): Flow<Result<OneCallWeatherResponse>> = flow {
-        emit(
-            weatherApiCall.fetchOneCallWeather(
-                latitude,
-                longitude,
-                apiKey,
-                exclude = "minutely,hourly,alerts"
-            )
-        )
-    }
-
-    /**
-     * 현재 날씨만 가져오기
-     */
-    fun getCurrentWeatherOnly(
+    // 현재 날씨 가져오기 for Case1: WeatherCard
+    fun getCurrentWeather(
         latitude: Double,
         longitude: Double
     ): Flow<Result<OneCallWeatherResponse>> = flow {
@@ -57,6 +28,7 @@ class OpenWeatherRepository(
         )
     }
 
+    // 과거 날씨 가져오기 for Case2: PastWeather
     fun getTimemachineWeather(
         latitude: Double,
         longitude: Double,
