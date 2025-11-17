@@ -13,14 +13,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.fitfit.app.viewmodel.LoginState
 import com.fitfit.app.viewmodel.UserViewModel
 
 @Composable
@@ -50,6 +55,19 @@ fun LoginScreen(
     navController: NavController,
     userViewModel: UserViewModel = viewModel()
 ) {
+    // 로그인 상태 관찰
+    val loginState by userViewModel.loginState.collectAsState()
+
+    // 로그인 성공 시 홈 화면으로 이동
+    LaunchedEffect(loginState) {
+        if (loginState is LoginState.Success) {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }
+            }
+            userViewModel.resetLoginState()
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,7 +82,10 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(112.dp))
 
             // Login Main Card
-            LoginMainCard(userViewModel)
+            LoginMainCard(
+                userViewModel = userViewModel,
+                loginState = loginState
+            )
 
             Spacer(modifier = Modifier.height(38.dp))
 
@@ -77,15 +98,17 @@ fun LoginScreen(
 }
 
 @Composable
-fun LoginMainCard(userViewModel: UserViewModel) {
-
+fun LoginMainCard(
+    userViewModel: UserViewModel,
+    loginState: LoginState
+) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier
             .width(294.dp)
-            .height(377.dp),
+            .height(450.dp), // 377dp에서 450dp로 증가 (에러 메시지 공간 확보)
         shape = RoundedCornerShape(17.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -100,7 +123,7 @@ fun LoginMainCard(userViewModel: UserViewModel) {
                 .fillMaxSize()
                 .padding(vertical = 34.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(47.dp)
+            verticalArrangement = Arrangement.spacedBy(30.dp) // 47dp에서 30dp로 조정
         ) {
             // Login Title
             LoginTitle()
@@ -113,11 +136,26 @@ fun LoginMainCard(userViewModel: UserViewModel) {
                 onPasswordChange = { password = it }
             )
 
+            // 에러 메시지 표시
+            if (loginState is LoginState.Failure) {
+                Text(
+                    text = loginState.message,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            } else {
+                // 에러가 없을 때 빈 공간 유지 (레이아웃 변화 방지)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // Login Button
             LoginButton(
                 username = username,
                 password = password,
-                userViewModel = userViewModel
+                userViewModel = userViewModel,
+                isLoading = loginState is LoginState.Loading
             )
         }
     }
@@ -253,7 +291,8 @@ fun InputField(
 fun LoginButton(
     username: String,
     password: String,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    isLoading: Boolean
 ) {
     Box(
         modifier = Modifier
@@ -273,17 +312,25 @@ fun LoginButton(
                 color = Color(0x26000000),
                 shape = RoundedCornerShape(13.dp)
             )
-            .clickable {
+            .clickable(enabled = !isLoading) {
                 userViewModel.loginUser(username, password)
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Login",
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF3673E4)
-        )
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = Color(0xFF3673E4),
+                strokeWidth = 2.dp
+            )
+        } else {
+            Text(
+                text = "Login",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF3673E4)
+            )
+        }
     }
 }
 
