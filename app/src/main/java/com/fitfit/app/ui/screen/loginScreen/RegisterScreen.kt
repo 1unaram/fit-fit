@@ -33,38 +33,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.fitfit.app.viewmodel.LoginState
+import com.fitfit.app.viewmodel.RegisterState
 import com.fitfit.app.viewmodel.UserViewModel
 
 @Composable
-fun LoginScreen(
+fun RegisterScreen(
     navController: NavController,
     userViewModel: UserViewModel = viewModel()
 ) {
-    // 로그인 상태 관찰
-    val loginState by userViewModel.loginState.collectAsState()
+    // 회원가입 상태 관찰
+    val registerState by userViewModel.registerState.collectAsState()
 
-    // 로그인 성공 시 홈 화면으로 이동
-    LaunchedEffect(loginState) {
-        if (loginState is LoginState.Success) {
-            navController.navigate("home") {
-                popUpTo("login") { inclusive = true }
+    // 회원가입 성공 시 로그인 화면으로 이동
+    LaunchedEffect(registerState) {
+        if (registerState is RegisterState.Success) {
+            navController.navigate("login") {
+                popUpTo("register") { inclusive = true }
             }
-            userViewModel.resetLoginState()
+            userViewModel.resetRegisterState()
         }
     }
 
@@ -81,16 +78,12 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(112.dp))
 
-            // Login Main Card
-            LoginMainCard(
+            // Sign Up Main Card
+            RegisterMainCard(
                 userViewModel = userViewModel,
-                loginState = loginState
+                navController = navController,
+                registerState = registerState
             )
-
-            Spacer(modifier = Modifier.height(38.dp))
-
-            // Sign Up Button
-            RegisterButton(navController = navController)
 
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -98,17 +91,19 @@ fun LoginScreen(
 }
 
 @Composable
-fun LoginMainCard(
+private fun RegisterMainCard(
     userViewModel: UserViewModel,
-    loginState: LoginState
+    navController: NavController,
+    registerState: RegisterState
 ) {
+    // State Hoisting: 상태를 여기서 관리
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier
             .width(294.dp)
-            .height(450.dp), // 377dp에서 450dp로 증가 (에러 메시지 공간 확보)
+            .height(380.dp), // 에러 메시지 공간
         shape = RoundedCornerShape(17.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -121,15 +116,15 @@ fun LoginMainCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 34.dp),
+                .padding(vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(30.dp) // 47dp에서 30dp로 조정
+            verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            // Login Title
-            LoginTitle()
+            // Page Title
+            RegisterTitle()
 
-            // Login Input Fields
-            LoginInputFields(
+            // Sign Up Input Fields
+            RegisterInputFields(
                 username = username,
                 password = password,
                 onUsernameChange = { username = it },
@@ -137,67 +132,43 @@ fun LoginMainCard(
             )
 
             // 에러 메시지 표시
-            if (loginState is LoginState.Failure) {
+            if (registerState is RegisterState.Failure) {
                 Text(
-                    text = loginState.message,
+                    text = registerState.message,
                     color = Color.Red,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-            } else {
-                // 에러가 없을 때 빈 공간 유지 (레이아웃 변화 방지)
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Login Button
-            LoginButton(
+            // Sign Up Submit Button
+            RegisterSubmitButton(
                 username = username,
                 password = password,
                 userViewModel = userViewModel,
-                isLoading = loginState is LoginState.Loading
+                isLoading = registerState is RegisterState.Loading
             )
         }
     }
 }
 
 @Composable
-fun LoginTitle() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(0.dp)
-    ) {
-        // "Get Your Fit On!" Text
-        Text(
-            text = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color.Black)) {
-                    append("Get Your ")
-                }
-                withStyle(style = SpanStyle(color = Color(0xFF3673E4))) {
-                    append("Fit")
-                }
-                withStyle(style = SpanStyle(color = Color.Black)) {
-                    append(" On!")
-                }
-            },
-            fontSize = 23.sp,
-            fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center
-        )
-
-        // "Fit-Fit" Text
-        Text(
-            text = "Fit-Fit",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color(0xFF3673E4),
-            textAlign = TextAlign.Center
-        )
-    }
+private fun RegisterTitle() {
+    Text(
+        text = "Sign Up",
+        fontSize = 23.sp,
+        fontWeight = FontWeight.ExtraBold,
+        color = Color.Black,
+        textAlign = TextAlign.Start,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp)
+    )
 }
 
 @Composable
-fun LoginInputFields(
+private fun RegisterInputFields(
     username: String,
     password: String,
     onUsernameChange: (String) -> Unit,
@@ -209,7 +180,7 @@ fun LoginInputFields(
         verticalArrangement = Arrangement.spacedBy(13.dp)
     ) {
         // User Name Input
-        InputField(
+        RegisterInputField(
             label = "User Name",
             placeholder = "",
             value = username,
@@ -217,7 +188,7 @@ fun LoginInputFields(
         )
 
         // Password Input
-        InputField(
+        RegisterInputField(
             label = "Password",
             placeholder = "",
             value = password,
@@ -227,8 +198,9 @@ fun LoginInputFields(
     }
 }
 
+// RegisterScreen 전용 InputField - State Hoisting 적용
 @Composable
-fun InputField(
+private fun RegisterInputField(
     label: String,
     placeholder: String,
     value: String,
@@ -288,7 +260,7 @@ fun InputField(
 }
 
 @Composable
-fun LoginButton(
+private fun RegisterSubmitButton(
     username: String,
     password: String,
     userViewModel: UserViewModel,
@@ -313,7 +285,8 @@ fun LoginButton(
                 shape = RoundedCornerShape(13.dp)
             )
             .clickable(enabled = !isLoading) {
-                userViewModel.loginUser(username, password)
+                // Firebase 회원가입 처리
+                userViewModel.registerUser(username, password)
             },
         contentAlignment = Alignment.Center
     ) {
@@ -325,41 +298,10 @@ fun LoginButton(
             )
         } else {
             Text(
-                text = "Login",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF3673E4)
-            )
-        }
-    }
-}
-
-@Composable
-fun RegisterButton(navController: NavController) {
-    Card(
-        modifier = Modifier
-            .width(294.dp)
-            .height(56.dp)
-            .clickable { navController.navigate("register") },
-        shape = RoundedCornerShape(17.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        ),
-        border = BorderStroke(1.dp, Color.White)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
                 text = "Sign Up",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF3673E4),
-                textAlign = TextAlign.Center
+                color = Color(0xFF3673E4)
             )
         }
     }
