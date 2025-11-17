@@ -50,14 +50,15 @@ class MainActivity : ComponentActivity() {
 
                 // Outfit Repository 설정
                 LaunchedEffect(Unit) {
-                    val outfitDao = AppDatabase.getDatabase(this@MainActivity).outfitDao()
-                    val outfitClothesDao =
-                        AppDatabase.getDatabase(this@MainActivity).outfitClothesDao()
-                    val outfitRepository =
-                        OutfitRepository(outfitDao, outfitClothesDao, this@MainActivity)
+                    val db = AppDatabase.getDatabase(this@MainActivity)
+                    val outfitRepository = OutfitRepository(
+                        outfitDao = db.outfitDao(),
+                        outfitClothesDao = db.outfitClothesDao(),
+                        context = this@MainActivity
+                    )
 
                     weatherViewModel.setOutfitRepository(outfitRepository)
-//                    outfitViewModel.set
+                    weatherViewModel.setOutfitRepository(outfitRepository)
                 }
 
                 // 로그인 상태에 따라 동기화 시작
