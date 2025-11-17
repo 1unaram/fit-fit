@@ -7,7 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.ImageLoader
+import coil.request.CachePolicy
 import com.fitfit.app.data.local.database.AppDatabase
 import com.fitfit.app.data.repository.OutfitRepository
 import com.fitfit.app.navigation.AppNavigation
@@ -24,7 +28,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+
+            // ImageLoader 생성
+            val context = LocalContext.current
+            remember {
+                ImageLoader.Builder(context)
+                    .crossfade(true)
+                    .respectCacheHeaders(false)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .build()
+            }
+
             FitFitTheme {
+
                 val userViewModel: UserViewModel = viewModel()
                 val clothesViewModel: ClothesViewModel = viewModel()
                 val outfitViewModel: OutfitViewModel = viewModel()
@@ -34,7 +51,8 @@ class MainActivity : ComponentActivity() {
                 // Outfit Repository 설정
                 LaunchedEffect(Unit) {
                     val outfitDao = AppDatabase.getDatabase(this@MainActivity).outfitDao()
-                    val outfitClothesDao = AppDatabase.getDatabase(this@MainActivity).outfitClothesDao()
+                    val outfitClothesDao =
+                        AppDatabase.getDatabase(this@MainActivity).outfitClothesDao()
                     val outfitRepository =
                         OutfitRepository(outfitDao, outfitClothesDao, this@MainActivity)
 
@@ -71,6 +89,7 @@ class MainActivity : ComponentActivity() {
 
                 AppNavigation()
             }
+
         }
     }
 }
