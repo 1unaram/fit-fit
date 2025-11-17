@@ -1,8 +1,8 @@
 package com.fitfit.app.ui.screen.homeScreen
 
 data class FilteredOutfit(
-    val date: Int,
-    val name: String,
+    val date: String,
+    val name: String
 )
 
 data class HomeScreenState(
