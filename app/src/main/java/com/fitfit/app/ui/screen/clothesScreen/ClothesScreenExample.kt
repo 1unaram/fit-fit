@@ -137,11 +137,11 @@ fun ClothesScreenExample (
                 }
             )
         }
-    ) { paddingValues ->
+    ) { ㅂㅈ ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(ㅂㅈ)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -235,11 +235,11 @@ fun ClothesScreenExample (
                 }
             }
 
+            // 저장된 이미지 목록
             if (clothesList.isEmpty()) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                        .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("등록된 옷이 없습니다.\n+ 버튼을 눌러 옷을 추가해보세요.", textAlign = TextAlign.Center)
@@ -247,9 +247,8 @@ fun ClothesScreenExample (
             } else {
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentPadding = PaddingValues(16.dp),
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(clothesList, key = { it.cid }) { clothes ->
