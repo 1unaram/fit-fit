@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                     if (currentUser != null) {
                         while (true) {
                             weatherViewModel.updatePendingOutfitWeather()
-                            delay(60_000) // 1분 간격. 리소스 여유따라 조정 가능
+                            delay(300_000) // 5분 간격. 리소스 여유따라 조정 가능
                         }
                     }
                 }
