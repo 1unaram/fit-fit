@@ -151,7 +151,6 @@ fun ClothesScreen(
             onSave = { category, nickname, storeUrl ->
                 clothesViewModel.updateClothes(
                     cid = selectedClothes!!.cid,
-                    imagePath = selectedClothes!!.imagePath,
                     category = category,
                     nickname = nickname,
                     storeUrl = storeUrl

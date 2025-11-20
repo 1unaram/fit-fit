@@ -75,26 +75,19 @@ class ClothesRepository(
     // ### 옷 수정 ###
     suspend fun updateClothes(
         cid: String,
-        imagePath: String,
         category: String,
         nickname: String,
         storeUrl: String?
     ): Result<Unit> {
         return try {
-            val currentUid = getCurrentUid()
-                ?: return Result.failure(Exception("로그인이 필요합니다."))
 
-            val entity = ClothesEntity(
-                cid = cid,
-                ownerUid = currentUid,
-                imagePath = imagePath,
+            val entity = clothesDao.getClothesById(cid)
+                ?: return Result.failure(Exception("옷을 찾을 수 없습니다."))
+
+            val updated = entity.copy(
                 category = category,
                 nickname = nickname,
                 storeUrl = storeUrl,
-                isSynced = false
-            )
-
-            val updated = entity.copy(
                 lastModified = System.currentTimeMillis(),
                 isSynced = false
             )
