@@ -50,13 +50,15 @@ class MainActivity : ComponentActivity() {
 
                 // Outfit Repository 설정
                 LaunchedEffect(Unit) {
-                    val outfitDao = AppDatabase.getDatabase(this@MainActivity).outfitDao()
-                    val outfitClothesDao =
-                        AppDatabase.getDatabase(this@MainActivity).outfitClothesDao()
-                    val outfitRepository =
-                        OutfitRepository(outfitDao, outfitClothesDao, this@MainActivity)
+                    val db = AppDatabase.getDatabase(this@MainActivity)
+                    val outfitRepository = OutfitRepository(
+                        outfitDao = db.outfitDao(),
+                        outfitClothesDao = db.outfitClothesDao(),
+                        context = this@MainActivity
+                    )
 
                     weatherViewModel.setOutfitRepository(outfitRepository)
+                    outfitViewModel.setOutfitRepository(outfitRepository)
                 }
 
                 // 로그인 상태에 따라 동기화 시작
@@ -73,7 +75,6 @@ class MainActivity : ComponentActivity() {
                         // Outfit 동기화
                         outfitViewModel.startRealtimeSync(user.uid)
                         outfitViewModel.syncUnsyncedData()
-                        outfitViewModel.loadOutfits()
                         outfitViewModel.loadOutfitsWithClothes()
                     }
                 }
@@ -82,12 +83,12 @@ class MainActivity : ComponentActivity() {
                     if (currentUser != null) {
                         while (true) {
                             weatherViewModel.updatePendingOutfitWeather()
-                            delay(60_000) // 1분 간격. 리소스 여유따라 조정 가능
+                            delay(300_000) // 5분 간격. 리소스 여유따라 조정 가능
                         }
                     }
                 }
 
-                AppNavigation()
+                AppNavigation(outfitViewModel, weatherViewModel)
             }
 
         }

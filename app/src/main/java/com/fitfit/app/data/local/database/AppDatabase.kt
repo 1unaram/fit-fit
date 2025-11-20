@@ -22,7 +22,7 @@ import com.fitfit.app.data.local.entity.UserEntity
         OutfitEntity::class,
         OutfitClothesCrossRef::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(ListConverter::class)

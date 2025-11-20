@@ -17,6 +17,10 @@ data class OutfitEntity(
 
     val clothesIds: List<String>,
 
+    val occasion: List<String>,
+
+    val comment: String? = null,
+
     val createdAt: Long = System.currentTimeMillis(),
 
     var isSynced: Boolean = false,
@@ -41,5 +45,4 @@ data class OutfitEntity(
 
     // ========== 날씨 조회 상태 ==========
     val weatherFetched: Boolean = false,
-
 )

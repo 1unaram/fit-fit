@@ -9,6 +9,8 @@ data class Outfit(
     // 착용 정보
     val wornStartTime: Long = 0,
     val wornEndTime: Long = 0,
+    val occasion: List<String> = emptyList(),
+    val comment: String? = null,
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
 
@@ -30,6 +32,8 @@ data class Outfit(
         emptyList(),
         0,
         0,
+        emptyList(),
+        null,
         0.0,
         0.0,
         null,
@@ -49,6 +53,8 @@ data class Outfit(
             return Outfit(
                 oid = entity.oid,
                 clothesIds = entity.clothesIds,
+                occasion = entity.occasion,
+                comment = entity.comment,
                 wornStartTime = entity.wornStartTime,
                 wornEndTime = entity.wornEndTime,
                 latitude = entity.latitude,
