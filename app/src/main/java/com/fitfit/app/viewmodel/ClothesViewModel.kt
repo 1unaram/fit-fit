@@ -60,6 +60,18 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    // ### 옷 수정 ###
+    fun updateClothes(
+        cid: String,
+        imagePath: String,
+        category: String,
+        nickname: String,
+        storeUrl: String?
+    ) = viewModelScope.launch {
+        repository.updateClothes(cid, imagePath, category, nickname, storeUrl)
+        loadClothes()
+    }
+
     // ### 옷 삭제 ###
     fun deleteClothes(cid: String) = viewModelScope.launch {
         repository.deleteClothes(cid)

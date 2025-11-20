@@ -65,9 +65,7 @@ class ClothesRepository(
             )
 
             clothesDao.insertClothes(entity)
-
             syncToFirebase(entity)
-
             Result.success(cid)
         } catch (e: Exception) {
             Result.failure(e)
@@ -75,12 +73,32 @@ class ClothesRepository(
     }
 
     // ### 옷 수정 ###
-    suspend fun updateClothes(entity: ClothesEntity): Result<Unit> {
+    suspend fun updateClothes(
+        cid: String,
+        imagePath: String,
+        category: String,
+        nickname: String,
+        storeUrl: String?
+    ): Result<Unit> {
         return try {
+            val currentUid = getCurrentUid()
+                ?: return Result.failure(Exception("로그인이 필요합니다."))
+
+            val entity = ClothesEntity(
+                cid = cid,
+                ownerUid = currentUid,
+                imagePath = imagePath,
+                category = category,
+                nickname = nickname,
+                storeUrl = storeUrl,
+                isSynced = false
+            )
+
             val updated = entity.copy(
                 lastModified = System.currentTimeMillis(),
                 isSynced = false
             )
+
             clothesDao.updateClothes(updated)
             syncToFirebase(updated)
             Result.success(Unit)

@@ -1,6 +1,8 @@
 package com.fitfit.app.ui.screen.clothesScreen.components
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -39,6 +41,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -46,14 +49,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.fitfit.app.R
+import java.io.File
 
 @Composable
 fun ClothesAddDialog(
     onDismiss: () -> Unit,
     onSave: (imageUri: Uri?, category: String, nickname: String, storeUrl: String?) -> Unit
 ) {
+    val context = LocalContext.current
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var selectedCategory by remember { mutableStateOf("") }
     var nickname by remember { mutableStateOf("") }
@@ -66,7 +72,8 @@ fun ClothesAddDialog(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            selectedImageUri = it
+            val filePath = copyImageToAppStorage(context, it)
+            selectedImageUri = filePath?.toUri()
         }
     }
 
@@ -401,4 +408,23 @@ private fun AddTextField(
         },
         singleLine = true
     )
+}
+
+// 이미지 저장 권한 문제 해결을 위한 파일 복사 함수
+fun copyImageToAppStorage(context: Context, uri: Uri): String? {
+    return try {
+        val fileName = "clothes_${System.currentTimeMillis()}.jpg"
+        val file = File(context.filesDir, fileName)
+
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            file.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        file.absolutePath
+    } catch (e: Exception) {
+        Log.e("ClothesAddDialog", "Failed to copy image", e)
+        null
+    }
 }
