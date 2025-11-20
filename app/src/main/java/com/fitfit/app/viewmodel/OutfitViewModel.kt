@@ -16,7 +16,6 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
     private var outfitRepository: OutfitRepository? = null
     fun setOutfitRepository(repo: OutfitRepository) {
         outfitRepository = repo
-        Log.d("OutfitViewModel", "OutfitRepository has been set.")
     }
 
     private val _outfitsList = MutableStateFlow<List<OutfitEntity>>(emptyList())
@@ -36,6 +35,7 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
 
 
     // ### 현재 사용자의 코디 목록 불러오기 ###
+    // 삭제 예정 함수 -> loadOutfitsWithClothes() 사용으로 통일
     fun loadOutfits() = viewModelScope.launch {
         val repo = outfitRepository ?: return@launch
         repo.getOutfitsByCurrentUser()
