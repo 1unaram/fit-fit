@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.fitfit.app.data.local.entity.OutfitEntity
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
 import com.fitfit.app.viewmodel.ClothesViewModel
@@ -56,11 +55,10 @@ import com.fitfit.app.viewmodel.WeatherViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController,
     userViewModel: UserViewModel = viewModel(),
     clothesViewModel: ClothesViewModel = viewModel(),
     outfitViewModel: OutfitViewModel = viewModel(),
-    weatherViewModel: WeatherViewModel = viewModel()
+    weatherViewModel: WeatherViewModel
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
     val outfitsList by outfitViewModel.outfitsList.collectAsState()
@@ -82,10 +80,7 @@ fun HomeScreen(
     val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
 
-    // 화면이 처음 진입할 때 한 번만 호출
-    LaunchedEffect(Unit) {
-        weatherViewModel.getWeatherCardData()
-    }
+
 
 
     // ================== ui ==============

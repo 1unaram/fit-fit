@@ -24,8 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.ui.screen.clothesScreen.components.CategoryChips
 import com.fitfit.app.ui.screen.clothesScreen.components.ClothesAddDialog
@@ -38,8 +36,7 @@ import com.fitfit.app.viewmodel.ClothesViewModel
 
 @Composable
 fun ClothesScreen(
-    navController: NavController,
-    clothesViewModel: ClothesViewModel = viewModel()
+    clothesViewModel: ClothesViewModel
 ) {
     val clothesList by clothesViewModel.clothesList.collectAsState()
     var selectedCategory by remember { mutableStateOf("All") }
