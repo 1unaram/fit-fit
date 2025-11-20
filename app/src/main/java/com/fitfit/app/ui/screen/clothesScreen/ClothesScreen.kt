@@ -200,11 +200,10 @@ fun ClothesScreenPreview(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp), //옆 패딩
+                    .padding(horizontal = 24.dp), //옆 패딩
                 verticalArrangement = Arrangement.spacedBy(12.dp) //각 카드 컬럼별 간격
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(4.dp))
                     CategoryChips(
                         selectedCategory = selectedCategory,
                         onCategorySelected = { selectedCategory = it }

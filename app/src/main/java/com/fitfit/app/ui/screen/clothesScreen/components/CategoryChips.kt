@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -36,19 +37,18 @@ fun CategoryChips(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(45.dp),
+            .height(56.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Box(
             modifier = Modifier.wrapContentWidth(Alignment.Start)
-                .height(100.dp)
         ) {
             Box(
                 modifier = Modifier
                     .width(300.dp)
                     .height(40.dp)
                     .shadow(
-                        elevation = 2.dp,
+                        elevation = 1.dp,
                         shape = RoundedCornerShape(11.dp),
                         clip = false
                     )
@@ -140,5 +140,19 @@ private fun CategoryChip(
                 overflow = TextOverflow.Ellipsis
             )
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFE8F2FF, name = "Bottoms Selected")
+@Composable
+fun PreviewCategoryChips_Bottoms() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        CategoryChips(
+            selectedCategory = "Bottoms",
+            onCategorySelected = {}
+        )
     }
 }
