@@ -57,7 +57,7 @@ import com.fitfit.app.viewmodel.WeatherViewModel
 fun HomeScreen(
     userViewModel: UserViewModel = viewModel(),
     clothesViewModel: ClothesViewModel = viewModel(),
-    outfitViewModel: OutfitViewModel = viewModel(),
+    outfitViewModel: OutfitViewModel,
     weatherViewModel: WeatherViewModel
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
@@ -76,43 +76,40 @@ fun HomeScreen(
     }
 
 
-
     val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
-
-
 
 
     // ================== ui ==============
     LazyColumn {
 
-    /* Section1. Weather Card */
-    item {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text("Today's weather", style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.height(8.dp))
+        /* Section1. Weather Card */
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Text("Today's weather", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(8.dp))
 
-            WeatherCard(state = weatherCardState)
+                WeatherCard(state = weatherCardState)
+            }
         }
-    }
 
 
-    /* Section2. Filter Button */
-   item {
-       FilterButtonSection(showFilter, onChange = { showFilter = it })
-   }
+        /* Section2. Filter Button */
+        item {
+            FilterButtonSection(showFilter, onChange = { showFilter = it })
+        }
 
-    /* Section3. Outfit Cards List */
-    items(3) {
-        OutfitCardsListSection(
-            showOutfit,
-            outfitsList = outfitsList,
-            onCardClick = { showOutfit = it })
-    }
+        /* Section3. Outfit Cards List */
+        items(3) {
+            OutfitCardsListSection(
+                showOutfit,
+                outfitsList = outfitsList,
+                onCardClick = { showOutfit = it })
+        }
     }
 }
 
@@ -122,11 +119,11 @@ fun FilterButtonSection(
     showFilter: Boolean,
     onChange: (Boolean) -> Unit
 ) {
-    Row (
+    Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         FloatingActionButton(
             onClick = { onChange(true) }
         ) {
@@ -152,17 +149,17 @@ fun FilterButtonSection(
 
 @Composable
 fun OutfitCardsListSection(
-    showOutfit : Boolean,
+    showOutfit: Boolean,
     outfitsList: List<OutfitEntity>,
     onCardClick: (Boolean) -> Unit
 ) {
-    WeatherOutfitList(showOutfit,outfitsList, onCardClick)
+    WeatherOutfitList(showOutfit, outfitsList, onCardClick)
 }
 
 
 @Composable
 fun WeatherOutfitList(
-    showOutfit : Boolean,
+    showOutfit: Boolean,
     items: List<OutfitEntity>,
     onCardClick: (Boolean) -> Unit
 ) {
@@ -207,13 +204,17 @@ fun WeatherOutfitCard(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Box(modifier = Modifier
-                                .background(
-                                    Brush.horizontalGradient(
-                                        colors = listOf(
-                                                Color(0xB3FCE8ED),
-                                                Color(0xB3F8B3C2)
-                                            ))))
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xB3FCE8ED),
+                                        Color(0xB3F8B3C2)
+                                    )
+                                )
+                            )
+                    )
 
 //                    cardData.occasion.forEach { occasion ->
 //                        Box(
@@ -248,46 +249,49 @@ fun WeatherOutfitCard(
 //                                .padding(horizontal = 4.dp, vertical = 2.dp)
 //                        ) {
 //                        }
+                }
+                Spacer(Modifier.width(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        cardData.wornStartTime.toString(),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = cardData.iconCode,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            cardData.temperatureAvg.toString(),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                    Spacer(Modifier.width(4.dp))
-                    Row (
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                        Text(cardData.wornStartTime.toString(), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = cardData.iconCode,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    cardData.temperatureAvg.toString(),
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                    // Right row: Clothes images
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                }
+            }
+            // Right row: Clothes images
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 //                        cardData.clothesImages.forEach { imgUrl ->
 //                            // TODO: Use Coil or Glide for image loading in production
 //                            // Example using Coil:
 //                            // AsyncImage(model = imgUrl, contentDescription = null, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
 //                        }
-                        Spacer(Modifier.width(8.dp))
-                    }
-                }
+                Spacer(Modifier.width(8.dp))
             }
-            Modifier.clickable { onClick() }
         }
-
+    }
+    Modifier.clickable { onClick() }
+}
 
 
 // 예시: 날짜별 의상 카드 리스트
