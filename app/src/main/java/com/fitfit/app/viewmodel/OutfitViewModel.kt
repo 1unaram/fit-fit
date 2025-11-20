@@ -1,7 +1,6 @@
 package com.fitfit.app.viewmodel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fitfit.app.data.local.entity.OutfitEntity
@@ -68,15 +67,13 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
         _createState.value = OutfitOperationState.Loading
 
         if (clothesIds.isEmpty()) {
-            _createState.value = OutfitOperationState.Failure("최소 한 개 이상의 옷을 선택해주세요.")
+            _createState.value = OutfitOperationState.Failure("Choose at least one piece of clothing.")
             return@launch
         }
         if (wornEndTime <= wornStartTime) {
-            _createState.value = OutfitOperationState.Failure("착용 종료 시간이 시작 시간보다 늦어야 합니다.")
+            _createState.value = OutfitOperationState.Failure("Invalid worn time range.")
             return@launch
         }
-
-        Log.d("OutfitViewModel", "Creating outfit ... $outfitRepository")
 
         val result = outfitRepository?.createOutfit(
             clothesIds = clothesIds,
@@ -89,11 +86,11 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
         )
 
         result?.onSuccess {
-            _createState.value = OutfitOperationState.Success("코디가 생성되었습니다.")
+            _createState.value = OutfitOperationState.Success("Successfully created outfit.")
             loadOutfitsWithClothes()
         }?.onFailure {
             _createState.value = OutfitOperationState.Failure(
-                it.message ?: "코디 생성에 실패했습니다."
+                it.message ?: "Failed to create outfit."
             )
         }
     }
@@ -109,7 +106,7 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
         _updateState.value = OutfitOperationState.Loading
 
         if (clothesIds.isEmpty()) {
-            _updateState.value = OutfitOperationState.Failure("최소 한 개 이상의 옷을 선택해주세요.")
+            _updateState.value = OutfitOperationState.Failure("Choose at least one piece of clothing.")
             return@launch
         }
 
@@ -119,11 +116,11 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
         )
 
         result?.onSuccess {
-            _updateState.value = OutfitOperationState.Success("코디가 수정되었습니다.")
+            _updateState.value = OutfitOperationState.Success("Successfully updated outfit.")
             loadOutfitsWithClothes()
         }?.onFailure {
             _updateState.value = OutfitOperationState.Failure(
-                it.message ?: "코디 수정에 실패했습니다."
+                it.message ?: "Failed to update outfit."
             )
         }
     }

@@ -54,8 +54,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             val lon = location.longitude
             _currentLocation.value = LocationManager.Coordinates(lat, lon)
 
-            Log.d("WeatherViewModel", "Fetching weather for location: lat=$lat, lon=$lon")
-
             // 2. Weather Card용 날씨 정보 가져오기
             // Weather API와 Geo(위치명) API 병렬로 요청
             val weatherDeferred = async {
@@ -118,9 +116,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /**
-     * 특정 Outfit의 시간 구간별 날씨를 조회하고 집계하여 업데이트
-     */
+    // ### 특정 Outfit의 시간 구간별 날씨를 조회하고 집계하여 업데이트 ###
     private fun fetchAndAggregateWeatherForOutfit(
         outfitId: String,
         wornStartTime: Long,
@@ -166,9 +162,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /**
-     * 특정 시간의 날씨 조회 (단일 API 호출)
-     */
+    // 특정 시간의 날씨 조회 (단일 API 호출)
     private suspend fun fetchWeatherAtTimestamp(
         latitude: Double,
         longitude: Double,
@@ -183,24 +177,16 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
             result.fold(
                 onSuccess = { response ->
-                    Log.d("WeatherViewModel", "API Response: lat=${response.lat}, lon=${response.lon}, data size=${response.data?.size}")
+                    Log.d("WeatherViewModel", "API Response: lat=${response.lat}, lon=${response.lon}, data size=${response.data.size}")
 
                     // data 배열의 첫 번째 요소 사용
-                    response.data?.firstOrNull()?.let { data ->
-                        Log.d("WeatherViewModel", """
-                            Weather data found:
-                            - temp: ${data.temp}
-                            - weather: ${data.weather?.firstOrNull()?.description}
-                            - windSpeed: ${data.windSpeed}
-                            - rain: ${data.rain}
-                        """.trimIndent())
-
+                    response.data.firstOrNull()?.let { data ->
                         WeatherAggregator.WeatherData(
-                            temperature = data.temp ?: 0.0,
-                            weatherDescription = data.weather?.firstOrNull()?.description ?: "알 수 없음",
-                            weatherIcon = data.weather?.firstOrNull()?.icon ?: "",
-                            windSpeed = data.windSpeed ?: 0.0,
-                            precipitation = data.rain?.oneHour ?: 0.0  // 수정된 방식
+                            temperature = data.temp,
+                            weatherDescription = data.weather.firstOrNull()?.description,
+                            weatherIcon = data.weather.firstOrNull()?.icon ?: "",
+                            windSpeed = data.windSpeed,
+                            precipitation = data.rain?.oneHour ?: 0.0
                         )
                     } ?: run {
                         Log.e("WeatherViewModel", "data array is empty or null")

@@ -49,7 +49,7 @@ class UserRepository(
         return try {
             // 1. 중복 체크
             if (isUsernameTaken(username)) {
-                return Result.failure(Exception("이미 사용 중인 아이디입니다."))
+                return Result.failure(Exception("Already taken username."))
             }
 
             // 2. uid 생성
@@ -97,17 +97,17 @@ class UserRepository(
             val uidSnapshot = firebaseUsernamesRef.child(username).get().await()
 
             if (!uidSnapshot.exists()) {
-                return Result.failure(Exception("존재하지 않는 아이디입니다."))
+                return Result.failure(Exception("No username found."))
             }
 
             val uid = uidSnapshot.value as? String
-                ?: return Result.failure(Exception("사용자 정보를 찾을 수 없습니다."))
+                ?: return Result.failure(Exception("Invalid uid value."))
 
             // 2. Firebase에서 사용자 정보 가져오기
             val userSnapshot = firebaseUsersRef.child(uid).get().await()
 
             if (!userSnapshot.exists()) {
-                return Result.failure(Exception("사용자 정보를 찾을 수 없습니다."))
+                return Result.failure(Exception("No user data found."))
             }
 
             val firebaseUsername = userSnapshot.child("username").value as? String ?: ""
@@ -117,7 +117,7 @@ class UserRepository(
 
             // 3. 비밀번호 확인
             if (firebasePassword != password) {
-                return Result.failure(Exception("비밀번호가 일치하지 않습니다."))
+                return Result.failure(Exception("Incorrect password."))
             }
 
             val user = UserEntity(

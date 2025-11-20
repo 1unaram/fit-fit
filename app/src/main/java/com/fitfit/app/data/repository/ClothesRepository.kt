@@ -82,7 +82,7 @@ class ClothesRepository(
         return try {
 
             val entity = clothesDao.getClothesById(cid)
-                ?: return Result.failure(Exception("옷을 찾을 수 없습니다."))
+                ?: return Result.failure(Exception("Failed to find the clothes."))
 
             val updated = entity.copy(
                 category = category,
@@ -104,7 +104,7 @@ class ClothesRepository(
     suspend fun deleteClothes(cid: String): Result<Unit> {
         return try {
             val clothes = clothesDao.getClothesById(cid)
-                ?: return Result.failure(Exception("옷을 찾을 수 없습니다."))
+                ?: return Result.failure(Exception("Failed to find the clothes."))
 
             clothesDao.deleteClothesById(cid)
 

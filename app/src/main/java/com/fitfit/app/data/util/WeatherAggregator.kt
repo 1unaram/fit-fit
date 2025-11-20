@@ -33,7 +33,7 @@ object WeatherAggregator {
      */
     data class WeatherData(
         val temperature: Double,
-        val weatherDescription: String,
+        val weatherDescription: String?,
         val weatherIcon: String,
         val windSpeed: Double,
         val precipitation: Double
