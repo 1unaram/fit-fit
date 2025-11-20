@@ -2,6 +2,7 @@ package com.fitfit.app.ui.screen.homeScreen
 
 import FilterSelectScreen
 import FilterState
+import android.R.attr.onClick
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +47,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fitfit.app.data.local.entity.OutfitEntity
+import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
+import com.fitfit.app.ui.screen.outfitsScreen.OutfitCardItem
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
@@ -61,8 +64,7 @@ fun HomeScreen(
     weatherViewModel: WeatherViewModel
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
-    val outfitsList by outfitViewModel.outfitsList.collectAsState()
-    var selectedOutfit by remember { mutableStateOf<OutfitCardData?>(null) }
+    val outfitsWithClothes by outfitViewModel.outfitsWithClothes.collectAsState()
     var showFilter by remember { mutableStateOf(false) }
     var showOutfit by remember { mutableStateOf(false) }
 
@@ -76,7 +78,6 @@ fun HomeScreen(
     }
 
 
-
     val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
 
@@ -86,65 +87,61 @@ fun HomeScreen(
     // ================== ui ==============
     LazyColumn {
 
-    /* Section1. Weather Card */
-    item {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text("Today's weather", style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.height(8.dp))
+        /* Section1. Weather Card */
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Text("Today's weather", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(8.dp))
 
-            WeatherCard(state = weatherCardState)
+                WeatherCard(state = weatherCardState)
+            }
         }
-    }
 
 
-    /* Section2. Filter Button */
-   item {
-       FilterButtonSection(showFilter, onChange = { showFilter = it })
-   }
+        /* Section2. Filter Button */
+        item {
+            FilterButtonSection(showFilter, onChange = { showFilter = it })
+        }
 
-    /* Section3. Outfit Cards List */
-    items(3) {
-        OutfitCardsListSection(
-            showOutfit,
-            outfitsList = outfitsList,
-            onCardClick = { showOutfit = it })
-    }
+        /* Section3. Outfit Cards List */
+        item {
+            OutfitCardsListSection(
+                showOutfit,
+                outfitsWithClothes = outfitsWithClothes,
+                onCardClick = { showOutfit = it })
+        }
     }
 }
 
 
 @Composable
 fun FilterButtonSection(
-    showFilter: Boolean,
-    onChange: (Boolean) -> Unit
+    showFilter: Boolean, onChange: (Boolean) -> Unit
 ) {
-    Row (
+    Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         FloatingActionButton(
-            onClick = { onChange(true) }
-        ) {
+            onClick = { onChange(true) }) {
             Icon(Icons.Default.Search, contentDescription = "Filter")
         }
     }
 
     if (showFilter) {
-        Dialog(onDismissRequest = { onChange(false) })
-        {
+        Dialog(onDismissRequest = { onChange(false) }) {
             FilterSelectScreen(
                 initialFilter = FilterState(3, "Sunny", "Casual"),
                 onDismiss = { onChange(false) },
                 onSave = {
                     // 로직 추가
                     onChange(false)
-                }
-            )
+                })
         }
     }
 }
@@ -152,152 +149,145 @@ fun FilterButtonSection(
 
 @Composable
 fun OutfitCardsListSection(
-    showOutfit : Boolean,
-    outfitsList: List<OutfitEntity>,
-    onCardClick: (Boolean) -> Unit
+    showOutfit: Boolean, outfitsWithClothes: List<OutfitWithClothes>, onCardClick: (Boolean) -> Unit
 ) {
-    WeatherOutfitList(showOutfit,outfitsList, onCardClick)
+    WeatherOutfitList(showOutfit, outfitsWithClothes, onCardClick)
 }
 
 
 @Composable
 fun WeatherOutfitList(
-    showOutfit : Boolean,
-    items: List<OutfitEntity>,
-    onCardClick: (Boolean) -> Unit
+    showOutfit: Boolean, outfitsWithClothes: List<OutfitWithClothes>, onCardClick: (Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 33.dp)
     ) {
-        items.forEach { item ->
-            WeatherOutfitCard(
-                showOutfit,
-                item,
-                onClick = { onCardClick(true) }
+        if (outfitsWithClothes.isEmpty()) {
+            Text(
+                text = "데이터가 없습니다.", color = Color.Red, modifier = Modifier.padding(20.dp)
             )
-            Spacer(Modifier.height(23.dp))
+        } else {
+            outfitsWithClothes.forEach { outfitWithClothes ->
+                WeatherOutfitCard(
+                    showOutfit, outfitWithClothes, onClick = { onCardClick(true) })
+                Spacer(Modifier.height(23.dp))
+            }
         }
+
     }
 }
 
 @Composable
 fun WeatherOutfitCard(
-    showOutfit: Boolean, cardData: OutfitEntity, onClick: () -> Unit = {}
+    showOutfit: Boolean, outfitsWithClothes: OutfitWithClothes, onClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .width(294.dp)
-            .height(131.dp),
+            .height(131.dp)
+            .padding(24.dp, 22.dp),
         shape = RoundedCornerShape(16.7.dp),
         border = BorderStroke(1.dp, Color.White),
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f)),
-        elevation = CardDefaults.cardElevation(6.7.dp)
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxWidth()
+                    horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()
                 ) {
-                    Box(modifier = Modifier
+                    outfitsWithClothes.outfit.occasion.forEach { it ->
+                        Box(
+                            modifier = Modifier
                                 .background(
                                     Brush.horizontalGradient(
-                                        colors = listOf(
-                                                Color(0xB3FCE8ED),
-                                                Color(0xB3F8B3C2)
-                                            ))))
+                                        colors = when (it) {
+                                            "Workday" -> listOf(
+                                                Color(0xB3FCE8ED), Color(0xB3F8B3C2)
+                                            )
 
-//                    cardData.occasion.forEach { occasion ->
-//                        Box(
-//                            modifier = Modifier
-//                                .background(
-//                                    Brush.horizontalGradient(
-//                                        colors = when (occasion) {
-//                                            "Workday" -> listOf(
-//                                                Color(0xB3FCE8ED),
-//                                                Color(0xB3F8B3C2)
-//                                            )
-//
-//                                            "School" -> listOf(Color(0xB3FAEED9), Color(0xB3F6CC84))
-//                                            "Date" -> listOf(Color(0xB3FFD7DC), Color(0xB3F9B2B6))
-//                                            "Normal" -> listOf(Color(0xB3F3F6FC), Color(0xB3E1E6F8))
-//                                            "Travel" -> listOf(Color(0xB3D7FFEB), Color(0xB3BEEAD9))
-//                                            "Wedding" -> listOf(
-//                                                Color(0xB3FFE6FA),
-//                                                Color(0xB3E8B3F8)
-//                                            )
-//
-//                                            "Workout" -> listOf(
-//                                                Color(0xB3EAF9FC),
-//                                                Color(0xB3B3F8F6)
-//                                            )
-//
-//                                            else -> listOf(Color(0xFFD6E9FF), Color(0xFFA8C5FE))
-//                                        }
-//                                    ),
-//                                    shape = RoundedCornerShape(8.dp)
-//                                )
-//                                .padding(horizontal = 4.dp, vertical = 2.dp)
-//                        ) {
-//                        }
-                    }
-                    Spacer(Modifier.width(4.dp))
-                    Row (
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                        Text(cardData.wornStartTime.toString(), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = cardData.iconCode,
-                                    modifier = Modifier.size(24.dp)
+                                            "School" -> listOf(
+                                                Color(0xB3FAEED9), Color(0xB3F6CC84)
+                                            )
+
+                                            "Date" -> listOf(
+                                                Color(0xB3FFD7DC), Color(0xB3F9B2B6)
+                                            )
+
+                                            "Normal" -> listOf(
+                                                Color(0xB3F3F6FC), Color(0xB3E1E6F8)
+                                            )
+
+                                            "Travel" -> listOf(
+                                                Color(0xB3D7FFEB), Color(0xB3BEEAD9)
+                                            )
+
+                                            "Wedding" -> listOf(
+                                                Color(0xB3FFE6FA), Color(0xB3E8B3F8)
+                                            )
+
+                                            "Workout" -> listOf(
+                                                Color(0xB3EAF9FC), Color(0xB3B3F8F6)
+                                            )
+
+                                            else -> listOf(Color(0xFFD6E9FF), Color(0xFFA8C5FE))
+                                        }
+                                    ), shape = RoundedCornerShape(8.dp)
                                 )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    cardData.temperatureAvg.toString(),
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                    // Right row: Clothes images
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-//                        cardData.clothesImages.forEach { imgUrl ->
-//                            // TODO: Use Coil or Glide for image loading in production
-//                            // Example using Coil:
-//                            // AsyncImage(model = imgUrl, contentDescription = null, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
-//                        }
-                        Spacer(Modifier.width(8.dp))
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {}
                     }
                 }
             }
-            Modifier.clickable { onClick() }
+            Spacer(Modifier.width(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    outfitsWithClothes.outfit.wornStartTime.toString(),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = outfitsWithClothes.outfit.iconCode,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        outfitsWithClothes.outfit.temperatureAvg.toString(),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
+        // Right row: Clothes images
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            //착장 옷 사진 띄울 부분
+            outfitsWithClothes.clothes.forEach { it ->
+
+            }
+            Spacer(Modifier.width(8.dp))
+        }
+    }
+    Modifier.clickable { onClick() }
+}
 
 
-
-// 예시: 날짜별 의상 카드 리스트
-data class OutfitCardData(
-    val date: String,
-    val mainWeather: String,
-    val temperature: String,
-    val occasion: List<String>,
-    val clothesImages: List<String>
-)
 
 @Preview(showBackground = true)
 @Composable
@@ -322,7 +312,7 @@ fun WeatherOutfitCardPreview() {
 //        precipitation = 0.0,
 //        weatherFetched = true
 //    )
-//
+
 //    val mockClothesList = listOf(
 //        ClothesEntity(
 //            cid = "c1",
