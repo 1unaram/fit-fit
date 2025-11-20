@@ -75,7 +75,6 @@ class MainActivity : ComponentActivity() {
                         // Outfit 동기화
                         outfitViewModel.startRealtimeSync(user.uid)
                         outfitViewModel.syncUnsyncedData()
-                        outfitViewModel.loadOutfits()
                         outfitViewModel.loadOutfitsWithClothes()
                     }
                 }

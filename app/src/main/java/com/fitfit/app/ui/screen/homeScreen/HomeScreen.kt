@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,7 +46,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitEntity
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
 import com.fitfit.app.viewmodel.ClothesViewModel
@@ -75,7 +73,7 @@ fun HomeScreen(
     LaunchedEffect(currentUser) {
         currentUser?.let {
             clothesViewModel.loadClothes()
-            outfitViewModel.loadOutfits()
+            outfitViewModel.loadOutfitsWithClothes()
         }
     }
 
@@ -309,54 +307,54 @@ data class OutfitCardData(
 @Preview(showBackground = true)
 @Composable
 fun WeatherOutfitCardPreview() {
-    val sampleOutfit = OutfitEntity(
-        oid = "001",
-        ownerUid = "user01",
-        clothesIds = listOf("c1", "c2"),
-        createdAt = System.currentTimeMillis(),
-        isSynced = true,
-        lastModified = System.currentTimeMillis(),
-        wornStartTime = System.currentTimeMillis(),
-        wornEndTime = System.currentTimeMillis() + 2 * 60 * 60 * 1000, // 두시간 뒤
-        latitude = 37.5665,
-        longitude = 126.9780,
-        temperatureAvg = 18.2,
-        temperatureMin = 14.0,
-        temperatureMax = 23.0,
-        description = "맑음",
-        iconCode = "10d",
-        windSpeed = 4.2,
-        precipitation = 0.0,
-        weatherFetched = true
-    )
-
-    val mockClothesList = listOf(
-        ClothesEntity(
-            cid = "c1",
-            ownerUid = "user01",
-            imagePath = "https://via.placeholder.com/150",
-            category = "상의",
-            nickname = "티셔츠"
-        ),
-        ClothesEntity(
-            cid = "c2",
-            ownerUid = "user01",
-            imagePath = "https://via.placeholder.com/150",
-            category = "하의",
-            nickname = "청바지"
-        )
-    )
-
-    val clothesImages = sampleOutfit.clothesIds.mapNotNull { cid ->
-        mockClothesList.find { it.cid == cid }?.imagePath
-    }
-
-    WeatherOutfitCard(
-        showOutfit = true,
-        cardData = sampleOutfit.copy(
-        ),
-        onClick = {}
-    )
+//    val sampleOutfit = OutfitEntity(
+//        oid = "001",
+//        ownerUid = "user01",
+//        clothesIds = listOf("c1", "c2"),
+//        createdAt = System.currentTimeMillis(),
+//        isSynced = true,
+//        lastModified = System.currentTimeMillis(),
+//        wornStartTime = System.currentTimeMillis(),
+//        wornEndTime = System.currentTimeMillis() + 2 * 60 * 60 * 1000, // 두시간 뒤
+//        latitude = 37.5665,
+//        longitude = 126.9780,
+//        temperatureAvg = 18.2,
+//        temperatureMin = 14.0,
+//        temperatureMax = 23.0,
+//        description = "맑음",
+//        iconCode = "10d",
+//        windSpeed = 4.2,
+//        precipitation = 0.0,
+//        weatherFetched = true
+//    )
+//
+//    val mockClothesList = listOf(
+//        ClothesEntity(
+//            cid = "c1",
+//            ownerUid = "user01",
+//            imagePath = "https://via.placeholder.com/150",
+//            category = "상의",
+//            nickname = "티셔츠"
+//        ),
+//        ClothesEntity(
+//            cid = "c2",
+//            ownerUid = "user01",
+//            imagePath = "https://via.placeholder.com/150",
+//            category = "하의",
+//            nickname = "청바지"
+//        )
+//    )
+//
+//    val clothesImages = sampleOutfit.clothesIds.mapNotNull { cid ->
+//        mockClothesList.find { it.cid == cid }?.imagePath
+//    }
+//
+//    WeatherOutfitCard(
+//        showOutfit = true,
+//        cardData = sampleOutfit.copy(
+//        ),
+//        onClick = {}
+//    )
 }
 // 예시: 상단 날씨 섹션
 //@Composable
