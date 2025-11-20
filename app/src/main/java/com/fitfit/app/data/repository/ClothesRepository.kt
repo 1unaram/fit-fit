@@ -65,9 +65,7 @@ class ClothesRepository(
             )
 
             clothesDao.insertClothes(entity)
-
             syncToFirebase(entity)
-
             Result.success(cid)
         } catch (e: Exception) {
             Result.failure(e)
@@ -75,12 +73,25 @@ class ClothesRepository(
     }
 
     // ### 옷 수정 ###
-    suspend fun updateClothes(entity: ClothesEntity): Result<Unit> {
+    suspend fun updateClothes(
+        cid: String,
+        category: String,
+        nickname: String,
+        storeUrl: String?
+    ): Result<Unit> {
         return try {
+
+            val entity = clothesDao.getClothesById(cid)
+                ?: return Result.failure(Exception("Failed to find the clothes."))
+
             val updated = entity.copy(
+                category = category,
+                nickname = nickname,
+                storeUrl = storeUrl,
                 lastModified = System.currentTimeMillis(),
                 isSynced = false
             )
+
             clothesDao.updateClothes(updated)
             syncToFirebase(updated)
             Result.success(Unit)
@@ -93,7 +104,7 @@ class ClothesRepository(
     suspend fun deleteClothes(cid: String): Result<Unit> {
         return try {
             val clothes = clothesDao.getClothesById(cid)
-                ?: return Result.failure(Exception("옷을 찾을 수 없습니다."))
+                ?: return Result.failure(Exception("Failed to find the clothes."))
 
             clothesDao.deleteClothesById(cid)
 

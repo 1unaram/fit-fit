@@ -75,7 +75,6 @@ class MainActivity : ComponentActivity() {
                         // Outfit 동기화
                         outfitViewModel.startRealtimeSync(user.uid)
                         outfitViewModel.syncUnsyncedData()
-                        outfitViewModel.loadOutfits()
                         outfitViewModel.loadOutfitsWithClothes()
                     }
                 }
@@ -89,7 +88,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                AppNavigation(outfitViewModel, weatherViewModel)
+                // 날씨 데이터는 미리 가져오기
+                LaunchedEffect(Unit) {
+                    weatherViewModel.getWeatherCardData()
+                }
+
+                AppNavigation(
+                    userViewModel,
+                    clothesViewModel,
+                    outfitViewModel,
+                    weatherViewModel,
+                )
             }
 
         }

@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,8 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
@@ -61,11 +58,10 @@ import com.fitfit.app.viewmodel.WeatherViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController,
     userViewModel: UserViewModel = viewModel(),
     clothesViewModel: ClothesViewModel = viewModel(),
     outfitViewModel: OutfitViewModel = viewModel(),
-    weatherViewModel: WeatherViewModel = viewModel()
+    weatherViewModel: WeatherViewModel
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
     val outfitsWithClothes by outfitViewModel.outfitsWithClothes.collectAsState()
@@ -77,7 +73,7 @@ fun HomeScreen(
     LaunchedEffect(currentUser) {
         currentUser?.let {
             clothesViewModel.loadClothes()
-            outfitViewModel.loadOutfits()
+            outfitViewModel.loadOutfitsWithClothes()
         }
     }
 
@@ -85,10 +81,7 @@ fun HomeScreen(
     val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
 
-    // 화면이 처음 진입할 때 한 번만 호출
-    LaunchedEffect(Unit) {
-        weatherViewModel.getWeatherCardData()
-    }
+
 
 
     // ================== ui ==============
@@ -340,7 +333,7 @@ fun WeatherOutfitCardPreview() {
 //    val clothesImages = sampleOutfit.clothesIds.mapNotNull { cid ->
 //        mockClothesList.find { it.cid == cid }?.imagePath
 //    }
-
+//
 //    WeatherOutfitCard(
 //        showOutfit = true,
 //        cardData = sampleOutfit.copy(

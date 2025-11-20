@@ -1,0 +1,397 @@
+package com.fitfit.app.ui.screen.clothesScreen
+
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.fitfit.app.data.local.entity.ClothesEntity
+import com.fitfit.app.ui.screen.clothesScreen.components.CategoryChips
+import com.fitfit.app.ui.screen.clothesScreen.components.ClothesAddDialog
+import com.fitfit.app.ui.screen.clothesScreen.components.ClothesCard
+import com.fitfit.app.ui.screen.clothesScreen.components.ClothesDetailDialog
+import com.fitfit.app.ui.screen.clothesScreen.components.ClothesEditDialog
+import com.fitfit.app.ui.screen.clothesScreen.components.ClothesFloatingButton
+import com.fitfit.app.ui.screen.clothesScreen.components.ClothesTopBar
+import com.fitfit.app.viewmodel.ClothesViewModel
+
+@Composable
+fun ClothesScreen(
+    clothesViewModel: ClothesViewModel
+) {
+    val clothesList by clothesViewModel.clothesList.collectAsState()
+    var selectedCategory by remember { mutableStateOf("All") }
+    var selectedClothes by remember { mutableStateOf<ClothesEntity?>(null) }
+    var showDetailDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    // 화면 진입 시 옷 목록 로드
+    LaunchedEffect(Unit) {
+        clothesViewModel.loadClothes()
+    }
+
+    LaunchedEffect(clothesList.size) {
+        Log.d("ClothesScreen", "Clothes count changed: ${clothesList.size}")
+        clothesList.forEachIndexed { index, clothes ->
+            Log.d("ClothesScreen", "[$index] CID: ${clothes.cid}, Path: ${clothes.imagePath}")
+        }
+    }
+
+    // 카테고리 필터링
+    val filteredClothes = if (selectedCategory == "All") {
+        clothesList
+    } else {
+        clothesList.filter { it.category == selectedCategory }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFE8F2FF))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // 1. 고정된 상단 타이틀
+            ClothesTopBar()
+
+            // 2. 스크롤 가능한 콘텐츠
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 카테고리 버튼들
+                item {
+                    CategoryChips(
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = { selectedCategory = it }
+                    )
+                }
+                // 옷 카드 리스트
+                items(filteredClothes) { clothes ->
+                    ClothesCard(
+                        clothes = clothes,
+                        onEdit = {
+                            selectedClothes = clothes
+                            showEditDialog = true
+                        },
+                        onDelete = {
+                            clothesViewModel.deleteClothes(clothes.cid)
+                        },
+                        onClick = {
+                            selectedClothes = clothes
+                            showDetailDialog = true
+                        }
+                    )
+                }
+
+                // Add 버튼 공간 확보
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
+            }
+        }
+
+        // 3. 고정된 Add 버튼
+        ClothesFloatingButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .padding(bottom = 16.dp),
+            onClick = {
+                showAddDialog = true
+            }
+        )
+    }
+
+    // 다이얼로그들
+    if (showDetailDialog && selectedClothes != null) {
+        ClothesDetailDialog(
+            clothes = selectedClothes!!,
+            onDismiss = {
+                showDetailDialog = false
+                selectedClothes = null
+            }
+        )
+    }
+
+    if (showEditDialog && selectedClothes != null) {
+        ClothesEditDialog(
+            clothes = selectedClothes!!,
+            onDismiss = {
+                showEditDialog = false
+                selectedClothes = null
+            },
+            onSave = { category, nickname, storeUrl ->
+                clothesViewModel.updateClothes(
+                    cid = selectedClothes!!.cid,
+                    category = category,
+                    nickname = nickname,
+                    storeUrl = storeUrl
+                )
+                showEditDialog = false
+                selectedClothes = null
+                clothesViewModel.loadClothes()
+            }
+        )
+    }
+
+    if (showAddDialog) {
+        ClothesAddDialog(
+            onDismiss = {
+                showAddDialog = false
+            },
+            onSave = { imageUri, category, nickname, storeUrl ->
+                imageUri?.let {
+                    clothesViewModel.insertClothes(
+                        imagePath = it.toString(),
+                        category = category,
+                        nickname = nickname,
+                        storeUrl = storeUrl
+                    )
+
+                    clothesViewModel.loadClothes()
+                }
+                showAddDialog = false
+            }
+        )
+    }
+}
+
+// ========== 프리뷰용 ==========
+
+@Composable
+fun ClothesScreenPreview(
+    mockClothes: List<ClothesEntity> = emptyList()
+) {
+    var selectedCategory by remember { mutableStateOf("All") }
+    var selectedClothes by remember { mutableStateOf<ClothesEntity?>(null) }
+    var showDetailDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    // 카테고리 필터링
+    val filteredClothes = if (selectedCategory == "All") {
+        mockClothes
+    } else {
+        mockClothes.filter { it.category == selectedCategory }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFE8F2FF))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            ClothesTopBar()
+
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp), //옆 패딩
+                verticalArrangement = Arrangement.spacedBy(12.dp) //각 카드 컬럼별 간격
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    CategoryChips(
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = { selectedCategory = it }
+                    )
+                }
+
+                items(filteredClothes) { clothes ->
+                    ClothesCard(
+                        clothes = clothes,
+                        onEdit = {
+                            selectedClothes = clothes
+                            showEditDialog = true
+                        },
+                        onDelete = {},
+                        onClick = {
+                            selectedClothes = clothes
+                            showDetailDialog = true
+                        }
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
+            }
+        }
+
+        ClothesFloatingButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .padding(bottom = 16.dp),
+            onClick = { showAddDialog = true }
+        )
+    }
+
+    if (showDetailDialog && selectedClothes != null) {
+        ClothesDetailDialog(
+            clothes = selectedClothes!!,
+            onDismiss = {
+                showDetailDialog = false
+                selectedClothes = null
+            }
+        )
+    }
+
+    if (showEditDialog && selectedClothes != null) {
+        ClothesEditDialog(
+            clothes = selectedClothes!!,
+            onDismiss = {
+                showEditDialog = false
+                selectedClothes = null
+            },
+            onSave = { _, _, _ ->
+                showEditDialog = false
+                selectedClothes = null
+            }
+        )
+    }
+
+    if (showAddDialog) {
+        ClothesAddDialog(
+            onDismiss = { showAddDialog = false },
+            onSave = { _, _, _, _ -> showAddDialog = false }
+        )
+    }
+}
+
+// ========== 프리뷰 섹션 ==========
+
+@Preview(showBackground = true, name = "Empty Screen")
+@Composable
+fun PreviewClothesScreen_Empty() {
+    ClothesScreenPreview(mockClothes = emptyList())
+}
+
+@Preview(showBackground = true, name = "With Clothes")
+@Composable
+fun PreviewClothesScreen_WithItems() {
+    val mockClothes = listOf(
+        ClothesEntity(
+            cid = "1",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Tops",
+            nickname = "Bohemian Knit Top"
+        ),
+        ClothesEntity(
+            cid = "2",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Bottoms",
+            nickname = "Slim Fit Dark Jeans"
+        ),
+        ClothesEntity(
+            cid = "3",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Tops",
+            nickname = "Cream Short-Sleeve"
+        ),
+        ClothesEntity(
+            cid = "4",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Outerwear",
+            nickname = "Light Blue Puffer Jacket"
+        ),
+        ClothesEntity(
+            cid = "5",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Bottoms",
+            nickname = "Light Wash Denim Shorts"
+        ),
+        ClothesEntity(
+            cid = "6",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Outerwear",
+            nickname = "Orange Bomber Jacket"
+        )
+    )
+
+    ClothesScreenPreview(mockClothes = mockClothes)
+}
+
+@Preview(showBackground = true, name = "All Category")
+@Composable
+fun PreviewClothesScreen_AllCategory() {
+    val mockClothes = listOf(
+        ClothesEntity(
+            cid = "1",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Tops",
+            nickname = "Bohemian Knit Top"
+        ),
+        ClothesEntity(
+            cid = "2",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Bottoms",
+            nickname = "denim shorts"
+        ),
+        ClothesEntity(
+            cid = "3",
+            ownerUid = "user1",
+            imagePath = "",
+            category = "Outerwear",
+            nickname = "black jacket"
+        )
+    )
+
+    ClothesScreenPreview(mockClothes = mockClothes)
+}
+
+@Preview(showBackground = true, name = "Many Items", heightDp = 800)
+@Composable
+fun PreviewClothesScreen_ManyItems() {
+    val mockClothes = List(10) { index ->
+        ClothesEntity(
+            cid = "clothes_$index",
+            ownerUid = "user1",
+            imagePath = "",
+            category = when (index % 3) {
+                0 -> "Tops"
+                1 -> "Bottoms"
+                else -> "Outerwear"
+            },
+            nickname = "Clothes Item ${index + 1}"
+        )
+    }
+
+    ClothesScreenPreview(mockClothes = mockClothes)
+}
