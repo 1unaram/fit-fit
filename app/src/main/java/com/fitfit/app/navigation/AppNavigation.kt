@@ -12,7 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fitfit.app.ui.navbar.BottomNavBar
-import com.fitfit.app.ui.screen.clothesScreen.ClothesScreenExample
+import com.fitfit.app.ui.screen.clothesScreen.ClothesScreen
 import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
 import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
@@ -94,7 +94,7 @@ fun AppNavigation(outfitViewModel: OutfitViewModel, weatherViewModel: WeatherVie
                 HomeScreen(navController = navController, userViewModel = userViewModel)
             }
             composable(Screens.CLOTHES) {
-                ClothesScreenExample(navController = navController)
+                ClothesScreen(navController = navController)
             }
             composable(Screens.OUTFITS) {
                 OutfitsScreen(
