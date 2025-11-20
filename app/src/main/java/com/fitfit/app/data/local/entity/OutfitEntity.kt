@@ -45,5 +45,4 @@ data class OutfitEntity(
 
     // ========== 날씨 조회 상태 ==========
     val weatherFetched: Boolean = false,
-
 )
