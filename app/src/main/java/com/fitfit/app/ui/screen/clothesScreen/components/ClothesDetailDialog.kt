@@ -1,9 +1,12 @@
 package com.fitfit.app.ui.screen.clothesScreen.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -12,14 +15,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +31,9 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.fitfit.app.data.local.entity.ClothesEntity
 
+//옆 여백 더 띄우기 필요
+//닫기 버튼 그림자 더 추가 너무 못생김
+//밑 부분 여백 추가할 수 있으면 더 하기
 @Composable
 fun ClothesDetailDialog(
     clothes: ClothesEntity,
@@ -58,30 +62,16 @@ fun ClothesDetailDialog(
                 .padding(20.dp)
         ) {
             // 닫기 버튼
-            IconButton(
-                onClick = onDismiss,
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close",
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .size(32.dp)
-                    .background(
-                        brush = Brush.linearGradient(
-                            listOf(
-                                Color(0x99E8F2FF),
-                                Color(0xCCE8F2FF)
-                            )
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = Color(0xFF141B34),
-                    modifier = Modifier.size(16.dp)
-                )
-            }
+                    .size(24.dp)
+                    .clickable { onDismiss() },
+                tint = Color(0xFF8E8E93)
+            )
 
-            // 콘텐츠
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -102,83 +92,118 @@ fun ClothesDetailDialog(
                     contentScale = ContentScale.Crop
                 )
 
-                // 정보 섹션
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // 카테고리
-                    InfoRow(
-                        label = "Category",
-                        value = clothes.category,
-                        isCategory = true
-                    )
-
-                    InfoRow(
-                        label = "Clothes Nickname",
-                        value = clothes.nickname
-                    )
-
-                    // Store URL
-                    clothes.storeUrl?.let { url ->
-                        InfoRow(
-                            label = "Store URL",
-                            value = url,
-                            isUrl = true
-                        )
-                    }
-                }
+                // 정보 블록
+                DetailInfoSection(clothes = clothes)
             }
         }
     }
 }
 
 @Composable
-private fun InfoRow(
-    label: String,
-    value: String,
-    isCategory: Boolean = false,
-    isUrl: Boolean = false
-) {
+private fun DetailInfoSection(clothes: ClothesEntity) { //폰트는 Detail소제목은 17.sp, 하위content 17.sp, Url만 14.sp
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp, end = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Text(
-            text = label,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF8E8E93)
-        )
-
-        if (isCategory) {
+        // 1. Category - Row, 좌우배치
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Category",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF8E8E93)
+            )
             Box(
                 modifier = Modifier
+                    .shadow(
+                        elevation = 3.dp,
+                        shape = RoundedCornerShape(8.dp),
+                        spotColor = Color(0x26000000),
+                        ambientColor = Color(0x26000000)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = Color.White,
+                        shape = RoundedCornerShape(8.dp)
+                    )
                     .background(
-                        brush = Brush.linearGradient(
-                            listOf(
-                                Color(0xB3FDE8FF),
-                                Color(0xB3FDE8FF)
-                            )
-                        ),
+                        color = getCategoryColor(clothes.category),
                         shape = RoundedCornerShape(8.dp)
                     )
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text(
-                    text = value,
-                    fontSize = 13.sp,
+                Text( //카테고리 content 부분 text
+                    text = clothes.category,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
             }
-        } else {
-            Text(
-                text = value,
-                fontSize = if (isUrl) 12.sp else 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
         }
+
+        // 2. Clothes Nickname - Label 아래에 우측정렬
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Text(
+                text = "Clothes Nickname",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF8E8E93)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = clothes.nickname,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            }
+        }
+
+        // 3. Store URL - Label 아래에 우측정렬 (있는 경우)
+        clothes.storeUrl?.let { url ->
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                Text(
+                    text = "Store URL",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF8E8E93)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = url,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun getCategoryColor(category: String): Color {
+    return when (category) {
+        "Tops", "Top" -> Color(0xB3FDE8FF)
+        "Bottoms", "Bottom" -> Color(0xB3EAFFE8)
+        "Outerwear" -> Color(0xB3FFE7BE)
+        else -> Color(0xFF8E8E93)
     }
 }
