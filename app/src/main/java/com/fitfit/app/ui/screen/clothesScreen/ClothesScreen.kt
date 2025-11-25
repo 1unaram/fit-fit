@@ -222,11 +222,9 @@ fun ClothesScreenPreview(
                         onCategorySelected = { selectedCategory = it }
                     )
                 }
-
-                    clothesViewModel.loadClothes()
-                }
-                showAddDialog = false
+//                clothesViewModel.loadClothes()
             }
-        )
+            showAddDialog = false
+        }
     }
 }
