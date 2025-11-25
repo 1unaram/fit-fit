@@ -1,7 +1,8 @@
 package com.fitfit.app.ui.screen.mypageScreen
 
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.fitfit.app.viewmodel.UserViewModel
@@ -12,13 +13,11 @@ fun MyPageScreen(
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
 
-    LaunchedEffect(Unit) {
-        userViewModel.loadCurrentUser()
-    }
+//    LaunchedEffect(Unit) {
+//        userViewModel.loadCurrentUser()
+//    }
 
-    /*
+    Text(text = "My Page: ${currentUser?.username ?: "Guest"}")
 
-        currentUser.username
-
-     */
+    Button(onClick = {userViewModel.logout()}) { Text("Logout") }
 }

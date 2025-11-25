@@ -16,6 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fitfit.app.ui.navbar.BottomNavBar
 import com.fitfit.app.ui.screen.clothesScreen.ClothesScreen
+import com.fitfit.app.ui.screen.communityScreen.CommunityScreen
 import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
 import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
@@ -32,6 +33,7 @@ object Screens {
     const val OUTFITS = "outfits"
     const val LOGIN = "login"
     const val REGISTER = "register"
+    const val COMMUNITY = "community"
     const val MYPAGE = "mypage"
 }
 
@@ -72,6 +74,8 @@ fun AppNavigation(
                     Screens.CLOTHES -> 0
                     Screens.OUTFITS -> 1
                     Screens.HOME -> 2
+                    Screens.COMMUNITY -> 3
+                    Screens.MYPAGE -> 4
                     else -> 2 // 기본값은 HOME
                 }
 
@@ -82,6 +86,8 @@ fun AppNavigation(
                             0 -> Screens.CLOTHES
                             1 -> Screens.OUTFITS
                             2 -> Screens.HOME
+                            3 -> Screens.COMMUNITY
+                            4 -> Screens.MYPAGE
                             else -> Screens.HOME
                         }
 
@@ -91,6 +97,7 @@ fun AppNavigation(
                                 // 백스택 관리: HOME으로 돌아갈 때는 이전 화면들 제거
                                 popUpTo(Screens.HOME) {
                                     saveState = true
+                                    inclusive = false
                                 }
                                 launchSingleTop = true
                                 restoreState = true
@@ -137,6 +144,9 @@ fun AppNavigation(
                     navController = navController,
                     userViewModel = userViewModel
                 )
+            }
+            composable (Screens.COMMUNITY) {
+                CommunityScreen()
             }
             composable (Screens.MYPAGE) {
                 MyPageScreen(
