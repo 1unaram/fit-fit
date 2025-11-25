@@ -119,7 +119,8 @@ fun ClothesScreen(
                 .padding(16.dp),
             onClick = {
                 showAddDialog = true
-            }
+            },
+
         )
     }
 
@@ -155,6 +156,7 @@ fun ClothesScreen(
 
     if (showAddDialog) {
         ClothesAddDialog(
+            clothesViewModel = clothesViewModel,
             onDismiss = {
                 showAddDialog = false
             },
@@ -166,10 +168,7 @@ fun ClothesScreen(
                         nickname = nickname,
                         storeUrl = storeUrl
                     )
-
-                    clothesViewModel.loadClothes()
                 }
-                showAddDialog = false
             }
         )
     }
