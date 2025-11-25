@@ -3,6 +3,7 @@ package com.fitfit.app.ui.screen.clothesScreen.components
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -29,6 +30,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +44,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,11 +52,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
-import com.fitfit.app.R
+import com.fitfit.app.viewmodel.ClothesOperationState
+import com.fitfit.app.viewmodel.ClothesViewModel
 import java.io.File
 
 @Composable
 fun ClothesAddDialog(
+    clothesViewModel: ClothesViewModel,
     onDismiss: () -> Unit,
     onSave: (imageUri: Uri?, category: String, nickname: String, storeUrl: String?) -> Unit
 ) {
@@ -65,6 +69,8 @@ fun ClothesAddDialog(
     var storeUrl by remember { mutableStateOf("") }
 
     val categories = listOf("Outerwear", "Tops", "Bottoms")
+
+    val insertState by clothesViewModel.insertState.collectAsState()
 
     // 이미지 선택 런처
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -241,6 +247,30 @@ fun ClothesAddDialog(
                     }
                 }
             }
+        }
+    }
+
+    // 옷 추가 시 Toast 알림
+    LaunchedEffect(insertState) {
+        when (insertState) {
+            is ClothesOperationState.Success -> {
+                Toast.makeText(
+                    context,
+                    (insertState as ClothesOperationState.Success).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                clothesViewModel.resetInsertState()
+                onDismiss()
+            }
+            is ClothesOperationState.Failure -> {
+                Toast.makeText(
+                    context,
+                    (insertState as ClothesOperationState.Failure).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                clothesViewModel.resetInsertState()
+            }
+            else -> {}
         }
     }
 }

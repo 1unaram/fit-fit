@@ -78,7 +78,6 @@ import java.util.Locale
 fun OutfitsScreenExample(
     navController: NavController,
     outfitViewModel: OutfitViewModel,
-    clothesViewModel: ClothesViewModel = viewModel(),
     weatherViewModel: WeatherViewModel
 ) {
     val outfitsWithClothes by outfitViewModel.outfitsWithClothes.collectAsState()
@@ -499,9 +498,7 @@ fun OutfitAddDialog(
                                 occasion = occasionList,
                                 comment = comment.ifBlank { null },
                                 wornStartTime = wornStartTime,
-                                wornEndTime = wornEndTime,
-                                latitude = loc.latitude, //삭제 -> 일단 빈값으로 넘겨주기
-                                longitude = loc.longitude //삭제 -> 일단 빈값으로 넘겨주기
+                                wornEndTime = wornEndTime
                             )
                         },
                         modifier = Modifier.weight(1f),

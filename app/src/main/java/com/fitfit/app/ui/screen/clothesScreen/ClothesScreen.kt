@@ -1,6 +1,6 @@
 package com.fitfit.app.ui.screen.clothesScreen
 
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.ui.screen.clothesScreen.components.CategoryChips
@@ -31,6 +32,7 @@ import com.fitfit.app.ui.screen.clothesScreen.components.ClothesDetailDialog
 import com.fitfit.app.ui.screen.clothesScreen.components.ClothesEditDialog
 import com.fitfit.app.ui.screen.clothesScreen.components.ClothesFloatingButton
 import com.fitfit.app.ui.screen.clothesScreen.components.ClothesTopBar
+import com.fitfit.app.viewmodel.ClothesOperationState
 import com.fitfit.app.viewmodel.ClothesViewModel
 
 @Composable
@@ -44,16 +46,12 @@ fun ClothesScreen(
     var showEditDialog by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
 
+    val deleteState by clothesViewModel.deleteState.collectAsState()
+    val context = LocalContext.current
+
     // 화면 진입 시 옷 목록 로드
     LaunchedEffect(Unit) {
         clothesViewModel.loadClothes()
-    }
-
-    LaunchedEffect(clothesList.size) {
-        Log.d("ClothesScreen", "Clothes count changed: ${clothesList.size}")
-        clothesList.forEachIndexed { index, clothes ->
-            Log.d("ClothesScreen", "[$index] CID: ${clothes.cid}, Path: ${clothes.imagePath}")
-        }
     }
 
     // 카테고리 필터링
@@ -121,7 +119,8 @@ fun ClothesScreen(
                 .padding(16.dp),
             onClick = {
                 showAddDialog = true
-            }
+            },
+
         )
     }
 
@@ -138,6 +137,7 @@ fun ClothesScreen(
 
     if (showEditDialog && selectedClothes != null) {
         ClothesEditDialog(
+            clothesViewModel = clothesViewModel,
             clothes = selectedClothes!!,
             onDismiss = {
                 showEditDialog = false
@@ -150,15 +150,13 @@ fun ClothesScreen(
                     nickname = nickname,
                     storeUrl = storeUrl
                 )
-                showEditDialog = false
-                selectedClothes = null
-                clothesViewModel.loadClothes()
             }
         )
     }
 
     if (showAddDialog) {
         ClothesAddDialog(
+            clothesViewModel = clothesViewModel,
             onDismiss = {
                 showAddDialog = false
             },
@@ -170,61 +168,83 @@ fun ClothesScreen(
                         nickname = nickname,
                         storeUrl = storeUrl
                     )
-
-                    clothesViewModel.loadClothes()
                 }
-                showAddDialog = false
             }
         )
     }
-}
+
+    // 옷 삭제 시 Toast 알림
+    LaunchedEffect(deleteState) {
+        when (deleteState) {
+            is ClothesOperationState.Success -> {
+                Toast.makeText(
+                    context,
+                    (deleteState as ClothesOperationState.Success).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                clothesViewModel.resetDeleteState()
+            }
+
+            is ClothesOperationState.Failure -> {
+                Toast.makeText(
+                    context,
+                    (deleteState as ClothesOperationState.Failure).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                clothesViewModel.resetDeleteState()
+            }
+
+            else -> {}
+        }
+    }
 
 // ========== 프리뷰용 ==========
 
-@Composable
-fun ClothesScreenPreview(
-    mockClothes: List<ClothesEntity> = emptyList()
-) {
-    var selectedCategory by remember { mutableStateOf("All") }
-    var selectedClothes by remember { mutableStateOf<ClothesEntity?>(null) }
-    var showDetailDialog by remember { mutableStateOf(false) }
-    var showEditDialog by remember { mutableStateOf(false) }
-    var showAddDialog by remember { mutableStateOf(false) }
-
-    // 카테고리 필터링
-    val filteredClothes = if (selectedCategory == "All") {
-        mockClothes
-    } else {
-        mockClothes.filter { it.category == selectedCategory }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFE8F2FF))
+    @Composable
+    fun ClothesScreenPreview(
+        mockClothes: List<ClothesEntity> = emptyList()
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            ClothesTopBar()
+        var selectedCategory by remember { mutableStateOf("All") }
+        var selectedClothes by remember { mutableStateOf<ClothesEntity?>(null) }
+        var showDetailDialog by remember { mutableStateOf(false) }
+        var showEditDialog by remember { mutableStateOf(false) }
+        var showAddDialog by remember { mutableStateOf(false) }
 
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp), //옆 패딩
-                verticalArrangement = Arrangement.spacedBy(12.dp) //각 카드 컬럼별 간격
+        // 카테고리 필터링
+        val filteredClothes = if (selectedCategory == "All") {
+            mockClothes
+        } else {
+            mockClothes.filter { it.category == selectedCategory }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFE8F2FF))
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                item {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    CategoryChips(
-                        selectedCategory = selectedCategory,
-                        onCategorySelected = { selectedCategory = it }
-                    )
-                }
+                ClothesTopBar()
+
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp), //옆 패딩
+                    verticalArrangement = Arrangement.spacedBy(12.dp) //각 카드 컬럼별 간격
+                ) {
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        CategoryChips(
+                            selectedCategory = selectedCategory,
+                            onCategorySelected = { selectedCategory = it }
+                        )
+                    }
 //                clothesViewModel.loadClothes()
+                }
+                showAddDialog = false
             }
-            showAddDialog = false
         }
     }
 }

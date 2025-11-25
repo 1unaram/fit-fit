@@ -8,9 +8,12 @@ import com.fitfit.app.data.local.entity.UserEntity
 import com.fitfit.app.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class UserViewModel(application: Application) : AndroidViewModel(application) {
+class UserViewModel(
+    application: Application,
+) : AndroidViewModel(application) {
     private val userDao = AppDatabase.getDatabase(application).userDao()
     private val repository = UserRepository(userDao, application)
 
@@ -22,6 +25,27 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _currentUser = MutableStateFlow<UserEntity?>(null)
     val currentUser: StateFlow<UserEntity?> = _currentUser
+
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    init {
+        loadCurrentUser()
+    }
+
+    // ### 현재 사용자 불러오기 ###
+    fun loadCurrentUser() = viewModelScope.launch {
+        _isLoading.value = true
+
+        val user = repository.getCurrentUser()
+        _currentUser.value = user
+        // 사용자가 있으면 로그인 상태로 설정
+        if (user != null) {
+            _loginState.value = LoginState.Success(user)
+        }
+
+        _isLoading.value = false
+    }
 
     // ### 회원 가입 ###
     fun registerUser(username: String, password: String) = viewModelScope.launch {

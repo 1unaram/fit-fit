@@ -42,7 +42,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.fitfit.app.viewmodel.RegisterState
 import com.fitfit.app.viewmodel.UserViewModel
@@ -50,7 +49,7 @@ import com.fitfit.app.viewmodel.UserViewModel
 @Composable
 fun RegisterScreen(
     navController: NavController,
-    userViewModel: UserViewModel = viewModel()
+    userViewModel: UserViewModel
 ) {
     // 회원가입 상태 관찰
     val registerState by userViewModel.registerState.collectAsState()
