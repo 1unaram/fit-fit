@@ -44,9 +44,7 @@ fun OutfitsAddDialog(
         occasion: List<String>,
         comment: String?,
         wornStartTime: Long,
-        wornEndTime: Long,
-        latitude: Double,
-        longitude: Double
+        wornEndTime: Long
     ) -> Unit
 ) {
     // 상태 예시 - 실제 앱에서는 ViewModel/Flow 등에서 의류리스트, 위치 등 받아옴
@@ -170,9 +168,7 @@ fun OutfitsAddDialog(
                                 occasionInput.split(",").map { it.trim() }.filter { it.isNotEmpty() },
                                 comment.ifBlank { null },
                                 wornStartTime,
-                                wornEndTime,
-                                latitude,
-                                longitude
+                                wornEndTime
                             )
                         },
                         modifier = Modifier.weight(1f)

@@ -101,15 +101,13 @@ fun OutfitsScreen(
         if (showAddDialog) {
             OutfitsAddDialog(
                 onDismiss = { showAddDialog = false },
-                onSave = { clothesIds, occasion, comment, wornStartTime, wornEndTime, latitude, longitude ->
+                onSave = { clothesIds, occasion, comment, wornStartTime, wornEndTime ->
                     outfitViewModel.createOutfit(
                         clothesIds = clothesIds,
                         occasion = occasion,
                         comment = comment,
                         wornStartTime = wornStartTime,
-                        wornEndTime = wornEndTime,
-                        latitude = latitude,
-                        longitude = longitude
+                        wornEndTime = wornEndTime
                     )
                     showAddDialog = false
                 }
