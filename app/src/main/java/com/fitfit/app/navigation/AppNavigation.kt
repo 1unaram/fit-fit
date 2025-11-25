@@ -1,10 +1,14 @@
 package com.fitfit.app.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,6 +44,15 @@ fun AppNavigation(
 ) {
     val navController = rememberNavController()
     val currentUser by userViewModel.currentUser.collectAsState()
+    val isLoading by userViewModel.isLoading.collectAsState()
+
+    // 로딩 중에는 빈 화면 표시
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+        return
+    }
 
     // 로그인 상태에 따라 시작 화면 결정
     val startDestination = if (currentUser != null) Screens.HOME else Screens.LOGIN
