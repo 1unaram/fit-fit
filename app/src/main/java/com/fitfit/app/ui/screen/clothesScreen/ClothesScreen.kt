@@ -1,6 +1,5 @@
 package com.fitfit.app.ui.screen.clothesScreen
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,13 +46,6 @@ fun ClothesScreen(
     // 화면 진입 시 옷 목록 로드
     LaunchedEffect(Unit) {
         clothesViewModel.loadClothes()
-    }
-
-    LaunchedEffect(clothesList.size) {
-        Log.d("ClothesScreen", "Clothes count changed: ${clothesList.size}")
-        clothesList.forEachIndexed { index, clothes ->
-            Log.d("ClothesScreen", "[$index] CID: ${clothes.cid}, Path: ${clothes.imagePath}")
-        }
     }
 
     // 카테고리 필터링

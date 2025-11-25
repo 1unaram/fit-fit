@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -16,6 +15,7 @@ import com.fitfit.app.ui.screen.clothesScreen.ClothesScreen
 import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
 import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
+import com.fitfit.app.ui.screen.mypageScreen.MyPageScreen
 import com.fitfit.app.ui.screen.outfitsScreen.OutfitsScreen
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
@@ -28,6 +28,7 @@ object Screens {
     const val OUTFITS = "outfits"
     const val LOGIN = "login"
     const val REGISTER = "register"
+    const val MYPAGE = "mypage"
 }
 
 @Composable
@@ -38,7 +39,6 @@ fun AppNavigation(
     weatherViewModel: WeatherViewModel
 ) {
     val navController = rememberNavController()
-    val userViewModel: UserViewModel = viewModel()
     val currentUser by userViewModel.currentUser.collectAsState()
 
     // 로그인 상태에 따라 시작 화면 결정
@@ -122,6 +122,11 @@ fun AppNavigation(
             composable(Screens.REGISTER) {
                 RegisterScreen(
                     navController = navController,
+                    userViewModel = userViewModel
+                )
+            }
+            composable (Screens.MYPAGE) {
+                MyPageScreen(
                     userViewModel = userViewModel
                 )
             }
