@@ -75,7 +75,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OutfitsScreen(
+fun OutfitsScreenExample(
     navController: NavController,
     outfitViewModel: OutfitViewModel,
     weatherViewModel: WeatherViewModel
