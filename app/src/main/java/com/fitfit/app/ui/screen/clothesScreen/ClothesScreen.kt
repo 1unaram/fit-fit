@@ -22,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.ui.screen.clothesScreen.components.CategoryChips
@@ -119,8 +118,7 @@ fun ClothesScreen(
         ClothesFloatingButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp)
-                .padding(bottom = 16.dp),
+                .padding(16.dp),
             onClick = {
                 showAddDialog = true
             }
@@ -225,173 +223,10 @@ fun ClothesScreenPreview(
                     )
                 }
 
-                items(filteredClothes) { clothes ->
-                    ClothesCard(
-                        clothes = clothes,
-                        onEdit = {
-                            selectedClothes = clothes
-                            showEditDialog = true
-                        },
-                        onDelete = {},
-                        onClick = {
-                            selectedClothes = clothes
-                            showDetailDialog = true
-                        }
-                    )
+                    clothesViewModel.loadClothes()
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
-                }
-            }
-        }
-
-        ClothesFloatingButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-                .padding(bottom = 16.dp),
-            onClick = { showAddDialog = true }
-        )
-    }
-
-    if (showDetailDialog && selectedClothes != null) {
-        ClothesDetailDialog(
-            clothes = selectedClothes!!,
-            onDismiss = {
-                showDetailDialog = false
-                selectedClothes = null
+                showAddDialog = false
             }
         )
     }
-
-    if (showEditDialog && selectedClothes != null) {
-        ClothesEditDialog(
-            clothes = selectedClothes!!,
-            onDismiss = {
-                showEditDialog = false
-                selectedClothes = null
-            },
-            onSave = { _, _, _ ->
-                showEditDialog = false
-                selectedClothes = null
-            }
-        )
-    }
-
-    if (showAddDialog) {
-        ClothesAddDialog(
-            onDismiss = { showAddDialog = false },
-            onSave = { _, _, _, _ -> showAddDialog = false }
-        )
-    }
-}
-
-// ========== 프리뷰 섹션 ==========
-
-@Preview(showBackground = true, name = "Empty Screen")
-@Composable
-fun PreviewClothesScreen_Empty() {
-    ClothesScreenPreview(mockClothes = emptyList())
-}
-
-@Preview(showBackground = true, name = "With Clothes")
-@Composable
-fun PreviewClothesScreen_WithItems() {
-    val mockClothes = listOf(
-        ClothesEntity(
-            cid = "1",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Tops",
-            nickname = "Bohemian Knit Top"
-        ),
-        ClothesEntity(
-            cid = "2",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Bottoms",
-            nickname = "Slim Fit Dark Jeans"
-        ),
-        ClothesEntity(
-            cid = "3",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Tops",
-            nickname = "Cream Short-Sleeve"
-        ),
-        ClothesEntity(
-            cid = "4",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Outerwear",
-            nickname = "Light Blue Puffer Jacket"
-        ),
-        ClothesEntity(
-            cid = "5",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Bottoms",
-            nickname = "Light Wash Denim Shorts"
-        ),
-        ClothesEntity(
-            cid = "6",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Outerwear",
-            nickname = "Orange Bomber Jacket"
-        )
-    )
-
-    ClothesScreenPreview(mockClothes = mockClothes)
-}
-
-@Preview(showBackground = true, name = "All Category")
-@Composable
-fun PreviewClothesScreen_AllCategory() {
-    val mockClothes = listOf(
-        ClothesEntity(
-            cid = "1",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Tops",
-            nickname = "Bohemian Knit Top"
-        ),
-        ClothesEntity(
-            cid = "2",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Bottoms",
-            nickname = "denim shorts"
-        ),
-        ClothesEntity(
-            cid = "3",
-            ownerUid = "user1",
-            imagePath = "",
-            category = "Outerwear",
-            nickname = "black jacket"
-        )
-    )
-
-    ClothesScreenPreview(mockClothes = mockClothes)
-}
-
-@Preview(showBackground = true, name = "Many Items", heightDp = 800)
-@Composable
-fun PreviewClothesScreen_ManyItems() {
-    val mockClothes = List(10) { index ->
-        ClothesEntity(
-            cid = "clothes_$index",
-            ownerUid = "user1",
-            imagePath = "",
-            category = when (index % 3) {
-                0 -> "Tops"
-                1 -> "Bottoms"
-                else -> "Outerwear"
-            },
-            nickname = "Clothes Item ${index + 1}"
-        )
-    }
-
-    ClothesScreenPreview(mockClothes = mockClothes)
 }

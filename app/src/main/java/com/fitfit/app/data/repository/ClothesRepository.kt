@@ -80,9 +80,17 @@ class ClothesRepository(
         storeUrl: String?
     ): Result<Unit> {
         return try {
+            val currentUid = getCurrentUid()
+                ?: return Result.failure(Exception("로그인이 필요합니다."))
 
-            val entity = clothesDao.getClothesById(cid)
-                ?: return Result.failure(Exception("Failed to find the clothes."))
+            val entity = ClothesEntity(
+                cid = cid,
+                ownerUid = currentUid,
+                category = category,
+                nickname = nickname,
+                storeUrl = storeUrl,
+                isSynced = false
+            )
 
             val updated = entity.copy(
                 category = category,
