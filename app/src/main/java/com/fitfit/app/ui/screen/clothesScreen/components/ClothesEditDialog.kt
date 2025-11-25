@@ -1,5 +1,6 @@
 package com.fitfit.app.ui.screen.clothesScreen.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +25,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +38,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,11 +46,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fitfit.app.data.local.entity.ClothesEntity
+import com.fitfit.app.viewmodel.ClothesOperationState
+import com.fitfit.app.viewmodel.ClothesViewModel
 
 @Composable
-
-
 fun ClothesEditDialog(
+    clothesViewModel: ClothesViewModel,
     clothes: ClothesEntity,
     onDismiss: () -> Unit,
     onSave: (category: String, nickname: String, storeUrl: String?) -> Unit
@@ -56,6 +61,10 @@ fun ClothesEditDialog(
     var storeUrl by remember { mutableStateOf(clothes.storeUrl ?: "") }
 
     val categories = listOf("Tops", "Bottoms", "Outerwear")
+
+    val updateState by clothesViewModel.updateState.collectAsState()
+    val context = LocalContext.current
+
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -258,6 +267,30 @@ fun ClothesEditDialog(
                     }
                 }
             }
+        }
+    }
+
+    // 옷 수정 시 Toast 알림
+    LaunchedEffect(updateState) {
+        when (updateState) {
+            is ClothesOperationState.Success -> {
+                Toast.makeText(
+                    context,
+                    (updateState as ClothesOperationState.Success).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                clothesViewModel.resetUpdateState()
+                onDismiss()
+            }
+            is ClothesOperationState.Failure -> {
+                Toast.makeText(
+                    context,
+                    (updateState as ClothesOperationState.Failure).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                clothesViewModel.resetUpdateState()
+            }
+            else -> {}
         }
     }
 }

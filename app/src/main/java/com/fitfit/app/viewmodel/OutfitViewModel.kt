@@ -126,11 +126,11 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
         val result = outfitRepository?.deleteOutfit(oid)
 
         result?.onSuccess { _:Unit ->
-            _deleteState.value = OutfitOperationState.Success("코디가 삭제되었습니다.")
+            _deleteState.value = OutfitOperationState.Success("Successfully deleted outfit.")
             loadOutfitsWithClothes()
         }?.onFailure { e: Throwable ->
             _deleteState.value = OutfitOperationState.Failure(
-                e.message ?: "코디 삭제에 실패했습니다."
+                e.message ?: "Failed to delete outfit."
             )
         }
     }
