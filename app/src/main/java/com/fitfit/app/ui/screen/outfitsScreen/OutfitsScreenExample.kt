@@ -75,7 +75,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OutfitsScreen(
+fun OutfitsScreenExample(
     navController: NavController,
     outfitViewModel: OutfitViewModel,
     clothesViewModel: ClothesViewModel = viewModel(),
@@ -500,8 +500,8 @@ fun OutfitAddDialog(
                                 comment = comment.ifBlank { null },
                                 wornStartTime = wornStartTime,
                                 wornEndTime = wornEndTime,
-                                latitude = loc.latitude,
-                                longitude = loc.longitude
+                                latitude = loc.latitude, //삭제 -> 일단 빈값으로 넘겨주기
+                                longitude = loc.longitude //삭제 -> 일단 빈값으로 넘겨주기
                             )
                         },
                         modifier = Modifier.weight(1f),
