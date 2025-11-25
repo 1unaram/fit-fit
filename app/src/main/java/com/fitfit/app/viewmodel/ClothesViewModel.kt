@@ -39,36 +39,35 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
         _insertState.value = ClothesOperationState.Loading
 
         if (imagePath.isBlank()) {
-            _insertState.value = ClothesOperationState.Failure("사진을 선택해주세요.")
+            _insertState.value = ClothesOperationState.Failure("Choose an image for the clothes.")
             return@launch
         }
         if (category.isBlank()) {
-            _insertState.value = ClothesOperationState.Failure("카테고리를 선택해주세요.")
+            _insertState.value = ClothesOperationState.Failure("Choose a category for the clothes.")
             return@launch
         }
         if (nickname.isBlank()) {
-            _insertState.value = ClothesOperationState.Failure("이름(별칭)을 입력해주세요.")
+            _insertState.value = ClothesOperationState.Failure("Enter a nickname for the clothes.")
             return@launch
         }
 
         val result = repository.insertClothes(imagePath, category, nickname, storeUrl)
         result.onSuccess {
-            _insertState.value = ClothesOperationState.Success("옷이 추가되었습니다.")
+            _insertState.value = ClothesOperationState.Success("Successfully added clothes.")
             loadClothes()
         }.onFailure { e ->
-            _insertState.value = ClothesOperationState.Failure(e.message ?: "옷 추가 실패")
+            _insertState.value = ClothesOperationState.Failure(e.message ?: "Failed to add clothes.")
         }
     }
 
     // ### 옷 수정 ###
     fun updateClothes(
         cid: String,
-        imagePath: String,
         category: String,
         nickname: String,
         storeUrl: String?
     ) = viewModelScope.launch {
-        repository.updateClothes(cid, imagePath, category, nickname, storeUrl)
+        repository.updateClothes(cid, category, nickname, storeUrl)
         loadClothes()
     }
 

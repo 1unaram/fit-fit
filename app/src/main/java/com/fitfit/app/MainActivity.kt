@@ -83,12 +83,22 @@ class MainActivity : ComponentActivity() {
                     if (currentUser != null) {
                         while (true) {
                             weatherViewModel.updatePendingOutfitWeather()
-                            delay(300_000) // 5분 간격. 리소스 여유따라 조정 가능
+                            delay(60_000) // 1분 간격. 리소스 여유따라 조정 가능
                         }
                     }
                 }
 
-                AppNavigation(outfitViewModel, weatherViewModel)
+                // 날씨 데이터는 미리 가져오기
+                LaunchedEffect(Unit) {
+                    weatherViewModel.getWeatherCardData()
+                }
+
+                AppNavigation(
+                    userViewModel,
+                    clothesViewModel,
+                    outfitViewModel,
+                    weatherViewModel,
+                )
             }
 
         }

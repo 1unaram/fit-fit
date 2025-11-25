@@ -17,6 +17,7 @@ import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
 import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
 import com.fitfit.app.ui.screen.outfitsScreen.OutfitsScreen
+import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
 import com.fitfit.app.viewmodel.WeatherViewModel
@@ -30,7 +31,12 @@ object Screens {
 }
 
 @Composable
-fun AppNavigation(outfitViewModel: OutfitViewModel, weatherViewModel: WeatherViewModel) {
+fun AppNavigation(
+    userViewModel: UserViewModel,
+    clothesViewModel: ClothesViewModel,
+    outfitViewModel: OutfitViewModel,
+    weatherViewModel: WeatherViewModel
+) {
     val navController = rememberNavController()
     val userViewModel: UserViewModel = viewModel()
     val currentUser by userViewModel.currentUser.collectAsState()
@@ -88,13 +94,22 @@ fun AppNavigation(outfitViewModel: OutfitViewModel, weatherViewModel: WeatherVie
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screens.LOGIN) {
-                LoginScreen(navController = navController, userViewModel = userViewModel)
+                LoginScreen(
+                    navController = navController,
+                    userViewModel = userViewModel
+                )
             }
             composable(Screens.HOME) {
-                HomeScreen(navController = navController, userViewModel = userViewModel)
+                HomeScreen(
+                    userViewModel = userViewModel,
+                    weatherViewModel = weatherViewModel,
+                    outfitViewModel = outfitViewModel
+                )
             }
             composable(Screens.CLOTHES) {
-                ClothesScreen(navController = navController)
+                ClothesScreen(
+                    clothesViewModel = clothesViewModel,
+                )
             }
             composable(Screens.OUTFITS) {
                 OutfitsScreen(
@@ -104,7 +119,10 @@ fun AppNavigation(outfitViewModel: OutfitViewModel, weatherViewModel: WeatherVie
                 )
             }
             composable(Screens.REGISTER) {
-                RegisterScreen(navController = navController, userViewModel = userViewModel)
+                RegisterScreen(
+                    navController = navController,
+                    userViewModel = userViewModel
+                )
             }
         }
     }

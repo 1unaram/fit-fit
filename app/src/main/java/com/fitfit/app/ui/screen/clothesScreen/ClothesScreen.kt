@@ -23,8 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.ui.screen.clothesScreen.components.CategoryChips
 import com.fitfit.app.ui.screen.clothesScreen.components.ClothesAddDialog
@@ -37,8 +35,7 @@ import com.fitfit.app.viewmodel.ClothesViewModel
 
 @Composable
 fun ClothesScreen(
-    navController: NavController,
-    clothesViewModel: ClothesViewModel = viewModel()
+    clothesViewModel: ClothesViewModel
 ) {
     val clothesList by clothesViewModel.clothesList.collectAsState()
     var selectedCategory by remember { mutableStateOf("All") }
@@ -149,7 +146,6 @@ fun ClothesScreen(
             onSave = { category, nickname, storeUrl ->
                 clothesViewModel.updateClothes(
                     cid = selectedClothes!!.cid,
-                    imagePath = selectedClothes!!.imagePath,
                     category = category,
                     nickname = nickname,
                     storeUrl = storeUrl
@@ -174,6 +170,58 @@ fun ClothesScreen(
                         nickname = nickname,
                         storeUrl = storeUrl
                     )
+
+                    clothesViewModel.loadClothes()
+                }
+                showAddDialog = false
+            }
+        )
+    }
+}
+
+// ========== 프리뷰용 ==========
+
+@Composable
+fun ClothesScreenPreview(
+    mockClothes: List<ClothesEntity> = emptyList()
+) {
+    var selectedCategory by remember { mutableStateOf("All") }
+    var selectedClothes by remember { mutableStateOf<ClothesEntity?>(null) }
+    var showDetailDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    // 카테고리 필터링
+    val filteredClothes = if (selectedCategory == "All") {
+        mockClothes
+    } else {
+        mockClothes.filter { it.category == selectedCategory }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFE8F2FF))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            ClothesTopBar()
+
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp), //옆 패딩
+                verticalArrangement = Arrangement.spacedBy(12.dp) //각 카드 컬럼별 간격
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    CategoryChips(
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = { selectedCategory = it }
+                    )
+                }
 
                     clothesViewModel.loadClothes()
                 }

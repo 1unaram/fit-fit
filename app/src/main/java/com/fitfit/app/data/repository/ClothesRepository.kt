@@ -75,7 +75,6 @@ class ClothesRepository(
     // ### 옷 수정 ###
     suspend fun updateClothes(
         cid: String,
-        imagePath: String,
         category: String,
         nickname: String,
         storeUrl: String?
@@ -87,7 +86,6 @@ class ClothesRepository(
             val entity = ClothesEntity(
                 cid = cid,
                 ownerUid = currentUid,
-                imagePath = imagePath,
                 category = category,
                 nickname = nickname,
                 storeUrl = storeUrl,
@@ -95,6 +93,9 @@ class ClothesRepository(
             )
 
             val updated = entity.copy(
+                category = category,
+                nickname = nickname,
+                storeUrl = storeUrl,
                 lastModified = System.currentTimeMillis(),
                 isSynced = false
             )
@@ -111,7 +112,7 @@ class ClothesRepository(
     suspend fun deleteClothes(cid: String): Result<Unit> {
         return try {
             val clothes = clothesDao.getClothesById(cid)
-                ?: return Result.failure(Exception("옷을 찾을 수 없습니다."))
+                ?: return Result.failure(Exception("Failed to find the clothes."))
 
             clothesDao.deleteClothesById(cid)
 
