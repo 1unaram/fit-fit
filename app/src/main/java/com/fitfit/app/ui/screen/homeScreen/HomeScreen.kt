@@ -44,7 +44,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
 import com.fitfit.app.viewmodel.ClothesViewModel
@@ -55,8 +54,8 @@ import com.fitfit.app.viewmodel.WeatherViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    userViewModel: UserViewModel = viewModel(),
-    clothesViewModel: ClothesViewModel = viewModel(),
+    userViewModel: UserViewModel,
+    clothesViewModel: ClothesViewModel,
     outfitViewModel: OutfitViewModel,
     weatherViewModel: WeatherViewModel
 ) {

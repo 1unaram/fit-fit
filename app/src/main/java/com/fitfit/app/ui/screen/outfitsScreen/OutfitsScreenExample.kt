@@ -78,7 +78,6 @@ import java.util.Locale
 fun OutfitsScreen(
     navController: NavController,
     outfitViewModel: OutfitViewModel,
-    clothesViewModel: ClothesViewModel = viewModel(),
     weatherViewModel: WeatherViewModel
 ) {
     val outfitsWithClothes by outfitViewModel.outfitsWithClothes.collectAsState()

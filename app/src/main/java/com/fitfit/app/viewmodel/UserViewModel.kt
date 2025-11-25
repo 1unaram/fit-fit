@@ -10,7 +10,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class UserViewModel(application: Application) : AndroidViewModel(application) {
+class UserViewModel(
+    application: Application,
+
+
+) : AndroidViewModel(application) {
     private val userDao = AppDatabase.getDatabase(application).userDao()
     private val repository = UserRepository(userDao, application)
 
@@ -85,6 +89,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         _currentUser.value = null
         _loginState.value = LoginState.Idle
         _registerState.value = RegisterState.Idle
+    }
+
+    // ### 현재 사용자 불러오기 ###
+    fun loadCurrentUser() = viewModelScope.launch {
+        val user = repository.getCurrentUser()
+        _currentUser.value = user
     }
 
     // 상태 초기화
