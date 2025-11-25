@@ -7,10 +7,12 @@ import android.R.attr.label
 import android.R.attr.lineHeight
 import android.R.attr.text
 import android.R.attr.top
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,13 +29,21 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,41 +52,41 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
+import com.fitfit.app.data.local.entity.ClothesEntity
+import com.fitfit.app.data.local.entity.OutfitEntity
+import com.fitfit.app.data.local.entity.OutfitWithClothes
+import com.fitfit.app.ui.components.WeatherIcon
+import com.fitfit.app.ui.screen.clothesScreen.components.ClothesCard
+import com.fitfit.app.ui.screen.homeScreen.formatTimestampToDate
 import kotlin.String
 
 @Composable
 fun OutfitDataScreen(
-    date: String,
-    weatherIcon: Painter,
-    temperature: String,
-    clothesImages: List<String>,
-    weatherDescription: String,
-    precipitation: String,
-    windSpeed: String,
-    temperatureRange: String,
-    timeRange: String,
-    occasions: List<String>,
-    comment: String,
+    outfitData: OutfitWithClothes,
     onDismiss: () -> Unit,
     ) {
-    Box(
+
+    Card(
         modifier = Modifier
-            .width(294.dp)
-            .height(562.dp)
-            .shadow(
-                elevation = 16.dp,
-                shape = RoundedCornerShape(16.dp),
-                ambientColor = Color(0x22000000),
-                spotColor = Color(0x33000000)
-            )
-            .background(Color.White, shape = RoundedCornerShape(16.dp))
-            .border(1.dp, Color.White, shape = RoundedCornerShape(16.dp))
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+          //  .height(131.dp),
+        shape = RoundedCornerShape(17.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        border = BorderStroke(1.dp, Color.White)
     ){
         Column(
             modifier = Modifier
@@ -125,7 +135,7 @@ fun OutfitDataScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = date,
+                text = formatTimestampToDate(outfitData.outfit.wornStartTime),
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
                 modifier = Modifier
@@ -134,15 +144,12 @@ fun OutfitDataScreen(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = weatherIcon,
-                    contentDescription = "Weather Icon",
-                    modifier = Modifier
-                        .size(30.dp)
-                )
+                Box(modifier = Modifier.size(30.dp)){
+                    WeatherIcon(outfitData.outfit.iconCode, "Weather Icon")}            }
+
                 Spacer(modifier = Modifier.width(2.dp))
                 Text(
-                    text = temperature,
+                    text = "${String.format("%.1f°C", outfitData.outfit.temperatureAvg) ?: "-"}°",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     modifier = Modifier.align(Alignment.CenterVertically)
@@ -151,7 +158,7 @@ fun OutfitDataScreen(
         }
 
         // 옷 사진들
-        ClothesGrid(clothesImages)
+        ClothesGrid(outfitData.clothes)
 
         // 기타 정보 영역(설명, 강수량, 풍속 등)
         Column(
@@ -159,11 +166,14 @@ fun OutfitDataScreen(
                 .fillMaxWidth()
         ) {
             // 좌우: 강수량/풍속/온도범위/시간범위
-            InfoLine("Weather Description", weatherDescription)
-            InfoLine("Precipitation", precipitation)
-            InfoLine("Wind Speed", windSpeed)
-            InfoLine("Temperature Range", temperatureRange)
-            InfoLine("Time Range", timeRange)
+            InfoLine("Weather Description", outfitData.outfit.description ?: "-")
+            InfoLine("Precipitation", "강수확률 ${outfitData.outfit.precipitation}%")
+            InfoLine("Wind Speed", "풍속 ${String.format("%.1f", outfitData.outfit.windSpeed)} m/s")
+            InfoLine(
+                label = "Temperature Range",
+                value = "최저 ${outfitData.outfit.temperatureMin ?: "-"}° / 최고 ${outfitData.outfit.temperatureMax ?: "-"}°"
+            )
+            InfoLine("Time Range", "${outfitData.outfit.wornStartTime ?: "-"} - ${outfitData.outfit.wornEndTime?: "-"}")
             // 행사/학교
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -176,21 +186,21 @@ fun OutfitDataScreen(
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                occasions.forEach { occasion ->
+                outfitData.outfit.occasion.forEach { occasion ->
                     OccasionChip(text = occasion)
                     Spacer(modifier = Modifier.width(8.dp))
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
 
-            InfoLine("Comment", comment)
+            InfoLine("Comment", outfitData.outfit.comment?: "-")
         }
     }
-}}
+}
 
 // 옷 사진
 @Composable
-fun ClothesGrid(clothesImages: List<String>) {
+fun ClothesGrid(clothesList: List<ClothesEntity>) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),           // 3열
         modifier = Modifier
@@ -199,15 +209,61 @@ fun ClothesGrid(clothesImages: List<String>) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(clothesImages.take(6)) { imageUrl ->
-            Image(
-                painter = rememberImagePainter(imageUrl),
-                contentDescription = "Clothes Image",
+        items(clothesList) { clothesItem ->
+            ClothesCard(clothes = clothesItem)
+        }
+    }
+}
+
+
+
+@Composable
+fun ClothesCard(
+    clothes: ClothesEntity) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+// 옷 이미지
+            Box(
                 modifier = Modifier
-                    .size(71.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .border(0.3.dp, Color.White, RoundedCornerShape(10.dp))
-            )
+                    .size(76.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF5F5F5))
+            ) {
+                // imagePath 사용
+                if (!clothes.imagePath.isNullOrBlank()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(clothes.imagePath),
+                        contentDescription = clothes.nickname,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // 이미지 없을 때 아이콘 표시
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ImageNotSupported,
+                            contentDescription = "No Image",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -266,21 +322,4 @@ fun OccasionChip(text: String) {
 
 
 
-@Preview
-@Composable
-fun OutfitDataScreenPreview() {
-    OutfitDataScreen(
-        date = "2025-11-11",
-        weatherIcon = painterResource(id = android.R.drawable.ic_menu_help), // 임시 아이콘
-        temperature = "25°C",
-        clothesImages = listOf("o1","o2"),
-        weatherDescription = "Windy",
-        precipitation = "Cold",
-        windSpeed = "10m/s",
-        temperatureRange = "10.0-11.0",
-        timeRange = "10:30-11:30",
-        occasions = listOf("School","Travel"),
-        comment = "cold",
-        onDismiss = {}
-        )
-}
+

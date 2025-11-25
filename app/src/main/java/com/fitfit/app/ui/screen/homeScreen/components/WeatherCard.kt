@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,12 +21,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.viewmodel.WeatherCardData
 import com.fitfit.app.viewmodel.WeatherCardUiState
 
+val WeatherBlue = Color(0xFF3B75E4) // 사진 속 파란색 텍스트
+val LabelGray = Color(0xFF9E9E9E)   // 사진 속 회색 라벨
+val CardBackground = Color.White.copy(alpha = 0.85f) // 반투명 흰색 배경
 @Composable
 fun WeatherCard(
     state: WeatherCardUiState,
@@ -34,7 +41,10 @@ fun WeatherCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+             containerColor = CardBackground),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // 투명감을 위해 그림자 제거 혹은 약하게
     ) {
         when (state) {
             is WeatherCardUiState.Loading -> {
@@ -72,7 +82,8 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        WeatherIcon(cardData.todayWeatherIconCode, "Test")
+        Box(modifier = Modifier.size(64.dp)){
+            WeatherIcon(cardData.todayWeatherIconCode, "Test")}
 
         Spacer(Modifier.width(16.dp))
 
@@ -83,14 +94,26 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = "${cardData.currentTemperature}°C",
-                style = MaterialTheme.typography.displaySmall
+                style = MaterialTheme.typography.displaySmall,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
             cardData.todayWeatherDescription?.let {
-                Text(text = it, style = MaterialTheme.typography.bodyLarge)
+                Text(text = it, //style = MaterialTheme.typography.bodyLarge
+                    color = WeatherBlue,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.End,
+                    lineHeight = 22.sp,
+                    maxLines = 2 )
             }
             Text(
                 text = "최저 ${cardData.todayMinTemperature ?: "-"}° / 최고 ${cardData.todayMaxTemperature ?: "-"}°",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 12.sp,
+                color = LabelGray,
+                fontWeight = FontWeight.Medium
             )
         }
         Spacer(Modifier.weight(1f))

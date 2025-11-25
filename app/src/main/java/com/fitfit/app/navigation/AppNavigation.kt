@@ -102,7 +102,8 @@ fun AppNavigation(
             composable(Screens.HOME) {
                 HomeScreen(
                     userViewModel = userViewModel,
-                    weatherViewModel = weatherViewModel
+                    weatherViewModel = weatherViewModel,
+                    outfitViewModel = outfitViewModel
                 )
             }
             composable(Screens.CLOTHES) {
