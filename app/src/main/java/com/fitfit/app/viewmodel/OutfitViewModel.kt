@@ -3,9 +3,9 @@ package com.fitfit.app.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.fitfit.app.data.local.entity.OutfitEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.data.repository.OutfitRepository
+import com.fitfit.app.data.util.LocationManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -16,9 +16,6 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
     fun setOutfitRepository(repo: OutfitRepository) {
         outfitRepository = repo
     }
-
-    private val _outfitsList = MutableStateFlow<List<OutfitEntity>>(emptyList())
-    val outfitsList: StateFlow<List<OutfitEntity>> = _outfitsList
 
     private val _outfitsWithClothes = MutableStateFlow<List<OutfitWithClothes>>(emptyList())
     val outfitsWithClothes: StateFlow<List<OutfitWithClothes>> = _outfitsWithClothes
@@ -32,7 +29,9 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
     private val _deleteState = MutableStateFlow<OutfitOperationState>(OutfitOperationState.Idle)
     val deleteState: StateFlow<OutfitOperationState> = _deleteState
 
-    // 옷 정보 포함 코디 목록 로드
+    private val locationManager = LocationManager(application)
+
+    // ### 옷 정보 포함 코디 목록 로드 ###
     fun loadOutfitsWithClothes() = viewModelScope.launch {
         val repo = outfitRepository ?: return@launch
         repo.getOutfitsWithClothesByCurrentUser()
@@ -45,24 +44,13 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
             }
     }
 
-    // ====== 생성 / 수정 / 삭제 ======
-    /**
-     * 코디 생성
-     *
-     * @param clothesIds 포함된 옷 cid 리스트
-     * @param wornStartTime 착용 시작 시간 (millis)
-     * @param wornEndTime 착용 종료 시간 (millis)
-     * @param latitude 착용 위치 위도
-     * @param longitude 착용 위치 경도
-     */
+    // ### 코디 생성 ###
     fun createOutfit(
         clothesIds: List<String>,
         occasion: List<String>,
         comment: String?,
         wornStartTime: Long,
-        wornEndTime: Long,
-        latitude: Double,
-        longitude: Double
+        wornEndTime: Long
     ) = viewModelScope.launch {
         _createState.value = OutfitOperationState.Loading
 
@@ -75,30 +63,36 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
             return@launch
         }
 
-        val result = outfitRepository?.createOutfit(
-            clothesIds = clothesIds,
-            occasion = occasion,
-            comment = comment,
-            wornStartTime = wornStartTime,
-            wornEndTime = wornEndTime,
-            latitude = latitude,
-            longitude = longitude
-        )
+        // 위치 정보 가져오기
+        val locationResult = locationManager.getCurrentLocation()
 
-        result?.onSuccess {
-            _createState.value = OutfitOperationState.Success("Successfully created outfit.")
-            loadOutfitsWithClothes()
-        }?.onFailure {
+        locationResult.onSuccess { location ->
+            val result = outfitRepository?.createOutfit(
+                clothesIds = clothesIds,
+                occasion = occasion,
+                comment = comment,
+                wornStartTime = wornStartTime,
+                wornEndTime = wornEndTime,
+                latitude = location.latitude,
+                longitude = location.longitude
+            )
+
+            result?.onSuccess {
+                _createState.value = OutfitOperationState.Success("Successfully created outfit.")
+                loadOutfitsWithClothes()
+            }?.onFailure {
+                _createState.value = OutfitOperationState.Failure(
+                    it.message ?: "Failed to create outfit."
+                )
+            }
+        }.onFailure { exception ->
             _createState.value = OutfitOperationState.Failure(
-                it.message ?: "Failed to create outfit."
+                exception.message ?: "Failed to get location"
             )
         }
     }
 
-    /**
-     * 코디 기본 정보 수정 (이름 + 옷 구성)
-     * 착용 시간/위치/날씨 통계는 별도 화면에서 수정한다고 가정
-     */
+    // ### 코디 수정 ###
     fun updateOutfit(
         oid: String,
         clothesIds: List<String>
@@ -125,9 +119,7 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /**
-     * 코디 삭제
-     */
+    // ### 코디 삭제 ###
     fun deleteOutfit(oid: String) = viewModelScope.launch {
         _deleteState.value = OutfitOperationState.Loading
 

@@ -498,9 +498,7 @@ fun OutfitAddDialog(
                                 occasion = occasionList,
                                 comment = comment.ifBlank { null },
                                 wornStartTime = wornStartTime,
-                                wornEndTime = wornEndTime,
-                                latitude = loc.latitude,
-                                longitude = loc.longitude
+                                wornEndTime = wornEndTime
                             )
                         },
                         modifier = Modifier.weight(1f),
