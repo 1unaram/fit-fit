@@ -45,7 +45,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.fitfit.app.viewmodel.LoginState
 import com.fitfit.app.viewmodel.UserViewModel
@@ -53,7 +52,7 @@ import com.fitfit.app.viewmodel.UserViewModel
 @Composable
 fun LoginScreen(
     navController: NavController,
-    userViewModel: UserViewModel = viewModel()
+    userViewModel: UserViewModel
 ) {
     // 로그인 상태 관찰
     val loginState by userViewModel.loginState.collectAsState()

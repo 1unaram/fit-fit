@@ -21,6 +21,11 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
     private val _insertState = MutableStateFlow<ClothesOperationState>(ClothesOperationState.Idle)
     val insertState: StateFlow<ClothesOperationState> = _insertState
 
+    private val _updateState = MutableStateFlow<ClothesOperationState>(ClothesOperationState.Idle)
+    val updateState: StateFlow<ClothesOperationState> = _updateState
+
+    private val _deleteState = MutableStateFlow<ClothesOperationState>(ClothesOperationState.Idle)
+    val deleteState: StateFlow<ClothesOperationState> = _deleteState
 
     // ### 현재 사용자의 옷 목록 불러오기 ###
     fun loadClothes() = viewModelScope.launch {
@@ -67,14 +72,28 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
         nickname: String,
         storeUrl: String?
     ) = viewModelScope.launch {
-        repository.updateClothes(cid, category, nickname, storeUrl)
-        loadClothes()
+        _updateState.value = ClothesOperationState.Loading
+
+        val result = repository.updateClothes(cid, category, nickname, storeUrl)
+        result.onSuccess {
+            _updateState.value = ClothesOperationState.Success("Successfully updated clothes.")
+            loadClothes()
+        }.onFailure { e ->
+            _updateState.value = ClothesOperationState.Failure(e.message ?: "Failed to update clothes.")
+        }
     }
 
     // ### 옷 삭제 ###
     fun deleteClothes(cid: String) = viewModelScope.launch {
-        repository.deleteClothes(cid)
-        loadClothes()
+        _deleteState.value = ClothesOperationState.Loading
+
+        val result = repository.deleteClothes(cid)
+        result.onSuccess {
+            _deleteState.value = ClothesOperationState.Success("Successfully deleted clothes.")
+            loadClothes()
+        }.onFailure { e ->
+            _deleteState.value = ClothesOperationState.Failure(e.message ?: "Failed to delete clothes.")
+        }
     }
 
     // 동기화되지 않은 데이터 재동기화
@@ -86,9 +105,17 @@ class ClothesViewModel(application: Application) : AndroidViewModel(application)
         repository.startRealtimeSync(uid)
     }
 
+    // 상태 초기화
     fun resetInsertState() {
         _insertState.value = ClothesOperationState.Idle
     }
+    fun resetUpdateState() {
+        _updateState.value = ClothesOperationState.Idle
+    }
+    fun resetDeleteState() {
+        _deleteState.value = ClothesOperationState.Idle
+    }
+
 }
 
 // 옷 작업 상태

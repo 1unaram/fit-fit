@@ -3,6 +3,7 @@ package com.fitfit.app.ui.screen.clothesScreen.components
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -26,10 +27,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +44,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,11 +52,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
-import com.fitfit.app.R
+import com.fitfit.app.viewmodel.ClothesOperationState
+import com.fitfit.app.viewmodel.ClothesViewModel
 import java.io.File
 
 @Composable
 fun ClothesAddDialog(
+    clothesViewModel: ClothesViewModel,
     onDismiss: () -> Unit,
     onSave: (imageUri: Uri?, category: String, nickname: String, storeUrl: String?) -> Unit
 ) {
@@ -66,6 +69,8 @@ fun ClothesAddDialog(
     var storeUrl by remember { mutableStateOf("") }
 
     val categories = listOf("Outerwear", "Tops", "Bottoms")
+
+    val insertState by clothesViewModel.insertState.collectAsState()
 
     // 이미지 선택 런처
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -132,16 +137,19 @@ fun ClothesAddDialog(
                     AddTextField(
                         value = nickname,
                         onValueChange = { nickname = it },
-                        placeholder = ""
+                        placeholder = "Enter Clothes Nickname"
                     )
                 }
 
                 // Store URL 입력
-                AddFieldSection(label = "Store URL") {
+                AddFieldSection(
+                    label = "Store URL (Optional)",
+                    labelColor = Color(0xFF8E8E93)
+                ) {
                     AddTextField(
                         value = storeUrl,
                         onValueChange = { storeUrl = it },
-                        placeholder = ""
+                        placeholder = "Enter Store URL"
                     )
                 }
 
@@ -241,6 +249,30 @@ fun ClothesAddDialog(
             }
         }
     }
+
+    // 옷 추가 시 Toast 알림
+    LaunchedEffect(insertState) {
+        when (insertState) {
+            is ClothesOperationState.Success -> {
+                Toast.makeText(
+                    context,
+                    (insertState as ClothesOperationState.Success).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                clothesViewModel.resetInsertState()
+                onDismiss()
+            }
+            is ClothesOperationState.Failure -> {
+                Toast.makeText(
+                    context,
+                    (insertState as ClothesOperationState.Failure).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                clothesViewModel.resetInsertState()
+            }
+            else -> {}
+        }
+    }
 }
 
 @Composable
@@ -267,8 +299,8 @@ private fun AddImageSection(
                 shape = RoundedCornerShape(10.dp)
             )
             .border(
-                width = 0.33.dp,
-                color = Color.White,
+                width = 1.dp,
+                color = Color(0xFFD1D1D6),
                 shape = RoundedCornerShape(10.dp)
             ),
         contentAlignment = Alignment.Center
@@ -285,7 +317,7 @@ private fun AddImageSection(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add image",
                 tint = Color(0xFF3673E4),
-                modifier = Modifier.size(23.dp)
+                modifier = Modifier.size(32.dp)
             )
         }
     }
@@ -294,6 +326,7 @@ private fun AddImageSection(
 @Composable
 private fun AddFieldSection(
     label: String,
+    labelColor: Color = Color(0xFF3673E4),
     content: @Composable () -> Unit
 ) {
     Column(
@@ -302,9 +335,9 @@ private fun AddFieldSection(
     ) {
         Text(
             text = label,
-            fontSize = 13.sp,
+            fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF3673E4)
+            color = labelColor
         )
         content()
     }
@@ -316,42 +349,25 @@ private fun AddCategoryChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val selectedColor = getCategoryColor(text)
     Box(
         modifier = Modifier
             .background(
-                brush = Brush.linearGradient(
-                    listOf(
-                        Color(0xB3FFFFFF),
-                        Color(0xB3E6E6E6)
-                    )
-                ),
+                color = if (selected) selectedColor else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
             .border(
-                width = 0.33.dp,
-                color = Color.White,
+                width = 1.dp,
+                color = if (selected) selectedColor else Color(0xFFD1D1D6),
                 shape = RoundedCornerShape(8.dp)
-            )
-            .shadow(
-                elevation = 3.dp,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .then(
-                if (selected) {
-                    Modifier.border(
-                        width = 2.dp,
-                        color = Color(0xFF3673E4),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                } else Modifier
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
             text = text,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             color = if (selected) Color.Black else Color(0xFF8E8E93)
         )
     }
@@ -371,39 +387,33 @@ private fun AddTextField(
             color = Color.Black
         ),
         decorationBox = { innerTextField ->
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        if (value.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                fontSize = 15.sp,
-                                color = Color(0xFF8E8E93)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.linearGradient(
+                            listOf(
+                                Color(0x99E8F2FF),
+                                Color(0xCCE8F2FF)
                             )
-                        }
-                        innerTextField()
-                    }
-                    // 편집 아이콘 (Optional)
-                    Icon(
-                        painter = painterResource(R.drawable.ic_edit),
-                        contentDescription = "Edit",
-                        tint = Color(0xFF8E8E93),
-                        modifier = Modifier.size(13.dp)
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = Color(0x40000000),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                if (value.isEmpty()) {
+                    Text(
+                        text = placeholder,
+                        fontSize = 15.sp,
+                        color = Color(0xFF8E8E93)
                     )
                 }
-                // 밑줄
-                Divider(
-                    color = Color(0xFF8E8E93),
-                    thickness = 1.dp
-                )
+                innerTextField()
             }
         },
         singleLine = true
@@ -426,5 +436,14 @@ fun copyImageToAppStorage(context: Context, uri: Uri): String? {
     } catch (e: Exception) {
         Log.e("ClothesAddDialog", "Failed to copy image", e)
         null
+    }
+}
+
+private fun getCategoryColor(category: String): Color {
+    return when (category) {
+        "Tops", "Top" -> Color(0xB3FDE8FF)
+        "Bottoms", "Bottom" -> Color(0xB3EAFFE8)
+        "Outerwear" -> Color(0xB3FFE7BE)
+        else -> Color(0xFF8E8E93)
     }
 }

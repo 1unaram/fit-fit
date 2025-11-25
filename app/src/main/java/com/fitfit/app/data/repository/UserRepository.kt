@@ -158,6 +158,12 @@ class UserRepository(
         }
     }
 
+    // 현재 사용자 가져오기
+    suspend fun getCurrentUser(): UserEntity? {
+        val currentUid = getCurrentUid() ?: return null
+        return userDao.getUserById(currentUid)
+    }
+
     // 실시간 동기화
     fun startRealtimeSync() {
         firebaseUsersRef.addChildEventListener(object : ChildEventListener {

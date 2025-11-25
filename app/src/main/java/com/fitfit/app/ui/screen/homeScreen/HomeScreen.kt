@@ -66,7 +66,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
-import com.fitfit.app.ui.screen.outfitsScreen.OutfitCardItem
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
@@ -84,8 +83,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    userViewModel: UserViewModel = viewModel(),
-    clothesViewModel: ClothesViewModel = viewModel(),
+    userViewModel: UserViewModel,
+    clothesViewModel: ClothesViewModel,
     outfitViewModel: OutfitViewModel,
     weatherViewModel: WeatherViewModel
 ) {
@@ -112,8 +111,6 @@ fun HomeScreen(
 
     val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
-
-
 
 
     // ================== ui ==============
@@ -157,7 +154,7 @@ fun HomeScreen(
             FilterButtonSection(showFilter, onChange = { showFilter = it })
         }
 
-        /* Section3. Outfit Cards List */
+
         item {
             OutfitCardsListSection(
                 outfitsWithClothes = outfitsWithClothes,

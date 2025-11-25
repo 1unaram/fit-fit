@@ -1,21 +1,26 @@
 package com.fitfit.app.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fitfit.app.ui.navbar.BottomNavBar
 import com.fitfit.app.ui.screen.clothesScreen.ClothesScreen
+import com.fitfit.app.ui.screen.communityScreen.CommunityScreen
 import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
 import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
+import com.fitfit.app.ui.screen.mypageScreen.MyPageScreen
 import com.fitfit.app.ui.screen.outfitsScreen.OutfitsScreen
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
@@ -28,6 +33,8 @@ object Screens {
     const val OUTFITS = "outfits"
     const val LOGIN = "login"
     const val REGISTER = "register"
+    const val COMMUNITY = "community"
+    const val MYPAGE = "mypage"
 }
 
 @Composable
@@ -38,8 +45,16 @@ fun AppNavigation(
     weatherViewModel: WeatherViewModel
 ) {
     val navController = rememberNavController()
-    val userViewModel: UserViewModel = viewModel()
     val currentUser by userViewModel.currentUser.collectAsState()
+    val isLoading by userViewModel.isLoading.collectAsState()
+
+    // 로딩 중에는 빈 화면 표시
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+        return
+    }
 
     // 로그인 상태에 따라 시작 화면 결정
     val startDestination = if (currentUser != null) Screens.HOME else Screens.LOGIN
@@ -59,6 +74,8 @@ fun AppNavigation(
                     Screens.CLOTHES -> 0
                     Screens.OUTFITS -> 1
                     Screens.HOME -> 2
+                    Screens.COMMUNITY -> 3
+                    Screens.MYPAGE -> 4
                     else -> 2 // 기본값은 HOME
                 }
 
@@ -69,6 +86,8 @@ fun AppNavigation(
                             0 -> Screens.CLOTHES
                             1 -> Screens.OUTFITS
                             2 -> Screens.HOME
+                            3 -> Screens.COMMUNITY
+                            4 -> Screens.MYPAGE
                             else -> Screens.HOME
                         }
 
@@ -78,6 +97,7 @@ fun AppNavigation(
                                 // 백스택 관리: HOME으로 돌아갈 때는 이전 화면들 제거
                                 popUpTo(Screens.HOME) {
                                     saveState = true
+                                    inclusive = false
                                 }
                                 launchSingleTop = true
                                 restoreState = true
@@ -102,8 +122,9 @@ fun AppNavigation(
             composable(Screens.HOME) {
                 HomeScreen(
                     userViewModel = userViewModel,
-                    weatherViewModel = weatherViewModel,
-                    outfitViewModel = outfitViewModel
+                    clothesViewModel = clothesViewModel,
+                    outfitViewModel = outfitViewModel,
+                    weatherViewModel = weatherViewModel
                 )
             }
             composable(Screens.CLOTHES) {
@@ -121,6 +142,14 @@ fun AppNavigation(
             composable(Screens.REGISTER) {
                 RegisterScreen(
                     navController = navController,
+                    userViewModel = userViewModel
+                )
+            }
+            composable (Screens.COMMUNITY) {
+                CommunityScreen()
+            }
+            composable (Screens.MYPAGE) {
+                MyPageScreen(
                     userViewModel = userViewModel
                 )
             }
