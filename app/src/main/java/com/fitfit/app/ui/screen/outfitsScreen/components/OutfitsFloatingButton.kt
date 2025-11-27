@@ -23,7 +23,7 @@ fun OutfitsFloatingButton(
     ) {
         Icon(
             imageVector = Icons.Default.Add,
-            contentDescription = "Add Clothes",
+            contentDescription = "Add Outfits",
             modifier = Modifier.size(32.dp)
         )
     }

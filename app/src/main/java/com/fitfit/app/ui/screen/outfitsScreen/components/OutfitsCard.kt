@@ -19,10 +19,12 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
@@ -48,8 +51,9 @@ import java.util.Locale
 @Composable
 fun OutfitsCard(
     outfitWithClothes: OutfitWithClothes,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onEdit: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    onDismiss: (() -> Unit)? = null
 ) {
     Card(
         modifier = Modifier
@@ -73,29 +77,22 @@ fun OutfitsCard(
                 // 1. 우측 상단 편집&삭제 아이콘 Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(com.fitfit.app.R.drawable.ic_edit),
-                            contentDescription = "Edit",
-                            modifier = Modifier
-                                .size(21.dp)
-                                .clickable { onEdit() },
-                            tint = Color(0xFF8E8E93)
-                        )
-                        Icon(
-                            painter = painterResource(com.fitfit.app.R.drawable.ic_delete),
-                            contentDescription = "Delete",
-                            modifier = Modifier
-                                .size(21.dp)
-                                .clickable { onDelete() },
-                            tint = Color(0xFF8E8E93)
-                        )
+                    when {
+                        // 편집/삭제 모드 (2버튼)
+                        onEdit != null && onDelete != null -> {
+                            EditDeleteIcons(
+                                onEdit = onEdit,
+                                onDelete = onDelete
+                            )
+                        }
+                        // 닫기 모드 (1버튼)
+                        onDismiss != null -> {
+                            CloseIcon(
+                                onDismiss = onDismiss
+                            )
+                        }
                     }
                 }
 
@@ -134,8 +131,7 @@ fun OutfitsCard(
             InfoRow(
                 "Precipitation",
                 outfitWithClothes.outfit.precipitation?.let { prec ->
-                    "${String.format(Locale.KOREA, "%.2f", prec * 100)}%"
-                } ?: "-"
+                    "${String.format(Locale.KOREA, "%.2f", prec)} mm"} ?: "-"
             )
             InfoRow("Wind Speed", "${outfitWithClothes.outfit.windSpeed?.let { String.format("%.1f", it) } ?: "-"} m/s")
             InfoRow(
@@ -325,6 +321,55 @@ fun OccasionChip(text: String) {
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black
+        )
+    }
+}
+
+//시간 포맷 함수 ; 날짜 포맷 함수는 homescreen의 것을 사용하고 있음 util 폴더에 재작성 필요
+fun formatTimestampToTime(timestamp: Long): String {
+    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return sdf.format(Date(timestamp))
+}
+
+@Composable
+private fun EditDeleteIcons(
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_edit),
+            contentDescription = "Edit",
+            modifier = Modifier
+                .size(21.dp)
+                .clickable { onEdit() },
+            tint = Color(0xFF8E8E93)
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_delete),
+            contentDescription = "Delete",
+            modifier = Modifier
+                .size(21.dp)
+                .clickable { onDelete() },
+            tint = Color(0xFF8E8E93)
+        )
+    }
+}
+
+@Composable
+private fun CloseIcon(
+    onDismiss: () -> Unit,
+) {
+    IconButton(onClick = onDismiss) {
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = "Close",
+            modifier = Modifier
+                .size(21.dp)
+                .clickable { onDismiss() },
+            tint = Color(0xFF8E8E93)
         )
     }
 }

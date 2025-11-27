@@ -55,7 +55,7 @@ import java.util.Locale
 
 @Composable
 fun OutfitsAddDialog(
-    allClothes: List<ClothesEntity>, // 옷 리스트 전부 전달
+    allClothes: List<ClothesEntity>,
     onDismiss: () -> Unit,
     onSave: (
         clothesIds: List<String>,
@@ -91,10 +91,10 @@ fun OutfitsAddDialog(
     var showClothesSelectDialog by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
-        // 여기 다시
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.85f)
+                //.fillMaxWidth(0.85f)
+                .fillMaxWidth()
                 .wrapContentHeight()
                 .shadow(
                     elevation = 6.dp,
@@ -107,9 +107,7 @@ fun OutfitsAddDialog(
                 .padding(vertical = 34.dp, horizontal = 20.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .padding(vertical = 34.dp, horizontal = 20.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(23.dp)
             ) {
@@ -128,7 +126,6 @@ fun OutfitsAddDialog(
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(Color(0xFFF5F5F5))
                                     .clickable {
-                                        // 삭제: 클릭시 해당 옷 제거
                                         selectedClothes =
                                             selectedClothes.toMutableList().apply { removeAt(idx) }
                                     },
@@ -147,6 +144,11 @@ fun OutfitsAddDialog(
                                     .size(58.dp)
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(Color(0xFFF5F5F5))
+                                    .border(
+                                        width = 1.5.dp,
+                                        color = Color(0xFF3673E4),
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
                                     .clickable {
                                         showClothesSelectDialog = true
                                     },
@@ -197,9 +199,8 @@ fun OutfitsAddDialog(
                         { _, y, m, d ->
                             calendar.set(y, m, d)
                             wornDate = calendar.timeInMillis
-                            // 시작/종료시간도 이 날짜로 맞춤
-                            wornStartTime = calendar.timeInMillis + 9 * 60 * 60 * 1000 // 09:00
-                            wornEndTime = wornStartTime + 2 * 60 * 60 * 1000 // 기본 2시간 (11:00)
+                            wornStartTime = calendar.timeInMillis + 9 * 60 * 60 * 1000
+                            wornEndTime = wornStartTime + 2 * 60 * 60 * 1000
                             showDatePicker = false
                         },
                         calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
@@ -245,7 +246,7 @@ fun OutfitsAddDialog(
                             }
                             wornStartTime = tempCal.timeInMillis
                             if (wornEndTime <= wornStartTime)
-                                wornEndTime = wornStartTime + 60 * 60 * 1000 // 종시간 보정
+                                wornEndTime = wornStartTime + 60 * 60 * 1000
                             showTimePickerStart = false
                         },
                         calendar.get(Calendar.HOUR_OF_DAY),
@@ -284,7 +285,6 @@ fun OutfitsAddDialog(
                     ) {
                         allOccasions.forEach { occasion ->
                             val selected = selectedOccasions.contains(occasion)
-                            // 여기서 OutfitsCard의 OccasionChip 스타일 그대로 활용
                             Box(
                                 modifier = Modifier
                                     .shadow(
@@ -474,7 +474,6 @@ fun ClothesMultiSelectDialog(
                                     shape = RoundedCornerShape(9.dp)
                                 )
                                 .clickable {
-                                    // 체크
                                     onSelected(
                                         if (selected)
                                             selectedClothes.toMutableList().apply { remove(clothes) }
@@ -485,7 +484,6 @@ fun ClothesMultiSelectDialog(
                                 .padding(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // 체크박스 대체 (아이콘 또는 체크 효과)
                             Box(
                                 Modifier
                                     .size(20.dp)
