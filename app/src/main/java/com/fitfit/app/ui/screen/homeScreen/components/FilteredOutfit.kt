@@ -43,7 +43,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
-import com.fitfit.app.ui.screen.homeScreen.formatTimestampToDate
+import com.fitfit.app.data.util.formatTimestampToDate
 import com.fitfit.app.ui.screen.outfitsScreen.components.OccasionChip
 
 @Composable
