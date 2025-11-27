@@ -81,7 +81,10 @@ fun OutfitsScreen(
                     OutfitsCard(
                         outfitWithClothes = outfitWithClothes,
                         onEdit = { editingOutfit = outfitWithClothes },
-                        onDelete = { outfitViewModel.deleteOutfit(outfitWithClothes.outfit.oid) }
+                        onDelete = {
+                            outfitViewModel.deleteOutfit(outfitWithClothes.outfit.oid)
+                        }
+                        // onDismiss 는 이 화면에서는 사용하지 않으므로 전달하지 않음
                     )
                 }
 
@@ -97,8 +100,7 @@ fun OutfitsScreen(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp),
-            onClick = { showAddDialog = true
-            }
+            onClick = { showAddDialog = true }
         )
 
         // 코디 추가 다이얼로그
@@ -119,6 +121,7 @@ fun OutfitsScreen(
             )
         }
 
+        // 코디 수정 다이얼로그
         editingOutfit?.let { editing ->
             OutfitsEditDialog(
                 outfitWithClothes = editing,
