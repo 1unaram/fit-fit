@@ -136,6 +136,7 @@ fun AppNavigation(
                 OutfitsScreen(
                     navController = navController,
                     outfitViewModel = outfitViewModel,
+                    clothesViewModel=clothesViewModel,
                     weatherViewModel = weatherViewModel
                 )
             }
