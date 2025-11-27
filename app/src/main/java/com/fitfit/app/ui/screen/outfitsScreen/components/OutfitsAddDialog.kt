@@ -118,54 +118,125 @@ fun OutfitsAddDialog(
                 verticalArrangement = Arrangement.spacedBy(23.dp)
             ) {
                 // 상단 6개 옷 선택 슬롯
-                Row(
+                val maxClothes = 6
+                val columns = 3
+                val cellSize = 96.dp   // 첫 번째 행 썸네일 크기에 맞춰서 조정
+
+                val clothesCount = selectedClothes.size
+                val showAddButton = clothesCount < maxClothes
+                val totalCells = clothesCount + if (showAddButton) 1 else 0
+
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    repeat(6) { idx ->
-                        val clothes = selectedClothes.getOrNull(idx)
-                        if (clothes != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(58.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFFF5F5F5))
-                                    .clickable {
-                                        selectedClothes =
-                                            selectedClothes.toMutableList().apply { removeAt(idx) }
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = clothes.imagePath,
-                                    contentDescription = clothes.nickname,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                )
+                    // 첫 번째 행 (0~2)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        for (index in 0 until columns) {
+                            val globalIndex = index
+                            if (globalIndex < totalCells) {
+                                if (globalIndex < clothesCount) {
+                                    val clothes = selectedClothes[globalIndex]
+                                    Box(
+                                        modifier = Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFFF5F5F5))
+                                            .clickable {
+                                                selectedClothes =
+                                                    selectedClothes.toMutableList().apply { removeAt(globalIndex) }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = clothes.imagePath,
+                                            contentDescription = clothes.nickname,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                } else if (showAddButton) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFFF5F5F5))
+                                            .border(
+                                                width = 1.5.dp,
+                                                color = Color(0xFF3673E4),
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .clickable { showClothesSelectDialog = true },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "옷 추가",
+                                            tint = Color(0xFF3673E4),
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
                             }
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .size(58.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFFF5F5F5))
-                                    .border(
-                                        width = 1.5.dp,
-                                        color = Color(0xFF3673E4),
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                                    .clickable {
-                                        showClothesSelectDialog = true
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "옷 추가",
-                                    tint = Color(0xFF3673E4),
-                                    modifier = Modifier.size(28.dp)
-                                )
+                        }
+                    }
+
+                    // 두 번째 행 (3~5)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        for (index in 0 until columns) {
+                            val globalIndex = columns + index
+                            if (globalIndex < totalCells) {
+                                if (globalIndex < clothesCount) {
+                                    val clothes = selectedClothes[globalIndex]
+                                    Box(
+                                        modifier = Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFFF5F5F5))
+                                            .clickable {
+                                                selectedClothes =
+                                                    selectedClothes.toMutableList().apply { removeAt(globalIndex) }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = clothes.imagePath,
+                                            contentDescription = clothes.nickname,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                } else if (showAddButton) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFFF5F5F5))
+                                            .border(
+                                                width = 1.5.dp,
+                                                color = Color(0xFF3673E4),
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .clickable { showClothesSelectDialog = true },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "옷 추가",
+                                            tint = Color(0xFF3673E4),
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
