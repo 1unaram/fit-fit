@@ -339,7 +339,7 @@ fun WeatherOutfitCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+        //    .padding(horizontal = 12.dp, vertical = 4.dp)
             .height(131.dp)
             .clickable { onClick(outfitsWithClothes) },
         shape = RoundedCornerShape(17.dp),
