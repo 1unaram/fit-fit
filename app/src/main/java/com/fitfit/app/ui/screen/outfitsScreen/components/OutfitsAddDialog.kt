@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -117,10 +118,10 @@ fun OutfitsAddDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(23.dp)
             ) {
-                // 상단 6개 옷 선택 슬롯
+                // 1. 상단 6개 옷 선택 슬롯
                 val maxClothes = 6
                 val columns = 3
-                val cellSize = 96.dp   // 첫 번째 행 썸네일 크기에 맞춰서 조정
+                val cellSize = 96.dp
 
                 val clothesCount = selectedClothes.size
                 val showAddButton = clothesCount < maxClothes
@@ -134,7 +135,7 @@ fun OutfitsAddDialog(
                     // 첫 번째 행 (0~2)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         for (index in 0 until columns) {
@@ -189,7 +190,7 @@ fun OutfitsAddDialog(
                     // 두 번째 행 (3~5)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         for (index in 0 until columns) {
@@ -255,22 +256,60 @@ fun OutfitsAddDialog(
                     )
                 }
 
-                // Date 선택
+                // 2. Date 선택
                 AddFieldSection(label = "Date") {
-                    OutlinedTextField(
-                        value = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(wornDate)),
-                        onValueChange = {},
-                        readOnly = true,
-                        singleLine = true,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showDatePicker = true },
-                        label = { Text("선택해 주세요", color = Color(0xFF3673E4), fontSize = 15.sp) }
-                    )
+                            .background(
+                                brush = Brush.linearGradient(
+                                    listOf(
+                                        Color(0x99E8F2FF),
+                                        Color(0xCCE8F2FF)
+                                    )
+                                ),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = Color(0x40000000),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .clickable { showDatePicker = true }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 왼쪽: 날짜 텍스트 또는 플레이스홀더
+                            val dateText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                .format(Date(wornDate))
+
+                            Text(
+                                text = dateText,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            // 오른쪽: 드롭다운 화살표 아이콘
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Select a date",
+                                tint = Color.Gray,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
+
                 if (showDatePicker) {
                     val calendar = Calendar.getInstance()
                     calendar.timeInMillis = wornDate
+
                     DatePickerDialog(
                         context,
                         { _, y, m, d ->
@@ -280,11 +319,14 @@ fun OutfitsAddDialog(
                             wornEndTime = wornStartTime + 2 * 60 * 60 * 1000
                             showDatePicker = false
                         },
-                        calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
                     ).show()
                 }
 
-                // 시간 구간(Time Range)
+
+                // 3. 시간 구간(Time Range)
                 AddFieldSection(label = "Time Range") {
                     Row(
                         Modifier.fillMaxWidth(),
@@ -353,7 +395,7 @@ fun OutfitsAddDialog(
                     ).show()
                 }
 
-                // Occasion 선택 (최대 3개)
+                // 4. Occasion 선택 (최대 3개)
                 AddFieldSection(label = "Occasion (up to 3)") {
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -400,7 +442,7 @@ fun OutfitsAddDialog(
                     }
                 }
 
-                // Comment (Optional)
+                // 5. Comment (Optional)
                 AddFieldSection(label = "Comment (Optional)", labelColor = Color(0xFF8E8E93)) {
                     OutlinedTextField(
                         value = comment,
@@ -412,7 +454,7 @@ fun OutfitsAddDialog(
                     )
                 }
 
-                // 하단 버튼
+                // 6. 하단 버튼
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(13.dp)
