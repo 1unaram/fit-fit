@@ -13,14 +13,14 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface OutfitDao {
-    @Query("SELECT * FROM outfits WHERE ownerUid = :uid ORDER BY createdAt DESC")
+    @Query("SELECT * FROM outfits WHERE ownerUid = :uid ORDER BY wornStartTime DESC")
     fun getOutfitsByUser(uid: String): Flow<List<OutfitEntity>>
 
     @Query("SELECT * FROM outfits WHERE oid = :oid")
     suspend fun getOutfitById(oid: String): OutfitEntity?
 
     @Transaction
-    @Query("SELECT * FROM outfits WHERE ownerUid = :uid ORDER BY createdAt DESC")
+    @Query("SELECT * FROM outfits WHERE ownerUid = :uid ORDER BY wornStartTime DESC")
     fun getOutfitsWithClothesByUser(uid: String): Flow<List<OutfitWithClothes>>
 
     @Transaction

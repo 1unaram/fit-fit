@@ -44,9 +44,8 @@ import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
-import com.fitfit.app.ui.screen.homeScreen.formatTimestampToDate
-import java.text.SimpleDateFormat
-import java.util.Date
+import com.fitfit.app.data.util.formatTimestampToTime
+import com.fitfit.app.data.util.formatTimestampToDate
 import java.util.Locale
 
 @Composable

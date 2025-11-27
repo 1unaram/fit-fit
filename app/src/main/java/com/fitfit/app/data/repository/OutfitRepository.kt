@@ -282,18 +282,18 @@ class OutfitRepository(
                     ?.mapNotNull { it as? String } ?: emptyList()
                 val occasion = (snapshot.child("occasion").value as? List<*>)
                     ?.mapNotNull { it as? String } ?: emptyList()
-                val comment = snapshot.child("comment").value as? String
+                val comment = snapshot.child("comment").value as? String ?: ""
                 val wornStartTime = snapshot.child("wornStartTime").value as? Long ?: 0L
                 val wornEndTime = snapshot.child("wornEndTime").value as? Long ?: 0L
                 val latitude = snapshot.child("latitude").value as? Double ?: 0.0
                 val longitude = snapshot.child("longitude").value as? Double ?: 0.0
-                val description = snapshot.child("description").value as? String
-                val temperatureAvg = snapshot.child("temperatureAvg").value as? Double
-                val temperatureMin = snapshot.child("temperatureMin").value as? Double
-                val temperatureMax = snapshot.child("temperatureMax").value as? Double
-                val iconCode = snapshot.child("iconCode").value as? String
-                val windSpeed = snapshot.child("windSpeed").value as? Double
-                val precipitation = snapshot.child("precipitation").value as? Double
+                val description = snapshot.child("description").value as? String ?: ""
+                val temperatureAvg = snapshot.child("temperatureAvg").value as? Double ?: 0.0
+                val temperatureMin = snapshot.child("temperatureMin").value as? Double ?: 0.0
+                val temperatureMax = snapshot.child("temperatureMax").value as? Double ?: 0.0
+                val iconCode = snapshot.child("iconCode").value as? String ?: ""
+                val windSpeed = snapshot.child("windSpeed").value as? Double ?: 0.0
+                val precipitation = snapshot.child("precipitation").value as? Double ?: 0.0
                 val weatherFetched = snapshot.child("weatherFetched").value as? Boolean ?: false
                 val createdAt = snapshot.child("createdAt").value as? Long ?: 0L
                 val lastModified = snapshot.child("lastModified").value as? Long ?: 0L
