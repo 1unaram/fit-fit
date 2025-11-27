@@ -46,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.fitfit.app.data.local.entity.ClothesEntity
 import java.text.SimpleDateFormat
@@ -90,11 +91,16 @@ fun OutfitsAddDialog(
     // 5. 옷 선택 다이얼로그 상태
     var showClothesSelectDialog by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )) {
         Box(
             modifier = Modifier
-                //.fillMaxWidth(0.85f)
-                .fillMaxWidth()
+                .fillMaxWidth(0.85f)
                 .wrapContentHeight()
                 .shadow(
                     elevation = 6.dp,
