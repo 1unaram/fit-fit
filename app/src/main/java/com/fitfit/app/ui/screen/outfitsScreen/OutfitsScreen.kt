@@ -30,6 +30,7 @@ import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsCard
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsEditDialog
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsFloatingButton
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsTopBar
+import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.WeatherViewModel
 
@@ -38,19 +39,22 @@ import com.fitfit.app.viewmodel.WeatherViewModel
 fun OutfitsScreen(
     navController: NavController,
     outfitViewModel: OutfitViewModel,
+    clothesViewModel: ClothesViewModel,
     weatherViewModel: WeatherViewModel
 ) {
     val outfits by outfitViewModel.outfitsWithClothes.collectAsState()
     val createState by outfitViewModel.createState.collectAsState()
     val updateState by outfitViewModel.updateState.collectAsState()
     val deleteState by outfitViewModel.deleteState.collectAsState()
+    val clothesList by clothesViewModel.clothesList.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var editingOutfit by remember { mutableStateOf<OutfitWithClothes?>(null) }
 
     // 코디 목록 항상 새로고침
     LaunchedEffect(Unit) {
-        outfitViewModel.loadOutfitsWithClothes()
+        clothesViewModel.loadClothes()              // 옷 리스트 불러오기
+        outfitViewModel.loadOutfitsWithClothes()    // 코디 리스트 불러오기
     }
 
     Box(
@@ -100,6 +104,7 @@ fun OutfitsScreen(
         // 코디 추가 다이얼로그
         if (showAddDialog) {
             OutfitsAddDialog(
+                allClothes = clothesList,
                 onDismiss = { showAddDialog = false },
                 onSave = { clothesIds, occasion, comment, wornStartTime, wornEndTime ->
                     outfitViewModel.createOutfit(

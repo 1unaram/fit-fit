@@ -28,6 +28,21 @@ class OpenWeatherRepository(
         )
     }
 
+    // 미래 날씨 가져오기 for Case3: WeatherFilter
+    fun getForecastWeather(
+        latitude: Double,
+        longitude: Double
+    ): Flow<Result<OneCallWeatherResponse>> = flow {
+        emit(
+            weatherApiCall.fetchOneCallWeather(
+                latitude,
+                longitude,
+                apiKey,
+                exclude = "current,minutely,alerts,hourly"
+            )
+        )
+    }
+
     // 과거 날씨 가져오기 for Case2: PastWeather
     fun getTimemachineWeather(
         latitude: Double,

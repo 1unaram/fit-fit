@@ -1,25 +1,31 @@
 package com.fitfit.app.ui.screen.outfitsScreen.components
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -32,12 +38,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage
+import com.fitfit.app.data.local.entity.ClothesEntity
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun OutfitsAddDialog(
+    allClothes: List<ClothesEntity>, // 옷 리스트 전부 전달
     onDismiss: () -> Unit,
     onSave: (
         clothesIds: List<String>,
@@ -47,65 +65,93 @@ fun OutfitsAddDialog(
         wornEndTime: Long
     ) -> Unit
 ) {
-    // 상태 예시 - 실제 앱에서는 ViewModel/Flow 등에서 의류리스트, 위치 등 받아옴
-    var selectedClothesIds by remember { mutableStateOf(listOf<String>()) }
-    var occasionInput by remember { mutableStateOf("") }
-    var comment by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    // 1. 선택된 옷(최대 6개)
+    var selectedClothes by remember { mutableStateOf<List<ClothesEntity>>(emptyList()) }
+
+    // 2. 날짜/시간
+    var wornDate by remember { mutableStateOf(System.currentTimeMillis()) }
     var wornStartTime by remember { mutableStateOf(System.currentTimeMillis()) }
-    var wornEndTime by remember { mutableStateOf(System.currentTimeMillis() + 60*60*1000) }
-    // 예시 위도/경도(실제로는 권한 및 위치서비스 ViewModel 등에서 받아야 함)
-    val latitude = 37.5665
-    val longitude = 126.9780
+    var wornEndTime by remember { mutableStateOf(System.currentTimeMillis() + 60 * 60 * 1000) }
+
+    // DatePicker/TimePicker 상태
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePickerStart by remember { mutableStateOf(false) }
+    var showTimePickerEnd by remember { mutableStateOf(false) }
+
+    // 3. Occasion 태그(최대 3개)
+    val allOccasions = listOf("Wedding", "Workday", "Workout", "Travel", "Normal", "Date", "School")
+    var selectedOccasions by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    // 4. Comment
+    var comment by remember { mutableStateOf("") }
+
+    // 5. 옷 선택 다이얼로그 상태
+    var showClothesSelectDialog by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            tonalElevation = 4.dp
+        // 여기 다시
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.85f)
+                .wrapContentHeight()
+                .shadow(
+                    elevation = 6.dp,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(vertical = 34.dp, horizontal = 20.dp)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .padding(vertical = 34.dp, horizontal = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(23.dp)
             ) {
-                // Header
+                // 상단 6개 옷 선택 슬롯
                 Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("코디 추가", style = MaterialTheme.typography.titleLarge)
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "닫기")
-                    }
-                }
-
-                // 옷 6개까지 썸네일/플러스 버튼
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
                     repeat(6) { idx ->
-                        val clothesId = selectedClothesIds.getOrNull(idx)
-                        Box(
-                            modifier = Modifier
-                                .size(60.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Color(0xFFF5F5F5))
-                                .clickable {
-                                    // 옷 선택 - 실제로는 바텀시트 등으로 의류 리스트 띄워서 선택
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (clothesId != null) {
-                                // 썸네일(대체)
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "옷 삭제",
-                                    modifier = Modifier.size(28.dp)
-                                    // 삭제 로직 추가 가능
+                        val clothes = selectedClothes.getOrNull(idx)
+                        if (clothes != null) {
+                            Box(
+                                modifier = Modifier
+                                    .size(58.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color(0xFFF5F5F5))
+                                    .clickable {
+                                        // 삭제: 클릭시 해당 옷 제거
+                                        selectedClothes =
+                                            selectedClothes.toMutableList().apply { removeAt(idx) }
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AsyncImage(
+                                    model = clothes.imagePath,
+                                    contentDescription = clothes.nickname,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                 )
-                            } else {
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(58.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color(0xFFF5F5F5))
+                                    .clickable {
+                                        showClothesSelectDialog = true
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = "옷 추가",
@@ -117,64 +163,395 @@ fun OutfitsAddDialog(
                     }
                 }
 
-                // 상황 입력
-                OutlinedTextField(
-                    value = occasionInput,
-                    onValueChange = { occasionInput = it },
-                    label = { Text("상황 태그 (쉼표로 구분)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // 옷 선택 팝업
+                if (showClothesSelectDialog) {
+                    ClothesMultiSelectDialog(
+                        allClothes = allClothes,
+                        selectedClothes = selectedClothes,
+                        onSelected = { newSelection ->
+                            selectedClothes = newSelection.take(6)
+                            showClothesSelectDialog = false
+                        },
+                        onDismiss = { showClothesSelectDialog = false }
+                    )
+                }
 
-                // 코멘트 입력
-                OutlinedTextField(
-                    value = comment,
-                    onValueChange = { comment = it },
-                    label = { Text("코멘트 (선택)") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 70.dp)
-                )
+                // Date 선택
+                AddFieldSection(label = "Date") {
+                    OutlinedTextField(
+                        value = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(wornDate)),
+                        onValueChange = {},
+                        readOnly = true,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showDatePicker = true },
+                        label = { Text("선택해 주세요", color = Color(0xFF3673E4), fontSize = 15.sp) }
+                    )
+                }
+                if (showDatePicker) {
+                    val calendar = Calendar.getInstance()
+                    calendar.timeInMillis = wornDate
+                    DatePickerDialog(
+                        context,
+                        { _, y, m, d ->
+                            calendar.set(y, m, d)
+                            wornDate = calendar.timeInMillis
+                            // 시작/종료시간도 이 날짜로 맞춤
+                            wornStartTime = calendar.timeInMillis + 9 * 60 * 60 * 1000 // 09:00
+                            wornEndTime = wornStartTime + 2 * 60 * 60 * 1000 // 기본 2시간 (11:00)
+                            showDatePicker = false
+                        },
+                        calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
+                    ).show()
+                }
 
-                // 착용 시작/종료 시간 (DateTimePicker 등 실제 앱 UX 맞게 구현)
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text("착용 시작: $wornStartTime")
-                        // TODO: Date/Time picker UI 연동
+                // 시간 구간(Time Range)
+                AddFieldSection(label = "Time Range") {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(wornStartTime)),
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showTimePickerStart = true },
+                            label = { Text("시작", color = Color(0xFF3673E4), fontSize = 15.sp) }
+                        )
+                        OutlinedTextField(
+                            value = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(wornEndTime)),
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showTimePickerEnd = true },
+                            label = { Text("종료", color = Color(0xFF3673E4), fontSize = 15.sp) }
+                        )
                     }
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text("착용 종료: $wornEndTime")
-                        // TODO: Date/Time picker UI 연동
+                }
+                if (showTimePickerStart) {
+                    val calendar = Calendar.getInstance()
+                    calendar.timeInMillis = wornStartTime
+                    TimePickerDialog(
+                        context,
+                        { _, h, m ->
+                            val tempCal = Calendar.getInstance().apply {
+                                timeInMillis = wornStartTime
+                                set(Calendar.HOUR_OF_DAY, h)
+                                set(Calendar.MINUTE, m)
+                            }
+                            wornStartTime = tempCal.timeInMillis
+                            if (wornEndTime <= wornStartTime)
+                                wornEndTime = wornStartTime + 60 * 60 * 1000 // 종시간 보정
+                            showTimePickerStart = false
+                        },
+                        calendar.get(Calendar.HOUR_OF_DAY),
+                        calendar.get(Calendar.MINUTE),
+                        true
+                    ).show()
+                }
+                if (showTimePickerEnd) {
+                    val calendar = Calendar.getInstance()
+                    calendar.timeInMillis = wornEndTime
+                    TimePickerDialog(
+                        context,
+                        { _, h, m ->
+                            val tempCal = Calendar.getInstance().apply {
+                                timeInMillis = wornEndTime
+                                set(Calendar.HOUR_OF_DAY, h)
+                                set(Calendar.MINUTE, m)
+                            }
+                            wornEndTime = tempCal.timeInMillis
+                            if (wornEndTime <= wornStartTime)
+                                wornEndTime = wornStartTime + 60 * 60 * 1000
+                            showTimePickerEnd = false
+                        },
+                        calendar.get(Calendar.HOUR_OF_DAY),
+                        calendar.get(Calendar.MINUTE),
+                        true
+                    ).show()
+                }
+
+                // Occasion 선택 (최대 3개)
+                AddFieldSection(label = "Occasion (up to 3)") {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        allOccasions.forEach { occasion ->
+                            val selected = selectedOccasions.contains(occasion)
+                            // 여기서 OutfitsCard의 OccasionChip 스타일 그대로 활용
+                            Box(
+                                modifier = Modifier
+                                    .shadow(
+                                        elevation = 3.dp,
+                                        shape = RoundedCornerShape(8.dp),
+                                        spotColor = Color(0x26000000),
+                                        ambientColor = Color(0x26000000)
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color.White,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .background(
+                                        brush = if (selected) getOccasionBrush(occasion)
+                                        else Brush.linearGradient(listOf(Color.White, Color(0xFFE6E6E6))),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .clickable(enabled = selectedOccasions.size < 3 || selected) {
+                                        selectedOccasions = if (selected)
+                                            selectedOccasions - occasion
+                                        else
+                                            selectedOccasions + occasion
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = occasion,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            }
+                        }
                     }
                 }
 
-                // 필요하다면 현재 위치 표시/변경
+                // Comment (Optional)
+                AddFieldSection(label = "Comment (Optional)", labelColor = Color(0xFF8E8E93)) {
+                    OutlinedTextField(
+                        value = comment,
+                        onValueChange = { comment = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 60.dp),
+                        placeholder = { Text("Enter comment...") }
+                    )
+                }
 
                 // 하단 버튼
                 Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(13.dp)
                 ) {
-                    OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
-                        Text("취소")
+                    // Back
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .width(67.dp)
+                            .height(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent
+                        ),
+                        shape = RoundedCornerShape(13.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        listOf(
+                                            Color(0x99E8F2FF),
+                                            Color(0xCCE8F2FF)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(13.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x26000000),
+                                    shape = RoundedCornerShape(13.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Back",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF8E8E93)
+                            )
+                        }
                     }
+
+                    // Save
                     Button(
                         onClick = {
                             onSave(
-                                selectedClothesIds,
-                                occasionInput.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+                                selectedClothes.map { it.cid },
+                                selectedOccasions,
                                 comment.ifBlank { null },
                                 wornStartTime,
                                 wornEndTime
                             )
                         },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("저장") }
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(13.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        enabled = selectedClothes.isNotEmpty()
+                                && selectedOccasions.isNotEmpty()
+                                && wornDate > 0
+                                && wornStartTime > 0
+                                && wornEndTime > wornStartTime
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        listOf(
+                                            Color(0x99E8F2FF),
+                                            Color(0xCCE8F2FF)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(13.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x26000000),
+                                    shape = RoundedCornerShape(13.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Save",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF3673E4)
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+// --------------- Clothes 선택 다이얼로그 ---------------
+@Composable
+fun ClothesMultiSelectDialog(
+    allClothes: List<ClothesEntity>,
+    selectedClothes: List<ClothesEntity>,
+    onSelected: (List<ClothesEntity>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            tonalElevation = 8.dp,
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth(0.88f)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Text("Select Clothes", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Spacer(Modifier.height(15.dp))
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    allClothes.forEach { clothes ->
+                        val selected = selectedClothes.contains(clothes)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (selected) Color(0xFFE8F2FF) else Color.White,
+                                    shape = RoundedCornerShape(9.dp)
+                                )
+                                .border(
+                                    1.dp,
+                                    color = if (selected) Color(0xFF3673E4) else Color(0xFFD1D1D6),
+                                    shape = RoundedCornerShape(9.dp)
+                                )
+                                .clickable {
+                                    // 체크
+                                    onSelected(
+                                        if (selected)
+                                            selectedClothes.toMutableList().apply { remove(clothes) }
+                                        else
+                                            selectedClothes.toMutableList().apply { add(clothes) }
+                                    )
+                                }
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 체크박스 대체 (아이콘 또는 체크 효과)
+                            Box(
+                                Modifier
+                                    .size(20.dp)
+                                    .background(
+                                        if (selected) Color(0xFF3673E4) else Color.Transparent,
+                                        shape = RoundedCornerShape(4.dp)
+                                    )
+                                    .border(1.dp,
+                                        color = if (selected) Color(0xFF3673E4) else Color(0xFFD1D1D6),
+                                        shape = RoundedCornerShape(4.dp))
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            AsyncImage(
+                                model = clothes.imagePath,
+                                contentDescription = clothes.nickname,
+                                modifier = Modifier.size(38.dp).clip(RoundedCornerShape(9.dp)),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(clothes.nickname, fontSize = 15.sp, color = Color.Black)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    OutlinedButton(onClick = onDismiss) { Text("Close") }
+                }
+            }
+        }
+    }
+}
+
+// Occasion 라벨 색상 함수
+private fun getOccasionBrush(occasion: String): Brush {
+    return when (occasion) {
+        "Workday" -> Brush.linearGradient(listOf(Color(0xB3FCE8ED), Color(0xB3F8B3C2)))
+        "School" -> Brush.linearGradient(listOf(Color(0xB3FAEED9), Color(0xB3F6CC84)))
+        "Date" -> Brush.linearGradient(listOf(Color(0xB3FFD7DC), Color(0xB3F9B2B6)))
+        "Normal" -> Brush.linearGradient(listOf(Color(0xB3F3F6FC), Color(0xB3E1E6F8)))
+        "Travel" -> Brush.linearGradient(listOf(Color(0xB3D7FFEB), Color(0xB3BEEAD9)))
+        "Wedding" -> Brush.linearGradient(listOf(Color(0xB3FFE6FA), Color(0xB3E8B3F8)))
+        "Workout" -> Brush.linearGradient(listOf(Color(0xB3EAF9FC), Color(0xB3B3F8F6)))
+        else -> Brush.linearGradient(listOf(Color(0xB3FFFFFF), Color(0xB3E6E6E6)))
+    }
+}
+
+// AddFieldSection 재활용
+@Composable
+private fun AddFieldSection(
+    label: String,
+    labelColor: Color = Color(0xFF3673E4),
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            color = labelColor
+        )
+        content()
     }
 }

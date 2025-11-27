@@ -254,6 +254,7 @@ fun formatTime(timestamp: Long): String {
     return dateFormat.format(Date(timestamp))
 }
 
+// outfit 추가
 @Composable
 fun OutfitAddDialog(
     onDismiss: () -> Unit,
@@ -350,6 +351,7 @@ fun OutfitAddDialog(
 
                 Divider()
 
+                // Occasion 입력란
                 OutlinedTextField(
                     value = occasionInput,
                     onValueChange = { occasionInput = it },
@@ -357,6 +359,7 @@ fun OutfitAddDialog(
                     label = { Text("상황 태그 (쉼표로 구분, 예: 데이트, 출근)") }
                 )
 
+                // Comment 입력란
                 OutlinedTextField(
                     value = comment,
                     onValueChange = { comment = it },

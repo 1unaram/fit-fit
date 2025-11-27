@@ -1,5 +1,6 @@
 package com.fitfit.app.viewmodel
 
+import FilterState
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -17,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 
 class WeatherViewModel(application: Application) : AndroidViewModel(application) {
@@ -33,6 +36,9 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val _weatherCardState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
     val weatherCardState: StateFlow<WeatherCardUiState> = _weatherCardState.asStateFlow()
 
+    private val _weatherFilterState = MutableStateFlow<WeatherFilterUiState>(WeatherFilterUiState.Idle)
+    val weatherFilterState: StateFlow<WeatherFilterUiState> = _weatherFilterState.asStateFlow()
+
     private val _isLoadingApi = MutableStateFlow(false)
     val isLoadingApi: StateFlow<Boolean> = _isLoadingApi
 
@@ -41,6 +47,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
 
     // ========== Case 1: HomeScreen WeatherCard ==========
+    // ### Weather Card용 날씨 정보 조회 ###
     fun getWeatherCardData() = viewModelScope.launch {
         _isLoadingApi.value = true
         _weatherCardState.value = WeatherCardUiState.Loading
@@ -95,6 +102,61 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             )
             _isLoadingApi.value = false
         }
+    }
+
+    // ### 특정 미래 날짜의 날씨 정보 조회 ###
+    fun getWeatherFilterData(selectedDate: LocalDate) = viewModelScope.launch {
+        _isLoadingApi.value = true
+        _weatherFilterState.value = WeatherFilterUiState.Loading
+
+        val locationResult = locationManager.getCurrentLocation()
+
+        locationResult.onSuccess { location ->
+
+            val lat = location.latitude
+            val lon = location.longitude
+
+            val weatherResult = openWeatherRepository.getForecastWeather(lat, lon).firstOrNull()
+
+            weatherResult?.fold(onSuccess = { forecastResponse ->
+
+                val today = LocalDate.now()
+                val dayIndex = ChronoUnit.DAYS.between(today, selectedDate).toInt()
+
+                // 유효한 범위 확인 (0 ~ 7)
+                if (dayIndex in 0..7 && forecastResponse.daily != null &&
+                    dayIndex < forecastResponse.daily.size) {
+
+                    val targetDayWeather = forecastResponse.daily[dayIndex]
+
+                    val filterState = FilterState(
+                        temperature = targetDayWeather.temp.day,
+                        weather = targetDayWeather.weather.firstOrNull()?.main,
+                        occasion = null
+                    )
+
+                    _weatherFilterState.value = WeatherFilterUiState.Success(filterState)
+                    _isLoadingApi.value = false
+                } else {
+                    _weatherFilterState.value = WeatherFilterUiState.Failure(
+                        "Selected date is out of forecast range"
+                    )
+                    _isLoadingApi.value = false
+                    return@launch
+                }
+            }, onFailure = { exception ->
+                _weatherFilterState.value = WeatherFilterUiState.Failure(
+                    exception.message ?: "Error occurred"
+                )
+                _isLoadingApi.value = false
+            })
+        }.onFailure { exception ->
+            _weatherFilterState.value = WeatherFilterUiState.Failure(
+                exception.message ?: "Failed to get location"
+            )
+            _isLoadingApi.value = false
+        }
+
     }
 
     // ========= Case 2: Outfit Screen - 날씨 자동 업데이트 =========
@@ -162,7 +224,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    // 특정 시간의 날씨 조회 (단일 API 호출)
+    // ### 특정 과거 시간의 날씨 조회 (단일 API 호출) ###
     private suspend fun fetchWeatherAtTimestamp(
         latitude: Double,
         longitude: Double,
@@ -203,6 +265,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    // ### 현재 위치 가져오기 ###
     fun getCurrentLocation() = viewModelScope.launch {
         val result = locationManager.getCurrentLocation()
         result.onSuccess { location ->
@@ -210,6 +273,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    // ### 위치 권한 확인 ###
     fun hasLocationPermission(): Boolean {
         return locationManager.hasLocationPermission()
     }
@@ -241,4 +305,11 @@ sealed class WeatherCardUiState {
     object Loading : WeatherCardUiState()
     data class Success(val cardData: WeatherCardData) : WeatherCardUiState()
     data class Failure(val message: String) : WeatherCardUiState()
+}
+
+sealed class WeatherFilterUiState {
+    object Idle : WeatherFilterUiState()
+    object Loading : WeatherFilterUiState()
+    data class Success(val filterState: FilterState) : WeatherFilterUiState()
+    data class Failure(val message: String) : WeatherFilterUiState()
 }

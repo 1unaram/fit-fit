@@ -288,7 +288,7 @@ fun FilterButtonSection(
     if (showFilter) {
         Dialog(onDismissRequest = { onChange(false) }) {
             FilterSelectScreen(
-                initialFilter = FilterState(3, "Sunny", "Casual"),
+                initialFilter = FilterState(3.0, "Sunny", "Casual"),
                 onDismiss = { onChange(false) },
                 onSave = {
                     // 로직 추가
