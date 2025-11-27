@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,6 +58,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
+import com.fitfit.app.data.util.formatTimestampToDate
 import com.fitfit.app.ui.screen.homeScreen.components.OutfitDataScreen
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
 import com.fitfit.app.viewmodel.ClothesViewModel
@@ -314,7 +315,7 @@ fun WeatherOutfitList(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 33.dp)
+        //    .padding(horizontal = 33.dp)
     ) {
         if (outfitsWithClothes.isEmpty()) {
             Text(
@@ -339,23 +340,22 @@ fun WeatherOutfitCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-        //    .padding(horizontal = 12.dp, vertical = 4.dp)
-            .height(131.dp)
-            .clickable { onClick(outfitsWithClothes) },
-        shape = RoundedCornerShape(17.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        ),
+            .wrapContentHeight()
+            //    .padding(horizontal = 24.dp)
+        .clickable { onClick(outfitsWithClothes) },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         border = BorderStroke(1.dp, Color.White)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 20.dp),
+        ) {
             Column (
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp),
+                    .fillMaxSize(),
+                //    .padding(12.dp),
+                        //start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
@@ -366,7 +366,7 @@ fun WeatherOutfitCard(
                     // date
                     Text(
                         text = formatTimestampToDate(outfitsWithClothes.outfit.wornStartTime),
-                        fontSize = 18.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
@@ -374,23 +374,23 @@ fun WeatherOutfitCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // weather icon
-                        Box(modifier = Modifier.size(20.dp)) {
+                        Box(modifier = Modifier.size(24.dp)) {
                             WeatherIcon(outfitsWithClothes.outfit.iconCode, "Weather Icon")
                         }
-                        Spacer(Modifier.width(8.dp))
+                        //Spacer(Modifier.width(8.dp))
                         // temperature
                         Text(
                             text = String.format(
                                 "%.1f°C",
                                 outfitsWithClothes.outfit.temperatureAvg),
-                            fontSize = 18.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
                     }
                 }
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    //horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 1. 표시할 아이템 개수 계산
@@ -522,10 +522,7 @@ fun WeatherOutfitCard(
     }
 }
 
-fun formatTimestampToDate(timestamp: Long): String {
-    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    return sdf.format(Date(timestamp))
-}
+
 
 @Preview(showBackground = true)
 @Composable

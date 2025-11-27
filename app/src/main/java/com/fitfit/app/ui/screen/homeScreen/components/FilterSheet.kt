@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -67,6 +68,7 @@ fun FilterSelectScreen(
                 ambientColor = Color(0x22000000),
                 spotColor = Color(0x33000000)
             )
+            .wrapContentHeight()
             .background(Color.White, shape = RoundedCornerShape(16.dp))
             .border(1.dp, Color.White, shape = RoundedCornerShape(16.dp))
     ) {

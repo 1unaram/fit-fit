@@ -41,9 +41,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
-import com.fitfit.app.ui.screen.homeScreen.formatTimestampToDate
-import java.text.SimpleDateFormat
-import java.util.Date
+import com.fitfit.app.data.util.formatTimestampToTime
+import com.fitfit.app.data.util.formatTimestampToDate
 import java.util.Locale
 
 @Composable
@@ -328,10 +327,4 @@ fun OccasionChip(text: String) {
             color = Color.Black
         )
     }
-}
-
-//시간 포맷 함수 ; 날짜 포맷 함수는 homescreen의 것을 사용하고 있음 util 폴더에 재작성 필요
-fun formatTimestampToTime(timestamp: Long): String {
-    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
-    return sdf.format(Date(timestamp))
 }
