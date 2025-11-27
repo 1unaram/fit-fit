@@ -12,19 +12,12 @@ data class OutfitEntity(
     // ============ 기본 정보 ============
     @PrimaryKey
     val oid: String,
-
     val ownerUid: String,
-
     val clothesIds: List<String>,
-
     val occasion: List<String>,
-
     val comment: String? = null,
-
     val createdAt: Long = System.currentTimeMillis(),
-
     var isSynced: Boolean = false,
-
     var lastModified: Long = System.currentTimeMillis(),
 
     // ============ 착용 정보 ============
@@ -32,7 +25,6 @@ data class OutfitEntity(
     val wornEndTime: Long,
     val latitude: Double,
     val longitude: Double,
-
 
     // ============ 날씨 정보 (nullable) ============
     val temperatureAvg: Double? = null,

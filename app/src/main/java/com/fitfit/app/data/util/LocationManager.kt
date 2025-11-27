@@ -36,7 +36,7 @@ class LocationManager(private val context: Context) {
         }
 
         return try {
-            val result = withTimeoutOrNull(10000L) {
+            val result = withTimeoutOrNull(100000L) {
                 fusedLocationClient.getCurrentLocation(
                     Priority.PRIORITY_HIGH_ACCURACY,
                     null
