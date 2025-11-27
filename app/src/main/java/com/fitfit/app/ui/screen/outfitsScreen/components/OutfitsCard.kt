@@ -2,15 +2,15 @@ package com.fitfit.app.ui.screen.outfitsScreen.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,9 +28,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,7 +41,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
-import com.fitfit.app.ui.screen.homeScreen.components.OccasionChip
+import com.fitfit.app.ui.screen.homeScreen.formatTimestampToDate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,8 +54,7 @@ fun OutfitsCard(
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(4.dp),
@@ -64,39 +65,79 @@ fun OutfitsCard(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) { // 열 1 . ( 날짜 및 (날씨아이콘 및 기온) )
-            // 하나의 행 ; 날짜 및 (날씨아이콘 및 기온)
-            Row(
+        ) {
+            // ( 아이콘 ) + ( 날짜/날씨 )만 별도 Column으로 묶어서 간격을 더 작게
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(0.dp) // 해당 간격 조정 중
             ) {
-                Text(
-                    text = formatTimestampToDate(outfitWithClothes.outfit.wornStartTime),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color.Black
-                )
-                // 하나의 행 ; 날씨아이콘 및 기온
+                // 1. 우측 상단 편집&삭제 아이콘 Row
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    WeatherIcon(outfitWithClothes.outfit.iconCode, "Weather Icon")
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(com.fitfit.app.R.drawable.ic_edit),
+                            contentDescription = "Edit",
+                            modifier = Modifier
+                                .size(21.dp)
+                                .clickable { onEdit() },
+                            tint = Color(0xFF8E8E93)
+                        )
+                        Icon(
+                            painter = painterResource(com.fitfit.app.R.drawable.ic_delete),
+                            contentDescription = "Delete",
+                            modifier = Modifier
+                                .size(21.dp)
+                                .clickable { onDelete() },
+                            tint = Color(0xFF8E8E93)
+                        )
+                    }
+                }
+
+                // 2. 날짜&날씨 Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(
-                        text = "${outfitWithClothes.outfit.temperatureAvg?.let { String.format("%.1f", it) } ?: "-"}°",
+                        text = formatTimestampToDate(outfitWithClothes.outfit.wornStartTime),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         color = Color.Black
                     )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        WeatherIcon(outfitWithClothes.outfit.iconCode, "Weather Icon")
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "${outfitWithClothes.outfit.temperatureAvg?.let { String.format("%.1f", it) } ?: "-"}°",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp,
+                            color = Color.Black
+                        )
+                    }
                 }
             }
+
             // 열 2 . 옷 썸네일 그리드
             ClothesGrid(outfitWithClothes.clothes)
 
             // 열 3 . contents
-            InfoRow("Weather Description", outfitWithClothes.outfit.description ?: "-")
-            InfoRow("Precipitation", "${outfitWithClothes.outfit.precipitation?.let { String.format("%.2f", it)} ?: "-"}%")
+            InfoColumn("Weather Description", outfitWithClothes.outfit.description ?: "-")
+            InfoRow(
+                "Precipitation",
+                outfitWithClothes.outfit.precipitation?.let { prec ->
+                    "${String.format(Locale.KOREA, "%.2f", prec * 100)}%"
+                } ?: "-"
+            )
             InfoRow("Wind Speed", "${outfitWithClothes.outfit.windSpeed?.let { String.format("%.1f", it) } ?: "-"} m/s")
             InfoRow(
                 "Temperature Range",
@@ -104,7 +145,7 @@ fun OutfitsCard(
             )
             InfoRow(
                 "Time Range",
-                "${formatTimestampToDate(outfitWithClothes.outfit.wornStartTime)} - ${formatTimestampToDate(outfitWithClothes.outfit.wornEndTime)}"
+                "${formatTimestampToTime(outfitWithClothes.outfit.wornStartTime)} - ${formatTimestampToTime(outfitWithClothes.outfit.wornEndTime)}"
             )
             // Occasion
             Row(
@@ -124,11 +165,11 @@ fun OutfitsCard(
                 ) {
                     outfitWithClothes.outfit.occasion.forEach { occasion ->
                         OccasionChip(occasion)
-                        Spacer(Modifier.width(6.dp))
+                        Spacer(Modifier.width(1.dp))
                     }
                 }
             }
-            InfoRow("Comment", outfitWithClothes.outfit.comment ?: "-")
+            InfoColumn("Comment", outfitWithClothes.outfit.comment ?: "-")
         }
     }
 }
@@ -176,7 +217,7 @@ fun ClothesThumbnailCard(clothes: ClothesEntity) {
     }
 }
 
-// ClothesDetailDialog 스타일의 info row (소제목 좌, 내용 우)
+// 속성 ; 한 줄 정렬
 @Composable
 fun InfoRow(label: String, value: String) {
     Row(
@@ -190,23 +231,51 @@ fun InfoRow(label: String, value: String) {
             fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF8E8E93),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1.5f)
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(1.dp))
         Text(
             text = value,
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             textAlign = TextAlign.End,
-            modifier = Modifier.weight(2f)
+            modifier = Modifier.weight(1.5f)
         )
     }
 }
 
+// 속성 ; 두 줄 정렬
+@Composable
+fun InfoColumn(label: String, value: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF8E8E93)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = value,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        }
+    }
+}
+
+// Occasion 속성 작성
 @Composable
 fun OccasionChip(text: String) {
-    val backgroundColor = when (text) {
+    val backgroundBrush = when (text) {
         "Workday" -> Brush.linearGradient(
             colors = listOf(Color(0xB3FCE8ED), Color(0xB3F8B3C2))
         )
@@ -234,18 +303,35 @@ fun OccasionChip(text: String) {
     }
     Box(
         modifier = Modifier
-            .padding(horizontal = 4.dp, vertical = 3.dp)
-            .height(22.dp)
-            .defaultMinSize(minWidth = 54.dp)
-            .background(backgroundColor, shape = RoundedCornerShape(8.dp)),
+            .shadow(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(8.dp),
+                spotColor = Color(0x26000000),
+                ambientColor = Color(0x26000000)
+            )
+            .border(
+                width = 1.dp,
+                color = Color.White,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .background(
+                brush = backgroundBrush,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, fontSize = 13.sp, color = Color.Black)
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
     }
 }
 
-// 날짜 포맷 함수(ClothesDetailDialog와 동일)
-fun formatTimestampToDate(timestamp: Long): String {
-    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+//시간 포맷 함수 ; 날짜 포맷 함수는 homescreen의 것을 사용하고 있음 util 폴더에 재작성 필요
+fun formatTimestampToTime(timestamp: Long): String {
+    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))
 }
