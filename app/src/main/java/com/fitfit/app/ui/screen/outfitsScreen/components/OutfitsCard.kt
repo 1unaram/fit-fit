@@ -43,9 +43,9 @@ import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
-import com.fitfit.app.ui.components.WeatherIcon
-import com.fitfit.app.data.util.formatTimestampToTime
 import com.fitfit.app.data.util.formatTimestampToDate
+import com.fitfit.app.data.util.formatTimestampToTime
+import com.fitfit.app.ui.components.WeatherIcon
 import java.util.Locale
 
 @Composable
@@ -152,10 +152,10 @@ fun OutfitsCard(
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF8E8E93),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(0.7f)
                 )
                 Row(
-                    modifier = Modifier.weight(2f),
+                    modifier = Modifier.weight(2.3f),
                     horizontalArrangement = Arrangement.End
                 ) {
                     outfitWithClothes.outfit.occasion.forEach { occasion ->
@@ -323,12 +323,6 @@ fun OccasionChip(text: String) {
             color = Color.Black
         )
     }
-}
-
-//시간 포맷 함수 ; 날짜 포맷 함수는 homescreen의 것을 사용하고 있음 util 폴더에 재작성 필요
-fun formatTimestampToTime(timestamp: Long): String {
-    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
-    return sdf.format(Date(timestamp))
 }
 
 @Composable

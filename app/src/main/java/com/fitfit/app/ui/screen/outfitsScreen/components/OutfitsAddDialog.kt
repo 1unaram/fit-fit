@@ -23,11 +23,11 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.fitfit.app.data.local.entity.ClothesEntity
 import java.text.SimpleDateFormat
@@ -90,11 +91,16 @@ fun OutfitsAddDialog(
     // 5. 옷 선택 다이얼로그 상태
     var showClothesSelectDialog by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )) {
         Box(
             modifier = Modifier
-                //.fillMaxWidth(0.85f)
-                .fillMaxWidth()
+                .fillMaxWidth(0.85f)
                 .wrapContentHeight()
                 .shadow(
                     elevation = 6.dp,
@@ -111,55 +117,126 @@ fun OutfitsAddDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(23.dp)
             ) {
-                // 상단 6개 옷 선택 슬롯
-                Row(
+                // 1. 상단 6개 옷 선택 슬롯
+                val maxClothes = 6
+                val columns = 3
+                val cellSize = 96.dp
+
+                val clothesCount = selectedClothes.size
+                val showAddButton = clothesCount < maxClothes
+                val totalCells = clothesCount + if (showAddButton) 1 else 0
+
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    repeat(6) { idx ->
-                        val clothes = selectedClothes.getOrNull(idx)
-                        if (clothes != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(58.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFFF5F5F5))
-                                    .clickable {
-                                        selectedClothes =
-                                            selectedClothes.toMutableList().apply { removeAt(idx) }
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = clothes.imagePath,
-                                    contentDescription = clothes.nickname,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                )
+                    // 첫 번째 행 (0~2)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        for (index in 0 until columns) {
+                            val globalIndex = index
+                            if (globalIndex < totalCells) {
+                                if (globalIndex < clothesCount) {
+                                    val clothes = selectedClothes[globalIndex]
+                                    Box(
+                                        modifier = Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFFF5F5F5))
+                                            .clickable {
+                                                selectedClothes =
+                                                    selectedClothes.toMutableList().apply { removeAt(globalIndex) }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = clothes.imagePath,
+                                            contentDescription = clothes.nickname,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                } else if (showAddButton) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFFF5F5F5))
+                                            .border(
+                                                width = 1.5.dp,
+                                                color = Color(0xFF3673E4),
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .clickable { showClothesSelectDialog = true },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "옷 추가",
+                                            tint = Color(0xFF3673E4),
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
                             }
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .size(58.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFFF5F5F5))
-                                    .border(
-                                        width = 1.5.dp,
-                                        color = Color(0xFF3673E4),
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                                    .clickable {
-                                        showClothesSelectDialog = true
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "옷 추가",
-                                    tint = Color(0xFF3673E4),
-                                    modifier = Modifier.size(28.dp)
-                                )
+                        }
+                    }
+
+                    // 두 번째 행 (3~5)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        for (index in 0 until columns) {
+                            val globalIndex = columns + index
+                            if (globalIndex < totalCells) {
+                                if (globalIndex < clothesCount) {
+                                    val clothes = selectedClothes[globalIndex]
+                                    Box(
+                                        modifier = Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFFF5F5F5))
+                                            .clickable {
+                                                selectedClothes =
+                                                    selectedClothes.toMutableList().apply { removeAt(globalIndex) }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = clothes.imagePath,
+                                            contentDescription = clothes.nickname,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                } else if (showAddButton) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(cellSize)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color(0xFFF5F5F5))
+                                            .border(
+                                                width = 1.5.dp,
+                                                color = Color(0xFF3673E4),
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .clickable { showClothesSelectDialog = true },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "옷 추가",
+                                            tint = Color(0xFF3673E4),
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -178,22 +255,60 @@ fun OutfitsAddDialog(
                     )
                 }
 
-                // Date 선택
+                // 2. Date 선택
                 AddFieldSection(label = "Date") {
-                    OutlinedTextField(
-                        value = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(wornDate)),
-                        onValueChange = {},
-                        readOnly = true,
-                        singleLine = true,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showDatePicker = true },
-                        label = { Text("선택해 주세요", color = Color(0xFF3673E4), fontSize = 15.sp) }
-                    )
+                            .background(
+                                brush = Brush.linearGradient(
+                                    listOf(
+                                        Color(0x99E8F2FF),
+                                        Color(0xCCE8F2FF)
+                                    )
+                                ),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = Color(0x40000000),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .clickable { showDatePicker = true }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 왼쪽: 날짜 텍스트 또는 플레이스홀더
+                            val dateText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                .format(Date(wornDate))
+
+                            Text(
+                                text = dateText,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            // 오른쪽: 드롭다운 화살표 아이콘
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Select a date",
+                                tint = Color.Gray,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
+
                 if (showDatePicker) {
                     val calendar = Calendar.getInstance()
                     calendar.timeInMillis = wornDate
+
                     DatePickerDialog(
                         context,
                         { _, y, m, d ->
@@ -203,39 +318,118 @@ fun OutfitsAddDialog(
                             wornEndTime = wornStartTime + 2 * 60 * 60 * 1000
                             showDatePicker = false
                         },
-                        calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
                     ).show()
                 }
 
-                // 시간 구간(Time Range)
+
+                // 3. 시간 구간(Time Range)
                 AddFieldSection(label = "Time Range") {
                     Row(
-                        Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        OutlinedTextField(
-                            value = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(wornStartTime)),
-                            onValueChange = {},
-                            readOnly = true,
+                        // START TIME
+                        Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { showTimePickerStart = true },
-                            label = { Text("시작", color = Color(0xFF3673E4), fontSize = 15.sp) }
-                        )
-                        OutlinedTextField(
-                            value = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(wornEndTime)),
-                            onValueChange = {},
-                            readOnly = true,
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        listOf(
+                                            Color(0x99E8F2FF),
+                                            Color(0xCCE8F2FF)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x40000000),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .clickable { showTimePickerStart = true }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val startText = SimpleDateFormat("HH:mm", Locale.getDefault())
+                                    .format(Date(wornStartTime))
+
+                                Text(
+                                    text = startText.ifBlank { "Start time" },
+                                    fontSize = 15.sp,
+                                    color = if (startText.isBlank()) Color(0xFF8E8E93) else Color.Black
+                                )
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Select start time",
+                                    tint = Color.Gray,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        // END TIME
+                        Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { showTimePickerEnd = true },
-                            label = { Text("종료", color = Color(0xFF3673E4), fontSize = 15.sp) }
-                        )
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        listOf(
+                                            Color(0x99E8F2FF),
+                                            Color(0xCCE8F2FF)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x40000000),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .clickable { showTimePickerEnd = true }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val endText = SimpleDateFormat("HH:mm", Locale.getDefault())
+                                    .format(Date(wornEndTime))
+
+                                Text(
+                                    text = endText.ifBlank { "End time" },
+                                    fontSize = 15.sp,
+                                    color = if (endText.isBlank()) Color(0xFF8E8E93) else Color.Black
+                                )
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Select end time",
+                                    tint = Color.Gray,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
                     }
                 }
+
+                // START TIME PICKER
                 if (showTimePickerStart) {
-                    val calendar = Calendar.getInstance()
-                    calendar.timeInMillis = wornStartTime
+                    val calendar = Calendar.getInstance().apply {
+                        timeInMillis = wornStartTime
+                    }
                     TimePickerDialog(
                         context,
                         { _, h, m ->
@@ -243,10 +437,13 @@ fun OutfitsAddDialog(
                                 timeInMillis = wornStartTime
                                 set(Calendar.HOUR_OF_DAY, h)
                                 set(Calendar.MINUTE, m)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
                             }
                             wornStartTime = tempCal.timeInMillis
-                            if (wornEndTime <= wornStartTime)
-                                wornEndTime = wornStartTime + 60 * 60 * 1000
+                            if (wornEndTime <= wornStartTime) {
+                                wornEndTime = wornStartTime + 60 * 60 * 1000 // 최소 1시간
+                            }
                             showTimePickerStart = false
                         },
                         calendar.get(Calendar.HOUR_OF_DAY),
@@ -254,9 +451,12 @@ fun OutfitsAddDialog(
                         true
                     ).show()
                 }
+
+                // END TIME PICKER
                 if (showTimePickerEnd) {
-                    val calendar = Calendar.getInstance()
-                    calendar.timeInMillis = wornEndTime
+                    val calendar = Calendar.getInstance().apply {
+                        timeInMillis = wornEndTime
+                    }
                     TimePickerDialog(
                         context,
                         { _, h, m ->
@@ -264,10 +464,13 @@ fun OutfitsAddDialog(
                                 timeInMillis = wornEndTime
                                 set(Calendar.HOUR_OF_DAY, h)
                                 set(Calendar.MINUTE, m)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
                             }
                             wornEndTime = tempCal.timeInMillis
-                            if (wornEndTime <= wornStartTime)
+                            if (wornEndTime <= wornStartTime) {
                                 wornEndTime = wornStartTime + 60 * 60 * 1000
+                            }
                             showTimePickerEnd = false
                         },
                         calendar.get(Calendar.HOUR_OF_DAY),
@@ -276,7 +479,7 @@ fun OutfitsAddDialog(
                     ).show()
                 }
 
-                // Occasion 선택 (최대 3개)
+                // 4. Occasion 선택 (최대 3개)
                 AddFieldSection(label = "Occasion (up to 3)") {
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -323,19 +526,51 @@ fun OutfitsAddDialog(
                     }
                 }
 
-                // Comment (Optional)
+                // 5. Comment (Optional)
                 AddFieldSection(label = "Comment (Optional)", labelColor = Color(0xFF8E8E93)) {
-                    OutlinedTextField(
-                        value = comment,
-                        onValueChange = { comment = it },
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 60.dp),
-                        placeholder = { Text("Enter comment...") }
-                    )
+                            .heightIn(min = 80.dp)
+                            .background(
+                                brush = Brush.linearGradient(
+                                    listOf(
+                                        Color(0x99E8F2FF),
+                                        Color(0xCCE8F2FF)
+                                    )
+                                ),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = Color(0x40000000),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        androidx.compose.foundation.text.BasicTextField(
+                            value = comment,
+                            onValueChange = { comment = it },
+                            textStyle = androidx.compose.ui.text.TextStyle(
+                                fontSize = 15.sp,
+                                color = Color.Black
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            decorationBox = { innerTextField ->
+                                if (comment.isBlank()) {
+                                    Text(
+                                        text = "Enter comment",
+                                        fontSize = 15.sp,
+                                        color = Color(0xFF8E8E93)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        )
+                    }
                 }
 
-                // 하단 버튼
+                // 6. 하단 버튼
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(13.dp)
@@ -451,68 +686,86 @@ fun ClothesMultiSelectDialog(
             color = Color.White,
             modifier = Modifier.fillMaxWidth(0.88f)
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Text("Select Clothes", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Spacer(Modifier.height(15.dp))
+            Box {
+                // 상단 X 버튼
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(10.dp)
+                        .size(24.dp)
+                        .clickable { onDismiss() },
+                    tint = Color(0xFF8E8E93)
+                )
+
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier
+                        .padding(20.dp)
                 ) {
-                    allClothes.forEach { clothes ->
-                        val selected = selectedClothes.contains(clothes)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    if (selected) Color(0xFFE8F2FF) else Color.White,
-                                    shape = RoundedCornerShape(9.dp)
-                                )
-                                .border(
-                                    1.dp,
-                                    color = if (selected) Color(0xFF3673E4) else Color(0xFFD1D1D6),
-                                    shape = RoundedCornerShape(9.dp)
-                                )
-                                .clickable {
-                                    onSelected(
-                                        if (selected)
-                                            selectedClothes.toMutableList().apply { remove(clothes) }
-                                        else
-                                            selectedClothes.toMutableList().apply { add(clothes) }
-                                    )
-                                }
-                                .padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                Modifier
-                                    .size(20.dp)
+                    Text("Select Clothes", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                    Spacer(Modifier.height(15.dp))
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        allClothes.forEach { clothes ->
+                            val selected = selectedClothes.contains(clothes)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .background(
-                                        if (selected) Color(0xFF3673E4) else Color.Transparent,
-                                        shape = RoundedCornerShape(4.dp)
+                                        if (selected) Color(0xFFE8F2FF) else Color.White,
+                                        shape = RoundedCornerShape(9.dp)
                                     )
-                                    .border(1.dp,
-                                        color = if (selected) Color(0xFF3673E4) else Color(0xFFD1D1D6),
-                                        shape = RoundedCornerShape(4.dp))
-                            )
-                            Spacer(Modifier.width(10.dp))
-                            AsyncImage(
-                                model = clothes.imagePath,
-                                contentDescription = clothes.nickname,
-                                modifier = Modifier.size(38.dp).clip(RoundedCornerShape(9.dp)),
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(clothes.nickname, fontSize = 15.sp, color = Color.Black)
+                                    .border(
+                                        1.dp,
+                                        color = if (selected) Color(0xFF3673E4) else Color(
+                                            0xFFD1D1D6
+                                        ),
+                                        shape = RoundedCornerShape(9.dp)
+                                    )
+                                    .clickable {
+                                        onSelected(
+                                            if (selected)
+                                                selectedClothes.toMutableList()
+                                                    .apply { remove(clothes) }
+                                            else
+                                                selectedClothes.toMutableList()
+                                                    .apply { add(clothes) }
+                                        )
+                                    }
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    Modifier
+                                        .size(20.dp)
+                                        .background(
+                                            if (selected) Color(0xFF3673E4) else Color.Transparent,
+                                            shape = RoundedCornerShape(4.dp)
+                                        )
+                                        .border(
+                                            1.dp,
+                                            color = if (selected) Color(0xFF3673E4) else Color(
+                                                0xFFD1D1D6
+                                            ),
+                                            shape = RoundedCornerShape(4.dp)
+                                        )
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                AsyncImage(
+                                    model = clothes.imagePath,
+                                    contentDescription = clothes.nickname,
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(RoundedCornerShape(9.dp)),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text(clothes.nickname, fontSize = 15.sp, color = Color.Black)
+                            }
                         }
                     }
-                }
-                Spacer(Modifier.height(10.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    OutlinedButton(onClick = onDismiss) { Text("Close") }
                 }
             }
         }
@@ -533,7 +786,6 @@ private fun getOccasionBrush(occasion: String): Brush {
     }
 }
 
-// AddFieldSection 재활용
 @Composable
 private fun AddFieldSection(
     label: String,
