@@ -14,11 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -88,17 +88,6 @@ fun ClothesEditDialog(
                 )
                 .padding(20.dp)
         ) {
-            // 닫기 버튼
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close",
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(24.dp)
-                    .clickable { onDismiss() },
-                tint = Color(0xFF8E8E93)
-            )
-
             // 콘텐츠
             Column(
                 modifier = Modifier
@@ -220,50 +209,95 @@ fun ClothesEditDialog(
                     }
                 }
 
-                // 저장 버튼
-                Button(
-                    onClick = {
-                        onSave(
-                            clothes.category,
-                            clothes.nickname,
-                            storeUrl.ifBlank { null }
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(13.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    enabled = true // 항상 저장 가능
+                // 하단 버튼
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(13.dp)
                 ) {
-                    Box(
+                    // Back 버튼
+                    Button(
+                        onClick = onDismiss,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush = Brush.linearGradient(
-                                    listOf(
-                                        Color(0x99E8F2FF),
-                                        Color(0xCCE8F2FF)
-                                    )
-                                ),
-                                shape = RoundedCornerShape(13.dp)
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = Color(0x26000000),
-                                shape = RoundedCornerShape(13.dp)
-                            ),
-                        contentAlignment = Alignment.Center
+                            .width(67.dp)
+                            .height(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent
+                        ),
+                        shape = RoundedCornerShape(13.dp),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text(
-                            text = "Save",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF3673E4)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        listOf(
+                                            Color(0x99E8F2FF),
+                                            Color(0xCCE8F2FF)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(13.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x26000000),
+                                    shape = RoundedCornerShape(13.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Back",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF8E8E93)
+                            )
+                        }
+                    }
+                    // Save 버튼
+                    Button(
+                        onClick = {
+                            onSave(
+                                clothes.category,
+                                clothes.nickname,
+                                storeUrl.ifBlank { null }
+                            )
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent
+                        ),
+                        shape = RoundedCornerShape(13.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        enabled = true
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        listOf(
+                                            Color(0x99E8F2FF),
+                                            Color(0xCCE8F2FF)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(13.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x26000000),
+                                    shape = RoundedCornerShape(13.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Save",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF3673E4)
+                            )
+                        }
                     }
                 }
             }
