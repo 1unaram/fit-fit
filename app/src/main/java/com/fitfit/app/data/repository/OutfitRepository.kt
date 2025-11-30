@@ -162,14 +162,30 @@ class OutfitRepository(
         return outfitDao.getPendingWeatherOutfits(currentTime)
     }
 
-    // Outfit 수정
-    suspend fun updateOutfit(oid: String, clothesIds: List<String>): Result<Unit> {
+    // Oufit 수정
+    suspend fun updateOutfit(
+        oid: String,
+        clothesIds: List<String>,
+        occasion: List<String>,
+        comment: String?,
+        wornStartTime: Long,
+        wornEndTime: Long,
+        latitude: Double,
+        longitude: Double
+    ): Result<Unit>{
         return try {
             val outfit = outfitDao.getOutfitById(oid)
                 ?: return Result.failure(Exception("Outfit not found"))
 
             val updatedOutfit = outfit.copy(
                 clothesIds = clothesIds,
+                occasion = occasion,
+                comment = comment,
+                wornStartTime = wornStartTime,
+                wornEndTime = wornEndTime,
+                latitude = latitude,
+                longitude = longitude,
+                weatherFetched = false,  // 시간/위치 바뀌었으니 다시 가져오도록
                 isSynced = false,
                 lastModified = System.currentTimeMillis()
             )
@@ -193,6 +209,7 @@ class OutfitRepository(
             e.printStackTrace()
             Result.failure(e)
         }
+
     }
 
     // Outfit 삭제

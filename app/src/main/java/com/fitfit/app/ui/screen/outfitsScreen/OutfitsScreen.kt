@@ -125,11 +125,16 @@ fun OutfitsScreen(
         editingOutfit?.let { editing ->
             OutfitsEditDialog(
                 outfitWithClothes = editing,
+                allClothes = clothesList,
                 onDismiss = { editingOutfit = null },
-                onSave = { updatedClothesIds ->
+                onSave = { clothesIds, occasion, comment, wornStartTime, wornEndTime ->
                     outfitViewModel.updateOutfit(
                         oid = editing.outfit.oid,
-                        clothesIds = updatedClothesIds
+                        clothesIds = clothesIds,
+                        occasion = occasion,
+                        comment = comment,
+                        wornStartTime = wornStartTime,
+                        wornEndTime = wornEndTime
                     )
                     editingOutfit = null
                 }
@@ -137,3 +142,4 @@ fun OutfitsScreen(
         }
     }
 }
+
