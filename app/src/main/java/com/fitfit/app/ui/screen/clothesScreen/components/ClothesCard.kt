@@ -56,7 +56,7 @@ fun ClothesCard(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(18.dp),  //원래12
+                .padding(12.dp),  //원래12
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 옷 이미지
