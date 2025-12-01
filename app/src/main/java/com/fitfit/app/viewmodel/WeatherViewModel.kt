@@ -39,11 +39,17 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val _weatherFilterState = MutableStateFlow<WeatherFilterUiState>(WeatherFilterUiState.Idle)
     val weatherFilterState: StateFlow<WeatherFilterUiState> = _weatherFilterState.asStateFlow()
 
+    private val _weatherScreenState = MutableStateFlow<WeatherScreenState>(WeatherScreenState.Idle)
+    val weatherScreenState: StateFlow<WeatherScreenState> = _weatherScreenState.asStateFlow()
+
     private val _isLoadingApi = MutableStateFlow(false)
     val isLoadingApi: StateFlow<Boolean> = _isLoadingApi
 
     private val _currentLocation = MutableStateFlow<LocationManager.Coordinates?>(null)
     val currentLocation: StateFlow<LocationManager.Coordinates?> = _currentLocation
+
+    private val _locationName = MutableStateFlow<String?>(null)
+    val locationName: StateFlow<String?> = _locationName.asStateFlow()
 
 
     // ========== Case 1: HomeScreen WeatherCard ==========
@@ -74,7 +80,8 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             }
 
             val weatherResult = weatherDeferred.await()
-            val locationName = locationNameDeferred.await()
+            val fetchedLocationName = locationNameDeferred.await()
+            _locationName.value = fetchedLocationName
 
             weatherResult?.fold(onSuccess = { weatherResponse ->
 
@@ -86,7 +93,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     todayWeatherDescription = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.description,
                     probabilityOfPrecipitation = (weatherResponse.daily?.firstOrNull()?.pop?.times(100))?.toInt() ?: 0,
                     windSpeed = weatherResponse.daily?.firstOrNull()?.windSpeed,
-                    locationName = locationName
+                    locationName = fetchedLocationName ?: "Unknown Location"
                 )
                 _weatherCardState.value = WeatherCardUiState.Success(cardData)
                 _isLoadingApi.value = false
@@ -102,61 +109,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             )
             _isLoadingApi.value = false
         }
-    }
-
-    // ### 특정 미래 날짜의 날씨 정보 조회 ###
-    fun getWeatherFilterData(selectedDate: LocalDate) = viewModelScope.launch {
-        _isLoadingApi.value = true
-        _weatherFilterState.value = WeatherFilterUiState.Loading
-
-        val locationResult = locationManager.getCurrentLocation()
-
-        locationResult.onSuccess { location ->
-
-            val lat = location.latitude
-            val lon = location.longitude
-
-            val weatherResult = openWeatherRepository.getForecastWeather(lat, lon).firstOrNull()
-
-            weatherResult?.fold(onSuccess = { forecastResponse ->
-
-                val today = LocalDate.now()
-                val dayIndex = ChronoUnit.DAYS.between(today, selectedDate).toInt()
-
-                // 유효한 범위 확인 (0 ~ 7)
-                if (dayIndex in 0..7 && forecastResponse.daily != null &&
-                    dayIndex < forecastResponse.daily.size) {
-
-                    val targetDayWeather = forecastResponse.daily[dayIndex]
-
-                    val filterState = FilterState(
-                        temperature = targetDayWeather.temp.day,
-                        weather = targetDayWeather.weather.firstOrNull()?.main,
-                        occasion = null
-                    )
-
-                    _weatherFilterState.value = WeatherFilterUiState.Success(filterState)
-                    _isLoadingApi.value = false
-                } else {
-                    _weatherFilterState.value = WeatherFilterUiState.Failure(
-                        "Selected date is out of forecast range"
-                    )
-                    _isLoadingApi.value = false
-                    return@launch
-                }
-            }, onFailure = { exception ->
-                _weatherFilterState.value = WeatherFilterUiState.Failure(
-                    exception.message ?: "Error occurred"
-                )
-                _isLoadingApi.value = false
-            })
-        }.onFailure { exception ->
-            _weatherFilterState.value = WeatherFilterUiState.Failure(
-                exception.message ?: "Failed to get location"
-            )
-            _isLoadingApi.value = false
-        }
-
     }
 
     // ========= Case 2: Outfit Screen - 날씨 자동 업데이트 =========
@@ -265,6 +217,126 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    // ========= Case 3: Outfit Screen - Weather Filter =========
+    // ### 특정 미래 날짜의 날씨 정보 조회 ###
+    fun getWeatherFilterData(selectedDate: LocalDate) = viewModelScope.launch {
+        _isLoadingApi.value = true
+        _weatherFilterState.value = WeatherFilterUiState.Loading
+
+        val locationResult = locationManager.getCurrentLocation()
+
+        locationResult.onSuccess { location ->
+
+            val lat = location.latitude
+            val lon = location.longitude
+
+            val weatherResult = openWeatherRepository.getForecastWeather(lat, lon).firstOrNull()
+
+            weatherResult?.fold(onSuccess = { forecastResponse ->
+
+                val today = LocalDate.now()
+                val dayIndex = ChronoUnit.DAYS.between(today, selectedDate).toInt()
+
+                // 유효한 범위 확인 (0 ~ 7)
+                if (dayIndex in 0..7 && forecastResponse.daily != null &&
+                    dayIndex < forecastResponse.daily.size) {
+
+                    val targetDayWeather = forecastResponse.daily[dayIndex]
+
+                    val filterState = FilterState(
+                        temperature = targetDayWeather.temp.day,
+                        weather = targetDayWeather.weather.firstOrNull()?.main,
+                        occasion = null
+                    )
+
+                    _weatherFilterState.value = WeatherFilterUiState.Success(filterState)
+                    _isLoadingApi.value = false
+                } else {
+                    _weatherFilterState.value = WeatherFilterUiState.Failure(
+                        "Selected date is out of forecast range"
+                    )
+                    _isLoadingApi.value = false
+                    return@launch
+                }
+            }, onFailure = { exception ->
+                _weatherFilterState.value = WeatherFilterUiState.Failure(
+                    exception.message ?: "Error occurred"
+                )
+                _isLoadingApi.value = false
+            })
+        }.onFailure { exception ->
+            _weatherFilterState.value = WeatherFilterUiState.Failure(
+                exception.message ?: "Failed to get location"
+            )
+            _isLoadingApi.value = false
+        }
+
+    }
+
+    // ========= Case 4: Weather Screen =========
+    fun getWeatherScreenData() = viewModelScope.launch {
+        _weatherScreenState.value = WeatherScreenState.Loading
+
+        val locationResult = locationManager.getCurrentLocation()
+
+        locationResult.onSuccess { location ->
+            val coordinates = LocationManager.Coordinates.fromLocation(location)
+            _currentLocation.value = coordinates
+
+            openWeatherRepository.getTodayAndWeeklyWeather(
+                coordinates.latitude,
+                coordinates.longitude
+            ).collect { result ->
+                result.fold(
+                    onSuccess = { weatherResponse ->
+                        // 시간별 날씨 (오늘 24시간)
+                        val now = System.currentTimeMillis() / 1000
+                        val endOfDay = now + (24 * 3600)
+
+                        val hourlyList = weatherResponse.hourly
+                            ?.filter { it.dt in now..endOfDay }
+                            ?.take(24)
+                            ?.map { hourly ->
+                                HourlyWeatherData(
+                                    dt = hourly.dt,
+                                    temp = hourly.temp,
+                                    weatherDescription = hourly.weather.firstOrNull()?.description ?: "",
+                                    weatherIcon = hourly.weather.firstOrNull()?.icon ?: "",
+                                )
+                            } ?: emptyList()
+
+                        // 일별 날씨 (7일)
+                        val dailyList = weatherResponse.daily
+                            ?.take(7)
+                            ?.map { daily ->
+                                DailyWeatherData(
+                                    dt = daily.dt,
+                                    tempMin = daily.temp.min,
+                                    tempMax = daily.temp.max,
+                                    weatherIcon = daily.weather.firstOrNull()?.icon ?: ""
+                                )
+                            } ?: emptyList()
+
+                        _weatherScreenState.value = WeatherScreenState.Success(
+                            hourlyList = hourlyList,
+                            dailyList = dailyList
+                        )
+                    },
+                    onFailure = { exception ->
+                        _weatherScreenState.value = WeatherScreenState.Failure(
+                            exception.message ?: "Failed to get weather data"
+                        )
+                    }
+                )
+            }
+        }.onFailure { exception ->
+            _weatherScreenState.value = WeatherScreenState.Failure(
+                exception.message ?: "Failed to get location"
+            )
+        }
+    }
+
+    // ========= Location Handling =========
     // ### 현재 위치 가져오기 ###
     fun getCurrentLocation() = viewModelScope.launch {
         val result = locationManager.getCurrentLocation()
@@ -276,6 +348,14 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     // ### 위치 권한 확인 ###
     fun hasLocationPermission(): Boolean {
         return locationManager.hasLocationPermission()
+    }
+
+    fun resetWeatherCardState() {
+        _weatherCardState.value = WeatherCardUiState.Idle
+    }
+
+    fun resetWeatherScreenState() {
+        _weatherScreenState.value = WeatherScreenState.Idle
     }
 }
 
@@ -299,6 +379,31 @@ data class WeatherCardData(
     val windSpeed: Double?,
     val locationName: String? = null
 )
+
+sealed class WeatherScreenState {
+    object Idle : WeatherScreenState()
+    object Loading : WeatherScreenState()
+    data class Success(
+        val hourlyList: List<HourlyWeatherData>,
+        val dailyList: List<DailyWeatherData>
+    ) : WeatherScreenState()
+    data class Failure(val message: String) : WeatherScreenState()
+}
+
+data class HourlyWeatherData(
+    val dt: Long,
+    val temp: Double,
+    val weatherDescription: String,
+    val weatherIcon: String
+)
+
+data class DailyWeatherData(
+    val dt: Long,
+    val tempMin: Double,
+    val tempMax: Double,
+    val weatherIcon: String
+)
+
 
 sealed class WeatherCardUiState {
     object Idle : WeatherCardUiState()

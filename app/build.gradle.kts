@@ -60,6 +60,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.ui.text)
     val roomVersion = "2.8.3"
     implementation(libs.androidx.constraintlayout)
 

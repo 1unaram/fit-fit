@@ -95,7 +95,8 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
     // ### 코디 수정 ###
     fun updateOutfit(
         oid: String,
-        clothesIds: List<String>
+        clothesIds: List<String>,
+
     ) = viewModelScope.launch {
         _updateState.value = OutfitOperationState.Loading
 

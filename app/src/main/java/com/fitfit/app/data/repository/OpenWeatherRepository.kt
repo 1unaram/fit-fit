@@ -13,7 +13,7 @@ class OpenWeatherRepository(
     private val weatherApiCall = WeatherApiCall()
 
 
-    // 현재 날씨 가져오기 for Case1: WeatherCard
+    // Case1: 현재 날씨 가져오기 - WeatherCard
     fun getCurrentWeather(
         latitude: Double,
         longitude: Double
@@ -28,22 +28,7 @@ class OpenWeatherRepository(
         )
     }
 
-    // 미래 날씨 가져오기 for Case3: WeatherFilter
-    fun getForecastWeather(
-        latitude: Double,
-        longitude: Double
-    ): Flow<Result<OneCallWeatherResponse>> = flow {
-        emit(
-            weatherApiCall.fetchOneCallWeather(
-                latitude,
-                longitude,
-                apiKey,
-                exclude = "current,minutely,alerts,hourly"
-            )
-        )
-    }
-
-    // 과거 날씨 가져오기 for Case2: PastWeather
+    // Case2: 과거 날씨 가져오기
     fun getTimemachineWeather(
         latitude: Double,
         longitude: Double,
@@ -59,6 +44,38 @@ class OpenWeatherRepository(
         )
     }
 
+    // Case3: 미래 날씨 가져오기 - WeatherFilter
+    fun getForecastWeather(
+        latitude: Double,
+        longitude: Double
+    ): Flow<Result<OneCallWeatherResponse>> = flow {
+        emit(
+            weatherApiCall.fetchOneCallWeather(
+                latitude,
+                longitude,
+                apiKey,
+                exclude = "current,minutely,alerts,hourly"
+            )
+        )
+    }
+
+    // Case4: 오늘, 일주일 날씨 가져오기 - WeatherScreen
+    fun getTodayAndWeeklyWeather(
+        latitude: Double,
+        longitude: Double
+    ): Flow<Result<OneCallWeatherResponse>> = flow {
+        emit(
+            weatherApiCall.fetchOneCallWeather(
+                latitude,
+                longitude,
+                apiKey,
+                exclude = "minutely,alerts"
+            )
+        )
+    }
+
+
+    // Location Name 가져오기
     fun getLocationName(
         latitude: Double,
         longitude: Double

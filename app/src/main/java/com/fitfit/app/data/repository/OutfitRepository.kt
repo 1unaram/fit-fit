@@ -163,7 +163,10 @@ class OutfitRepository(
     }
 
     // Outfit 수정
-    suspend fun updateOutfit(oid: String, clothesIds: List<String>): Result<Unit> {
+    suspend fun updateOutfit(
+        oid: String,
+        clothesIds: List<String>
+    ): Result<Unit> {
         return try {
             val outfit = outfitDao.getOutfitById(oid)
                 ?: return Result.failure(Exception("Outfit not found"))

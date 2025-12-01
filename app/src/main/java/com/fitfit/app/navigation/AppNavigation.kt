@@ -16,12 +16,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fitfit.app.ui.navbar.BottomNavBar
 import com.fitfit.app.ui.screen.clothesScreen.ClothesScreen
-import com.fitfit.app.ui.screen.communityScreen.CommunityScreen
 import com.fitfit.app.ui.screen.homeScreen.HomeScreen
 import com.fitfit.app.ui.screen.loginScreen.LoginScreen
 import com.fitfit.app.ui.screen.loginScreen.RegisterScreen
 import com.fitfit.app.ui.screen.mypageScreen.MyPageScreen
 import com.fitfit.app.ui.screen.outfitsScreen.OutfitsScreen
+import com.fitfit.app.ui.screen.weatherScreen.WeatherScreen
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
@@ -33,7 +33,7 @@ object Screens {
     const val OUTFITS = "outfits"
     const val LOGIN = "login"
     const val REGISTER = "register"
-    const val COMMUNITY = "community"
+    const val WEATHER = "weather"
     const val MYPAGE = "mypage"
 }
 
@@ -74,7 +74,7 @@ fun AppNavigation(
                     Screens.CLOTHES -> 0
                     Screens.OUTFITS -> 1
                     Screens.HOME -> 2
-                    Screens.COMMUNITY -> 3
+                    Screens.WEATHER -> 3
                     Screens.MYPAGE -> 4
                     else -> 2 // 기본값은 HOME
                 }
@@ -86,7 +86,7 @@ fun AppNavigation(
                             0 -> Screens.CLOTHES
                             1 -> Screens.OUTFITS
                             2 -> Screens.HOME
-                            3 -> Screens.COMMUNITY
+                            3 -> Screens.WEATHER
                             4 -> Screens.MYPAGE
                             else -> Screens.HOME
                         }
@@ -146,8 +146,10 @@ fun AppNavigation(
                     userViewModel = userViewModel
                 )
             }
-            composable (Screens.COMMUNITY) {
-                CommunityScreen()
+            composable (Screens.WEATHER) {
+                WeatherScreen(
+                    weatherViewModel = weatherViewModel
+                )
             }
             composable (Screens.MYPAGE) {
                 MyPageScreen(
