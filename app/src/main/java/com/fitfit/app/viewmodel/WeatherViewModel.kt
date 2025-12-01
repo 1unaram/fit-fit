@@ -311,7 +311,8 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                                     dt = daily.dt,
                                     tempMin = daily.temp.min,
                                     tempMax = daily.temp.max,
-                                    weatherIcon = daily.weather.firstOrNull()?.icon ?: ""
+                                    weatherIcon = daily.weather.firstOrNull()?.icon ?: "",
+                                    pop = daily.pop
                                 )
                             } ?: emptyList()
 
@@ -399,7 +400,8 @@ data class DailyWeatherData(
     val dt: Long,
     val tempMin: Double,
     val tempMax: Double,
-    val weatherIcon: String
+    val weatherIcon: String,
+    val pop: Double
 )
 
 data class WeatherFilterData(

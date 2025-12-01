@@ -33,6 +33,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,7 +57,6 @@ fun WeatherScreen(
     weatherViewModel: WeatherViewModel = viewModel()
 ) {
     val weatherScreenState by weatherViewModel.weatherScreenState.collectAsState()
-    val currentLocation by weatherViewModel.currentLocation.collectAsState()
     val locationName by weatherViewModel.locationName.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -75,6 +77,7 @@ fun WeatherScreen(
                     CircularProgressIndicator(color = Color.Black)
                 }
             }
+
             is WeatherScreenState.Success -> {
                 val state = weatherScreenState as WeatherScreenState.Success
                 WeatherScreenContent(
@@ -83,6 +86,7 @@ fun WeatherScreen(
                     locationName = locationName
                 )
             }
+
             is WeatherScreenState.Failure -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -101,6 +105,7 @@ fun WeatherScreen(
                     }
                 }
             }
+
             else -> {}
         }
     }
@@ -127,9 +132,12 @@ fun WeatherScreenContent(
         }
 
         // 오늘의 현재 날씨 요약
-        if (hourlyList.isNotEmpty()) {
+        if (hourlyList.isNotEmpty() && dailyList.isNotEmpty()) {
             item {
-                CurrentWeatherSummary(hourlyList.first())
+                CurrentWeatherSummary(
+                    current = hourlyList.first(),
+                    todayDaily = dailyList.first()
+                )
 
                 Spacer(Modifier.height(24.dp))
             }
@@ -191,7 +199,8 @@ fun WeatherHeader(
 }
 
 @Composable
-fun CurrentWeatherSummary(current: HourlyWeatherData) {
+fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherData) {
+    val textColor = Color(0xFF111111)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -207,48 +216,85 @@ fun CurrentWeatherSummary(current: HourlyWeatherData) {
             WeatherIcon(current.weatherIcon, modifier = Modifier.size(80.dp))
         }
 
-        Column(
+        Row(
             modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            val textColor = Color(0xFF111111)
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 현재 온도
+                Text(
+                    text = "${current.temp.toInt()}°",
+                    style = MaterialTheme.typography.displayLarge,
+                    color = textColor,
+                    fontWeight = FontWeight.Bold
+                )
 
-            // 현재 온도
-            Text(
-                "${current.temp.toInt()}°",
-                style = MaterialTheme.typography.displayLarge,
-                color = textColor,
-                fontWeight = FontWeight.Bold
-            )
+                // 날씨 설명
+                Text(
+                    text = current.weatherDescription,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = textColor.copy(alpha = 0.9f)
+                )
 
-            // 날씨 설명
-            Text(
-                current.weatherDescription,
-                style = MaterialTheme.typography.titleMedium,
-                color = textColor.copy(alpha = 0.9f)
-            )
+                Spacer(Modifier.height(8.dp))
+            }
 
-            Spacer(Modifier.height(8.dp))
+            // 최고/최저 기온
+            Column (
+                modifier = Modifier.weight(0.8f),
+            ) {
+                Text(
+                    text = "H: ${todayDaily.tempMax.toInt()}°  ",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = textColor.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "L: ${todayDaily.tempMin.toInt()}°",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = textColor.copy(alpha = 0.3f),
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 }
 
 @Composable
 fun HourlyWeatherRow(hourlyList: List<HourlyWeatherData>) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.7f)
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRoundRect(
+                    color = Color.Black.copy(alpha = 0.05f),
+                    topLeft = Offset(4.dp.toPx(), 4.dp.toPx()),
+                    size = size,
+                    cornerRadius = CornerRadius(16.dp.toPx())
+                )
+            }
     ) {
-        LazyRow(
-            modifier = Modifier.padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.7f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            items(hourlyList, key = { it.dt }) { hourly ->
-                HourlyWeatherItem(hourly)
+            LazyRow(
+                modifier = Modifier.padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp)
+            ) {
+                items(hourlyList, key = { it.dt }) { hourly ->
+                    HourlyWeatherItem(hourly)
+                }
             }
         }
     }
@@ -291,50 +337,74 @@ fun HourlyWeatherItem(hourly: HourlyWeatherData) {
 fun DailyWeatherRow(daily: DailyWeatherData) {
     val textColor = Color(0xFF111111)
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFe1eefa)
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRoundRect(
+                    color = Color.Black.copy(alpha = 0.05f),
+                    topLeft = Offset(4.dp.toPx(), 4.dp.toPx()),
+                    size = size,
+                    cornerRadius = CornerRadius(16.dp.toPx())
+                )
+            }
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 요일
-            Text(
-                text = formatDayOfWeek(daily.dt),
-                style = MaterialTheme.typography.bodyLarge,
-                color = textColor,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1.5f)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFe1eefa)
             )
-
-            // 날씨 아이콘
-            WeatherIcon(daily.weatherIcon)
-
-            Spacer(Modifier.width(8.dp))
-
-            // 최고/최저 온도
+        ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 요일
                 Text(
-                    text = "${daily.tempMax.toInt()}°",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = formatDayOfWeek(daily.dt),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = textColor,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(2f)
                 )
+
+                // 날씨 아이콘
+                WeatherIcon(daily.weatherIcon)
+
+                Spacer(Modifier.width(8.dp))
+
+                // 최고/최저 온도
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${daily.tempMax.toInt()}°",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = textColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${daily.tempMin.toInt()}°",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = textColor.copy(alpha = 0.6f)
+                    )
+                }
+
+
+                // 강수 확률
                 Text(
-                    text = "${daily.tempMin.toInt()}°",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = textColor.copy(alpha = 0.6f)
+                    text = "☔ ${ (daily.pop * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = textColor,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.End
                 )
             }
         }
@@ -358,21 +428,33 @@ fun Double.format(digits: Int) = "%.${digits}f".format(this)
 @Composable
 fun WeatherScreenContentPreview() {
     val hourlyList = listOf(
-        HourlyWeatherData(dt=1764572400, temp=8.04, weatherDescription="clear sky", weatherIcon="01d"),
-        HourlyWeatherData(dt=1764576000, temp=8.03, weatherDescription="clear sky", weatherIcon="01d")
+        HourlyWeatherData(
+            dt = 1764572400,
+            temp = 8.04,
+            weatherDescription = "clear sky",
+            weatherIcon = "01d"
+        ),
+        HourlyWeatherData(
+            dt = 1764576000,
+            temp = 8.03,
+            weatherDescription = "clear sky",
+            weatherIcon = "01d"
+        )
     )
     val dailyList = listOf(
         DailyWeatherData(
             dt = 1764558000,
             tempMin = 4.91,
             tempMax = 11.32,
-            weatherIcon = "01d"
+            weatherIcon = "01d",
+            pop = 0.5
         ),
         DailyWeatherData(
             dt = 1764644400,
             tempMin = -3.72,
             tempMax = 6.29,
-            weatherIcon = "04d"
+            weatherIcon = "04d",
+            pop = 0.0
         )
     )
 
