@@ -325,11 +325,6 @@ fun OccasionChip(text: String) {
     }
 }
 
-//시간 포맷 함수 ; 날짜 포맷 함수는 homescreen의 것을 사용하고 있음 util 폴더에 재작성 필요
-fun formatTimestampToTime(timestamp: Long): String {
-    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
-    return sdf.format(Date(timestamp))
-}
 
 @Composable
 private fun EditDeleteIcons(

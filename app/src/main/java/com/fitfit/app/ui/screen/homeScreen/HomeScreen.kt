@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -107,7 +109,8 @@ fun HomeScreen(
     LazyColumn (
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFE8F2FF))){
+            .background(Color(0xFFE8F2FF))
+    ){
 
         /* Section1. Weather Card */
         item {
@@ -315,6 +318,8 @@ fun WeatherOutfitList(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
         //    .padding(horizontal = 33.dp)
     ) {
         if (outfitsWithClothes.isEmpty()) {
@@ -349,14 +354,15 @@ fun WeatherOutfitCard(
         border = BorderStroke(1.dp, Color.White)
     ) {
         Box(modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 20.dp),
+            //.padding(horizontal = 24.dp, vertical = 20.dp),
         ) {
             Column (
                 modifier = Modifier
-                    .fillMaxSize(),
-                //    .padding(12.dp),
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+            //    .padding(12.dp),
                         //start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -377,7 +383,7 @@ fun WeatherOutfitCard(
                         Box(modifier = Modifier.size(24.dp)) {
                             WeatherIcon(outfitsWithClothes.outfit.iconCode, "Weather Icon")
                         }
-                        //Spacer(Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         // temperature
                         Text(
                             text = String.format(
@@ -391,12 +397,14 @@ fun WeatherOutfitCard(
                 }
                 Row(
                     //horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 1. 표시할 아이템 개수 계산
                     // 옷이 4개 이하면 전부 다(size), 5개 이상이면 3개만 보여줌
-                    val displayCount = if (outfitsWithClothes.clothes.size > 4) 3 else outfitsWithClothes.clothes.size
-
+                    val totalSize = outfitsWithClothes.clothes.size
+                    val displayCount = if (totalSize > 4) 3 else totalSize
                     // 2. 계산된 개수만큼 앞에서부터 잘라서 보여줌
                     val visibleClothes = outfitsWithClothes.clothes.take(displayCount)
 
@@ -404,7 +412,8 @@ fun WeatherOutfitCard(
                         // 썸네일 박스
                         Box(
                             modifier = Modifier
-                                .size(46.dp) // 크기는 디자인에 맞게 조절
+                                .weight(1f)
+                                .aspectRatio(1f)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(Color(0xFFF5F5F5))
                         ) {
@@ -420,7 +429,7 @@ fun WeatherOutfitCard(
                                 Icon(
                                     imageVector = Icons.Default.ImageNotSupported,
                                     contentDescription = null,
-                                    modifier = Modifier.align(Alignment.Center).size(20.dp),
+                                    modifier = Modifier.align(Alignment.Center).size(36.dp),
                                     tint = Color.Gray
                                 )
                             }
@@ -433,7 +442,8 @@ fun WeatherOutfitCard(
 
                         Box(
                             modifier = Modifier
-                                .size(46.dp)
+                                .weight(1f)
+                                .aspectRatio(1f)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(Color(0xFFE0E0E0)),
                             contentAlignment = Alignment.Center
@@ -444,14 +454,12 @@ fun WeatherOutfitCard(
                                 fontWeight = FontWeight.Bold,
                                 color = Color.DarkGray
                             )
-                            // 만약 점 3개 아이콘을 원하면 아래 코드 사용
-                            /*
-                            Icon(
-                                imageVector = Icons.Default.MoreHoriz,
-                                contentDescription = "More",
-                                tint = Color.DarkGray
-                            )
-                            */
+                        }
+                    }
+                    val usedSlots = displayCount + if (totalSize > 4) 1 else 0
+                    if (usedSlots < 4) {
+                        repeat(4 - usedSlots) {
+                            Spacer(modifier = Modifier.weight(1f)) // 동일한 가중치를 주어 크기 유지
                         }
                     }
                 }
