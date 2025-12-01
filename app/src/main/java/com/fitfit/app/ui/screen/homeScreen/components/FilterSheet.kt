@@ -1,6 +1,8 @@
 
 
 import android.R.attr.contentDescription
+import android.R.attr.enabled
+import android.R.attr.password
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -23,17 +26,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,26 +54,25 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fitfit.app.data.remote.model.Weather
 import com.fitfit.app.ui.components.WeatherIcon
+import kotlin.collections.setOf
 import kotlin.math.roundToInt
 
 data class FilterState(
-    val temperature: Double = 3.0,
+    val temperature: Double? = null,
     val weather: String? = null,
-    val occasion: String? = null
+    val occasion: List<String>? = null
 )
 
 @Composable
 fun FilterSelectScreen(
     initialFilter: FilterState = FilterState(),
     onDismiss: () -> Unit,
-    onSave: (Double, String?, String?) -> Unit
+    onSave: (Double?, String?, List<String>?) -> Unit
 ) {
-    var filterState by remember { mutableStateOf(initialFilter) }
-
-    var selectedWeather by remember { mutableStateOf<String?>(null) }
-    var selectedOccasion by remember { mutableStateOf<String?>(null) }
-    var selectedTemp by remember { mutableStateOf(3.0) } // 초기값 5
-
+    var selectedWeather by remember { mutableStateOf(initialFilter.weather) }
+    var selectedOccasions by remember {
+        mutableStateOf(initialFilter.occasion ?: emptyList()) }
+    var selectedTemp by remember { mutableStateOf(initialFilter.temperature) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -80,167 +80,225 @@ fun FilterSelectScreen(
             dismissOnBackPress = true,
             dismissOnClickOutside = false,
             usePlatformDefaultWidth = false
-        )) {
+        )
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.85f)
                 .wrapContentHeight()
                 .shadow(
-                    elevation = 6.dp,
+                    elevation = 10.dp,
                     shape = RoundedCornerShape(16.dp)
                 )
                 .background(
                     color = Color.White,
                     shape = RoundedCornerShape(16.dp)
                 )
-                .padding(vertical = 34.dp, horizontal = 20.dp)
+                .padding(top = 20.dp, bottom = 28.dp, start = 24.dp, end = 24.dp)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(23.dp)
             ) {
                 // Close Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    CloseIcon(
-                        onDismiss = onDismiss
-                    )
+                    CloseIcon(onDismiss = onDismiss)
                 }
-
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Main Content
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    //verticalArrangement = Arrangement.spacedBy(17.67.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    // Temperature Section
-                    TemperatureSectionCompact(
-                        selectedValue = selectedTemp,
-                        onValueChange = { newValue ->
-                            selectedTemp = newValue
-                            // 필요하면 viewModel.updateTemperature(newValue) 등
-                        }
-                    )
 
-                    // Weather Section
-                    WeatherSectionCompact(
-                        selectedWeather = selectedWeather,
-                        onWeatherSelected = { weather ->
-                            selectedWeather = weather   // 여기서 값 저장
+                // Temperature Section
+                TemperatureSectionCompact(
+                    selectedValue = selectedTemp,
+                    onValueChange = { newValue ->
+                        selectedTemp = newValue
+                    }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                // Weather Section
+                WeatherSectionCompact(
+                    selectedWeather = selectedWeather,
+                    onWeatherSelected = { weather ->
+                        selectedWeather = if (selectedWeather == weather) null else weather
+                    }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                // Occasion Section
+                OccasionSectionCompact(
+                    selectedOccasions = selectedOccasions,
+                    onOccasionToggle = { occasion ->
+                        val current = selectedOccasions
+                        if (current.contains(occasion)) {
+                            // 이미 있으면 뺀다 (취소)
+                            selectedOccasions = current - occasion
+                        } else {
+                            // 없으면 추가하는데, 3개 미만일 때만 추가
+                            if (current.size < 3) {
+                                selectedOccasions = current + occasion
+                            }
                         }
-                    )
-
-                    // Occasion Section
-                    OccasionSectionCompact(
-                        selectedOccasion = selectedOccasion,
-                        onOccasionSelected = { occasion ->
-                            selectedOccasion =
-                                if (selectedOccasion == occasion) null   // 다시 누르면 해제하고 싶으면
-                                else occasion                             // 아니면 새 값 선택
-                        }
-                    )
-
-                    // Save Button
-                    SaveButton(
-                        onClick = {
-                            onSave(selectedTemp,
-                                selectedWeather,
-                                selectedOccasion,
-                            )
-                        },
-                        enabled =
-                                selectedWeather != null &&
-                                selectedOccasion != null,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                    }
+                )
+                Spacer(modifier = Modifier.height(36.dp))
+                // Save Button
+                SaveButton(
+                    onClick = {
+                        onSave(
+                            selectedTemp,
+                            selectedWeather,
+                            selectedOccasions,
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
 }
 
+@Composable
+private fun AddFieldSection(
+    label: String,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = label,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF8E8E93)
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        content()
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemperatureSectionCompact(
-    selectedValue: Double,           // 1.0 ~ 10.0
+    selectedValue: Double?,           // 1.0 ~ 10.0
     onValueChange: (Double) -> Unit
 ) {
     var sliderPosition by remember(selectedValue) {
-        mutableFloatStateOf(selectedValue.toFloat())
+        mutableFloatStateOf(selectedValue?.toFloat() ?: 3f)
     }
+    val valueRange = 1f..10f
+    val steps = 8
+    val thumbSize = 24.dp
+    val labelHorizontalPadding = 12.dp
 
     AddFieldSection(label = "Temperature") {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            //    verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                (1..10).forEach { temp ->
-                    val isSelected = temp == sliderPosition.roundToInt()
-                    Text(
-                        text = temp.toString(),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isSelected) Color.Black else Color(0xFF8E8E93),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
+            // 1. 상단 라벨 영역 표시
+            SliderLabels(
+                currentValue = sliderPosition,
+                range = valueRange,
+                steps = steps,
+                // 슬라이더 썸의 중심과 라벨 위치를 맞추기 위해 양옆 패딩 조정
+                modifier = Modifier.padding(horizontal = labelHorizontalPadding)
+            )
 
+            // 2. 커스텀 슬라이더
             Slider(
                 value = sliderPosition,
-                onValueChange = { value ->
-                    sliderPosition = value
-                    val d = value
-                        .roundToInt()
-                        .coerceIn(1, 10)
-                        .toDouble()
-                    onValueChange(d)
+                onValueChange = { newValue ->
+                    val snapped = newValue.roundToInt().coerceIn(1, 10)
+                    sliderPosition = snapped.toFloat()
+                    onValueChange(snapped.toDouble())
                 },
-                valueRange = 1f..10f,
-                steps = 8,
+                valueRange = valueRange,
+                steps = steps,
                 modifier = Modifier.fillMaxWidth(),
-                track = {
+                // 기본 트랙과 썸 색상을 투명하게 처리하여 커스텀 디자인 적용 준비
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.Transparent,
+                    activeTrackColor = Color.Transparent,
+                    inactiveTrackColor = Color.Transparent,
+                    activeTickColor = Color.Transparent,
+                    inactiveTickColor = Color.Transparent
+                ),
+                // 커스텀 트랙 디자인: 이미지처럼 얇고 균일한 회색 바
+                track = { sliderState ->
                     Box(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .height(7.dp)
+                            .height(4.dp) // 트랙 높이를 얇게 설정
                             .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0x99E8F2FF),
-                                        Color(0xCCE8F2FF)
-                                    )
-                                ),
-                                shape = RoundedCornerShape(13.33.dp)
+                                color = Color(0xFFEFF4F8), // 아주 연한 회색 블루 톤
+                                shape = RoundedCornerShape(2.dp)
                             )
-                            .shadow(1.33.dp, RoundedCornerShape(13.33.dp))
                     )
                 },
+                // 커스텀 썸 디자인: 입체감 있는 흰색 원형
                 thumb = {
                     Box(
                         Modifier
-                            .size(25.dp)
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(Color.White, Color(0xFFE6E6E6))
-                                ),
-                                shape = CircleShape
+                            .size(thumbSize)
+                            // 부드러운 그림자 효과
+                            .shadow(
+                                elevation = 3.dp,
+                                shape = CircleShape,
+                                ambientColor = Color.Black.copy(alpha = 0.1f),
+                                spotColor = Color.Black.copy(alpha = 0.1f)
                             )
-                            .border(0.33.dp, Color.White, CircleShape)
-                            .shadow(1.33.dp, CircleShape)
+                            .background(Color.White, CircleShape)
+                            // 얇고 연한 회색 테두리
+                            .border(0.5.dp, Color(0xFFE0E0E0), CircleShape)
                     )
                 }
             )
+        }
+    }
+}
+
+
+
+@Composable
+fun SliderLabels(
+    currentValue: Float,
+    range: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    modifier: Modifier = Modifier
+) {
+    val totalMarks = steps + 2 // 시작값 + 끝값 + 단계 수
+    val roundedCurrentValue = currentValue.roundToInt()
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween // 라벨들을 양끝 정렬하여 균등 배치
+    ) {
+        for (i in 0 until totalMarks) {
+            // 현재 인덱스에 해당하는 숫자 값 계산
+            val markValue = range.start + i * (range.endInclusive - range.start) / (totalMarks - 1)
+            val intMarkValue = markValue.roundToInt()
+            // 현재 선택된 값인지 확인
+            val isSelected = intMarkValue == roundedCurrentValue
+            Box(
+                modifier = Modifier.width(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "±$intMarkValue", // "±" 접두사 추가
+                    // 선택 여부에 따른 색상 및 폰트 굵기 변경
+                    color = if (isSelected) Color.Black else Color(0xFFBDBDBD),
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    // 텍스트 영역의 너비를 고정하여 정렬이 틀어지지 않게 함
+                    modifier = Modifier.width(24.dp)
+                )
+            }
         }
     }
 }
@@ -253,10 +311,17 @@ fun WeatherSectionCompact(
     onWeatherSelected: (String) -> Unit
 ) {
     AddFieldSection(label = "Weather") {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = Color(0xFFEFF4F8), // 연한 회색 블루 (움푹 파인 느낌)
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .wrapContentHeight()
+                .padding(horizontal = 16.dp, vertical = 8.dp), // 내부 여백
+            horizontalArrangement = Arrangement.SpaceBetween, // 아이콘들을 양옆으로 균등 배치
+            verticalAlignment = Alignment.CenterVertically
         ) {
             val weathers = listOf("Sunny", "Cloud", "Rain", "Snow")
 
@@ -275,6 +340,7 @@ fun WeatherSectionCompact(
 
 
 
+
 @Composable
 fun WeatherIconCompact(
     weather: String,
@@ -289,104 +355,99 @@ fun WeatherIconCompact(
         else -> "01d"
     }
 
+    val boxModifier = if (isSelected) {
+        Modifier
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(8.dp),
+                spotColor = Color(0x1A000000) // 아주 연한 그림자
+            )
+            .background(color = Color.White, shape = RoundedCornerShape(8.dp))
+    } else {
+        Modifier.background(color = Color.Transparent) // 평소에는 배경 없음
+    }
+
+    val iconColor = if (isSelected) Color.Black else Color(0xFF9E9E9E)
+
     Box(
         modifier = Modifier
             .size(48.dp)
-            .shadow(
-                elevation = 3.dp,
-                shape = RoundedCornerShape(8.dp),
-                spotColor = Color(0x26000000),
-                ambientColor = Color(0x26000000)
-            )
-            .border(
-                width = 1.dp,
-                color = if (isSelected) Color(0xFF3673E4) else Color.White,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .background(
-                color = if (isSelected) Color(0xFFE8F2FF) else Color.White,
-                shape = RoundedCornerShape(8.dp)
-            )
+            .then(boxModifier)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        WeatherIcon(
-            iconCode = iconCode,
-            contentDescription = weather
-        )
+        CompositionLocalProvider(LocalContentColor provides iconColor) {
+            WeatherIcon(
+                iconCode = iconCode,
+                contentDescription = weather
+            )
+        }
     }
 }
 
-@Composable
-private fun AddFieldSection(
-    label: String,
-    labelColor: Color = Color(0xFF3673E4),
-    content: @Composable () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = label,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Bold,
-            color = labelColor
-        )
-        content()
-    }
-}
 
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OccasionSectionCompact(
-    selectedOccasion: String?,
-    onOccasionSelected: (String) -> Unit
+    selectedOccasions: List<String>?,
+    onOccasionToggle: (String) -> Unit
 ) {
     val allOccasions = listOf(
         "Workday", "School", "Date", "Normal", "Travel", "Wedding", "Workout"
     )
 
     AddFieldSection(label = "Occasion (up to 3)") {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = Color(0xFFE8F2FF),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(16.dp)
         ) {
-            allOccasions.forEach { occasion ->
-                val selected = selectedOccasion == occasion
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                allOccasions.forEach { occasion ->
+                    val selected = selectedOccasions?.contains(occasion) == true
 
-                Box(
-                    modifier = Modifier
-                        .shadow(
-                            elevation = 3.dp,
-                            shape = RoundedCornerShape(8.dp),
-                            spotColor = Color(0x26000000),
-                            ambientColor = Color(0x26000000)
+                    Box(
+                        modifier = Modifier
+                            .shadow(
+                                elevation = 3.dp,
+                                shape = RoundedCornerShape(8.dp),
+                                spotColor = Color(0x26000000),
+                                ambientColor = Color(0x26000000)
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = Color.White,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .background(
+                                brush = if (selected) getOccasionBrush(occasion)
+                                else Brush.linearGradient(
+                                    listOf(Color.White, Color(0xFFE6E6E6))
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .clickable {
+                                onOccasionToggle(occasion)
+                            }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = occasion,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
                         )
-                        .border(
-                            width = 1.dp,
-                            color = Color.White,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .background(
-                            brush = if (selected) getOccasionBrush(occasion)
-                            else Brush.linearGradient(
-                                listOf(Color.White, Color(0xFFE6E6E6))
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .clickable {
-                            onOccasionSelected(occasion)
-                        }
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = occasion,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
+                    }
                 }
             }
         }
@@ -426,47 +487,37 @@ private fun CloseIcon(
 @Composable
 fun SaveButton(
     onClick: () -> Unit,
-    enabled: Boolean,
+//    enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
-    Button(
-        onClick = onClick,
-        modifier = modifier
-            .height(40.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent
-        ),
-        shape = RoundedCornerShape(13.dp),
-        contentPadding = PaddingValues(0.dp),
-        enabled = enabled
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.linearGradient(
-                        listOf(
-                            Color(0x99E8F2FF),
-                            Color(0xCCE8F2FF)
-                        )
-                    ),
-                    shape = RoundedCornerShape(13.dp)
-                )
-                .border(
-                    width = 1.dp,
-                    color = Color(0x26000000),
-                    shape = RoundedCornerShape(13.dp)
+    Box(
+        modifier = Modifier
+            .width(200.dp)
+            .height(40.dp)
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0x99E8F2FF),
+                        Color(0xCCE8F2FF)
+                    )
                 ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Save",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (enabled) Color(0xFF3673E4) else Color(0x803673E4)
+                shape = RoundedCornerShape(13.dp)
             )
-        }
+            .border(
+                width = 1.dp,
+                color = Color(0x26000000),
+                shape = RoundedCornerShape(13.dp)
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+        //    enabled = enabled
+    ) {
+        Text(
+            text = "Save",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF3673E4)
+        )
     }
 }
 

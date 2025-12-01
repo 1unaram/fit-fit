@@ -2,6 +2,7 @@ package com.fitfit.app.ui.screen.homeScreen
 
 import FilterSelectScreen
 import FilterState
+import android.R.attr.onClick
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import androidx.compose.foundation.BorderStroke
@@ -29,9 +30,11 @@ import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePickerDefaults.dateFormatter
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -62,14 +66,18 @@ import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.data.util.formatTimestampToDate
+import com.fitfit.app.data.util.mapIconCodeToWeather
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsCard
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
 import com.fitfit.app.viewmodel.WeatherCardUiState
+import com.fitfit.app.viewmodel.WeatherFilterUiState
 import com.fitfit.app.viewmodel.WeatherViewModel
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -84,10 +92,15 @@ fun HomeScreen(
     weatherViewModel: WeatherViewModel
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
-    // 전체 코디 + 옷 목록 리스트
+    // 전체 코디 + 옷 목록 리스트(저장된 옷,온도 등등)
     val outfitsWithClothes by outfitViewModel.outfitsWithClothes.collectAsState()
+    // 현재 날씨 정보(온도)
     val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
+    // 선택된 날짜의 날씨 정보(온도, 날씨)
+    val weatherFilterState by weatherViewModel.weatherFilterState.collectAsState()
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
+
+
     // 필터 다이얼로그 표시 여부
     var showFilter by remember { mutableStateOf(false) }
     // 코디 상세 다이얼로그 표시 여부
@@ -97,14 +110,25 @@ fun HomeScreen(
     // 날짜 선택 다이얼로그 표시 여부
     var showDatePicker by remember { mutableStateOf(false) }
 
-    val weatherFilterState by weatherViewModel.weatherFilterState.collectAsState()
-    // 현재 적용 중인 필터 상태(온도 허용 범위, 날씨, 상황)
+
+    // 현재 적용 중인 필터 상태(온도 오차, 날씨, 상황)
     var filterState by remember { mutableStateOf(FilterState()) }
+    //기준 날짜
     var currentDate by remember {
         val now = Date()
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         mutableStateOf(formatter.format(now))
     }
+    //기준 온도
+    var currentTemp by remember {
+        mutableStateOf(
+            (weatherCardState as? WeatherCardUiState.Success)
+                ?.cardData
+                ?.currentTemperature
+        )
+    }
+
+
     // 데이터 로드
     LaunchedEffect(currentUser) {
         currentUser?.let {
@@ -112,31 +136,30 @@ fun HomeScreen(
             outfitViewModel.loadOutfitsWithClothes()
         }
     }
-//    LaunchedEffect(weatherFilterState) {
-//        filterState = filterState.copy(weatherFilterState.)
-//    }
 
-//    // 필터된 아웃핏 새로고침
-//    LaunchedEffect(filterState) {
-//        outfitsWithClothes.forEach { (outfit, clothes) ->
-//            outfit.
-//        }
-//    }
-    val currentTemp = (weatherCardState as? WeatherCardUiState.Success)
-        ?.cardData
-        ?.currentTemperature
+    LaunchedEffect(weatherFilterState) {
+        val success = weatherFilterState as? WeatherFilterUiState.Success
+        val value = success?.weatherFilterState
+        if (value != null) {
+            currentTemp = value.temperature          // 기준 온도
+            filterState = filterState.copy(
+                weather = value.weather              // 날씨 조건만 여기서 세팅
+            )
+        }
+    }
 
-
-    // 필터가 적용된 코디 목록을 담을 상태
+    // 필터 적용된 코디 목록
     val filteredOutfits = remember(outfitsWithClothes, filterState, weatherCardState) {
         outfitsWithClothes.filter { outfitWithClothes ->
             val outfit = outfitWithClothes.outfit
             val avg = outfit.temperatureAvg
+            val baseTemp = currentTemp
+            val range = filterState.temperature
+            val selectedOccasions = filterState.occasion
 
-            // currentTemp 또는 avg 가 null이면 필터에서 탈락
-            val matchTemp = if (currentTemp != null && avg != null) {
-                val min = currentTemp - filterState.temperature
-                val max = currentTemp + filterState.temperature
+            val matchTemp = if (baseTemp != null && range != null && avg != null) {
+                val min = baseTemp - range
+                val max = baseTemp + range
                 avg in min..max
             } else {
                 false
@@ -144,11 +167,10 @@ fun HomeScreen(
 
             val matchWeather =
                 filterState.weather == null ||
-                        outfit.iconCode == filterState.weather //수정해야함
+                        mapIconCodeToWeather(outfit.iconCode) == filterState.weather
 
-            val matchOccasion =
-                filterState.occasion == null ||
-                        outfit.occasion.contains(filterState.occasion)
+            val matchOccasion = selectedOccasions.isNullOrEmpty() ||
+                    selectedOccasions.any { selected -> outfit.occasion.contains(selected) }
 
             matchWeather && matchOccasion && matchTemp
         }
@@ -160,96 +182,113 @@ fun HomeScreen(
 
 
     // ================== ui ==============
-    LazyColumn (
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFE8F2FF))
-    ){
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFE8F2FF))
+        ) {
 
-        /* Section1. Weather Card */
-        item {
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                //배경 이미지
-                Image(
-                    painter = painterResource(id = R.drawable.bg_weather_home),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize()
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
+            /* Section1. Weather Card section*/
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    WeatherCard(state = weatherCardState)
-                    Spacer(Modifier.height(8.dp))
-                    DatePicker(
-                        selectedDate = currentDate,
-                        onDateSelected = { newDate ->
-                            currentDate = newDate
-                        }
+                    //배경 이미지
+                    Image(
+                        painter = painterResource(id = R.drawable.bg_weather_home),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.matchParentSize()
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        WeatherCard(state = weatherCardState)
+                        Spacer(Modifier.height(8.dp))
+                        DatePicker(
+                            selectedDate = currentDate,
+                            onDateSelected = { newDate ->
+                                currentDate = newDate
+                                runCatching {
+                                    LocalDate.parse(newDate)
+                                }.onSuccess { localDate ->
+                                    weatherViewModel.getWeatherFilterData(localDate)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+
+
+            /* Section2. Filter button section */
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 16.dp, top = 8.dp)
+                ) {
+                    FilterButtonSection(
+                        showFilter,
+                        onChange = { showFilter = it },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp),
                     )
                 }
+            }
+
+
+            /* Section3. Outfit section */
+            item {
+                WeatherOutfitList(
+                    outfitsWithClothes = filteredOutfits,
+                    onCardClick = { outfit ->
+                        selectedOutfit = outfit
+                        showOutfit = true
+                    }
+                )
             }
         }
 
 
-        /* Section2. Filter Button */
-        item {
-            FilterButtonSection(showFilter, onChange = { showFilter = it })
-        }
-
-        item {
-            WeatherOutfitList(
-                outfitsWithClothes = filteredOutfits,
-                onCardClick = { outfit ->
-                    selectedOutfit = outfit
-                    showOutfit = true
-                }
-            )
-        }
-
-//        item {
-//            Dialog(
-//                onDismissRequest = { showOutfit = false },
-//                properties = DialogProperties(
-//                    usePlatformDefaultWidth = false
-//                )
-//            ) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .padding(horizontal = 24.dp),
-//                    contentAlignment = Alignment.Center
-//                ) {
-//                    OutfitsCard(
-//                        outfitWithClothes = selectedOutfit!!,
-//                        onDismiss = { showOutfit = false }
-//                    )
-//                }
-//            }
-//        }
-    }
-
-    // 다이얼로그들
-    if (showOutfit && selectedOutfit != null) {
-        Dialog(
-            onDismissRequest = { showOutfit = false },
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false
-            )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp),
-                contentAlignment = Alignment.Center
+        // 다이얼로그들
+        if (showOutfit && selectedOutfit != null) {
+            Dialog(
+                onDismissRequest = { showOutfit = false },
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false
+                )
             ) {
-                OutfitsCard(
-                    outfitWithClothes = selectedOutfit!!,
-                    onDismiss = { showOutfit = false }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    OutfitsCard(
+                        outfitWithClothes = selectedOutfit!!,
+                        onDismiss = { showOutfit = false }
+                    )
+                }
+            }
+        }
+        if (showFilter) {
+            Dialog(onDismissRequest = { showFilter = false }) {
+                FilterSelectScreen(
+                    initialFilter = filterState,
+                    onDismiss = { showFilter = false },
+                    onSave = { temp, weather, occasion ->
+                        filterState = filterState.copy(
+                            temperature = temp,
+                            weather = weather,
+                            occasion = occasion
+                        )
+                        showFilter = false
+                    }
                 )
             }
         }
@@ -265,7 +304,7 @@ fun DatePicker(    selectedDate: String,
     // 색상 정의
     val fitFitBlue = Color(0xFF4285F4) // 파란색
     val textBlack = Color(0xFF1E1E1E)  // 진한 검은색
-    val buttonBackground = Color(0xFFF0F0F0) // 버튼 배경 (연한 회색)
+    val buttonBackground =  Color.White.copy(alpha = 0.5f) // 반투명 흰색 배경
 
     // 날짜 상태 관리
     val context = LocalContext.current
@@ -306,7 +345,7 @@ fun DatePicker(    selectedDate: String,
                 withStyle(style = SpanStyle(color = fitFitBlue)) { append("Fit-Fit") }
                 withStyle(style = SpanStyle(color = textBlack)) { append(" today") }
             },
-            fontSize = 22.sp, // 크기 키움
+            fontSize = 28.sp, // 크기 키움
             fontWeight = FontWeight.Bold // 굵게
         )
 
@@ -346,48 +385,31 @@ fun DatePicker(    selectedDate: String,
 
 @Composable
 fun FilterButtonSection(
-    showFilter: Boolean, onChange: (Boolean) -> Unit
+    showFilter: Boolean, onChange: (Boolean) -> Unit, modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = modifier
+            .size(64.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+//            .shadow(
+//                elevation = 4.dp,
+//                shape = RoundedCornerShape(16.dp),
+//                ambientColor = Color.Black.copy(alpha = 0.15f),
+//                spotColor = Color.Black.copy(alpha = 0.15f)
+//            )
+            .clickable { onChange(true) },        // 전체 박스 클릭 가능
+        contentAlignment = Alignment.Center
     ) {
-        FloatingActionButton(
-            onClick = { onChange(true) },
-            modifier = Modifier.size(40.dp),) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_filter),
-                contentDescription = "Filter",
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
-
-    if (showFilter) {
-        Dialog(onDismissRequest = { onChange(false) }) {
-            FilterSelectScreen(
-                initialFilter = FilterState(3.0, "Sunny", "Casual"),
-                onDismiss = { onChange(false) },
-                onSave = {temp, weather, occasion ->
-                    val Temp = 3.0
-                    val Weather = "Sunny"
-                    val Occasion = "Casual"
-
-                    onChange(false)
-                })
-        }
+        Icon(
+            painter = painterResource(id = R.drawable.ic_filter),
+            contentDescription = "Filter",
+            modifier = Modifier.size(28.dp),
+            tint = Color.Black
+        )
     }
 }
 
-
-//@Composable
-//fun OutfitCardsListSection(
-//    outfitsWithClothes: List<OutfitWithClothes>, onCardClick: (OutfitWithClothes) -> Unit
-//) {
-//    WeatherOutfitList( outfitsWithClothes, onCardClick)
-//}
 
 
 @Composable
@@ -399,12 +421,28 @@ fun WeatherOutfitList(
             .fillMaxWidth()
             .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
-        //    .padding(horizontal = 33.dp)
     ) {
         if (outfitsWithClothes.isEmpty()) {
-            Text(
-                text = "데이터가 없습니다.", color = Color.Red, modifier = Modifier.padding(20.dp)
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = "No outfits found.",
+                    color = Color(0xFF757575),
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "Try changing your filter or add a new outfit.",
+                    color = Color(0xFFBDBDBD),
+                    fontSize = 14.sp
+                )
+            }
         } else {
             outfitsWithClothes.forEach { outfitWithClothes ->
                 WeatherOutfitCard(
@@ -413,7 +451,6 @@ fun WeatherOutfitList(
                 Spacer(Modifier.height(23.dp))
             }
         }
-
     }
 }
 
