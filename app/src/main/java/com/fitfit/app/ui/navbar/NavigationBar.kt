@@ -39,7 +39,7 @@ fun BottomNavBar(
         NavBarTab("clothes", R.drawable.ic_clothes),
         NavBarTab("outfits", R.drawable.ic_outfits),
         NavBarTab("home", R.drawable.ic_home),
-        NavBarTab("community", R.drawable.ic_community),
+        NavBarTab("weather", R.drawable.ic_weather),
         NavBarTab("my page", R.drawable.ic_mypage),
     )
 
