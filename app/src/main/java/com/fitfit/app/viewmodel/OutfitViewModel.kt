@@ -96,7 +96,10 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
     fun updateOutfit(
         oid: String,
         clothesIds: List<String>,
-
+        occasion: List<String>,
+        comment: String?,
+        wornStartTime: Long,
+        wornEndTime: Long
     ) = viewModelScope.launch {
         _updateState.value = OutfitOperationState.Loading
 
@@ -104,19 +107,36 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
             _updateState.value = OutfitOperationState.Failure("Choose at least one piece of clothing.")
             return@launch
         }
+        if (wornEndTime <= wornStartTime) {
+            _updateState.value = OutfitOperationState.Failure("Invalid worn time range.")
+            return@launch
+        }
 
-        val result = outfitRepository?.updateOutfit(
-            oid = oid,
-            clothesIds = clothesIds
-        )
+        // 위치 정보 가져오기 (수정 시에도 현재 위치 기준으로 다시 날씨 반영하고 싶다면 사용)
+        val locationResult = locationManager.getCurrentLocation()
 
-        result?.onSuccess {
-            _updateState.value = OutfitOperationState.Success("Successfully updated outfit.")
-            loadOutfitsWithClothes()
-        }?.onFailure {
-            _updateState.value = OutfitOperationState.Failure(
-                it.message ?: "Failed to update outfit."
+        locationResult.onSuccess { location ->
+            val result = outfitRepository?.updateOutfit(
+                oid = oid,
+                clothesIds = clothesIds,
+                occasion = occasion,
+                comment = comment,
+                wornStartTime = wornStartTime,
+                wornEndTime = wornEndTime,
+                latitude = location.latitude,
+                longitude = location.longitude
             )
+
+            result?.onSuccess {
+                _updateState.value = OutfitOperationState.Success("Successfully updated outfit.")
+                loadOutfitsWithClothes()
+            }?.onFailure {
+                _updateState.value =
+                    OutfitOperationState.Failure(it.message ?: "Failed to update outfit.")
+            }
+        }.onFailure { e ->
+            _updateState.value =
+                OutfitOperationState.Failure(e.message ?: "Failed to get location")
         }
     }
 

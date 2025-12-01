@@ -1,6 +1,5 @@
 package com.fitfit.app.viewmodel
 
-import FilterState
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -243,13 +242,12 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
                     val targetDayWeather = forecastResponse.daily[dayIndex]
 
-                    val filterState = FilterState(
+                    val weatherFilterValue = WeatherFilterData(
                         temperature = targetDayWeather.temp.day,
-                        weather = targetDayWeather.weather.firstOrNull()?.main,
-                        occasion = null
+                        weather = targetDayWeather.weather.firstOrNull()?.main
                     )
 
-                    _weatherFilterState.value = WeatherFilterUiState.Success(filterState)
+                    _weatherFilterState.value = WeatherFilterUiState.Success(weatherFilterValue)
                     _isLoadingApi.value = false
                 } else {
                     _weatherFilterState.value = WeatherFilterUiState.Failure(
@@ -404,6 +402,10 @@ data class DailyWeatherData(
     val weatherIcon: String
 )
 
+data class WeatherFilterData(
+    val temperature: Double?,
+    val weather: String?,
+)
 
 sealed class WeatherCardUiState {
     object Idle : WeatherCardUiState()
@@ -415,6 +417,6 @@ sealed class WeatherCardUiState {
 sealed class WeatherFilterUiState {
     object Idle : WeatherFilterUiState()
     object Loading : WeatherFilterUiState()
-    data class Success(val filterState: FilterState) : WeatherFilterUiState()
+    data class Success(val weatherFilterState: WeatherFilterData) : WeatherFilterUiState()
     data class Failure(val message: String) : WeatherFilterUiState()
 }
