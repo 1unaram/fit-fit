@@ -56,13 +56,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.data.util.formatTimestampToDate
-import com.fitfit.app.ui.screen.homeScreen.components.OutfitDataScreen
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
+import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsCard
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
@@ -147,37 +148,59 @@ fun HomeScreen(
             FilterButtonSection(showFilter, onChange = { showFilter = it })
         }
 
-
         item {
             OutfitCardsListSection(
                 outfitsWithClothes = outfitsWithClothes,
-                onCardClick = { clickedOutfit ->
-                    selectedOutfit = clickedOutfit
+                onCardClick = { outfit ->
+                    selectedOutfit = outfit
                     showOutfit = true
                 }
             )
         }
+
+//        item {
+//            Dialog(
+//                onDismissRequest = { showOutfit = false },
+//                properties = DialogProperties(
+//                    usePlatformDefaultWidth = false
+//                )
+//            ) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(horizontal = 24.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    OutfitsCard(
+//                        outfitWithClothes = selectedOutfit!!,
+//                        onDismiss = { showOutfit = false }
+//                    )
+//                }
+//            }
+//        }
     }
 
     // 다이얼로그들
     if (showOutfit && selectedOutfit != null) {
-        OutfitDataScreen(
-            outfitData = selectedOutfit!!,
-            onDismiss = {
-                showOutfit = false
+        Dialog(
+            onDismissRequest = { showOutfit = false },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                OutfitsCard(
+                    outfitWithClothes = selectedOutfit!!,
+                    onDismiss = { showOutfit = false }
+                )
             }
-        )
+        }
     }
-//    if (showDatePicker) {
-//        DatePicker(
-//            onDismissRequest = { showDatePicker = false },
-//            onDateChange = { date ->
-//                onDateSelected(date)
-//                showDatePicker = false
-//            },
-//            initialDate = selectedDate
-//        )
-//    }
 }
 
 
