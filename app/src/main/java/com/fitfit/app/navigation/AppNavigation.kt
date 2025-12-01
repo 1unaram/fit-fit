@@ -153,6 +153,7 @@ fun AppNavigation(
             }
             composable (Screens.MYPAGE) {
                 MyPageScreen(
+                    navController = navController,
                     userViewModel = userViewModel
                 )
             }

@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -54,21 +56,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.data.util.formatTimestampToDate
-import com.fitfit.app.ui.screen.homeScreen.components.OutfitDataScreen
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
+import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsCard
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
+import com.fitfit.app.viewmodel.WeatherCardUiState
 import com.fitfit.app.viewmodel.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,12 +84,22 @@ fun HomeScreen(
     weatherViewModel: WeatherViewModel
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
+    // 전체 코디 + 옷 목록 리스트
     val outfitsWithClothes by outfitViewModel.outfitsWithClothes.collectAsState()
+    val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
+    val isLoading by weatherViewModel.isLoadingApi.collectAsState()
+    // 필터 다이얼로그 표시 여부
     var showFilter by remember { mutableStateOf(false) }
+    // 코디 상세 다이얼로그 표시 여부
     var showOutfit by remember { mutableStateOf(false) }
+    // 현재 선택된 코디(카드 클릭 시 담김)
     var selectedOutfit by remember { mutableStateOf<OutfitWithClothes?>(null) }
+    // 날짜 선택 다이얼로그 표시 여부
     var showDatePicker by remember { mutableStateOf(false) }
 
+    val weatherFilterState by weatherViewModel.weatherFilterState.collectAsState()
+    // 현재 적용 중인 필터 상태(온도 허용 범위, 날씨, 상황)
+    var filterState by remember { mutableStateOf(FilterState()) }
     var currentDate by remember {
         val now = Date()
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -97,17 +112,59 @@ fun HomeScreen(
             outfitViewModel.loadOutfitsWithClothes()
         }
     }
+//    LaunchedEffect(weatherFilterState) {
+//        filterState = filterState.copy(weatherFilterState.)
+//    }
+
+//    // 필터된 아웃핏 새로고침
+//    LaunchedEffect(filterState) {
+//        outfitsWithClothes.forEach { (outfit, clothes) ->
+//            outfit.
+//        }
+//    }
+    val currentTemp = (weatherCardState as? WeatherCardUiState.Success)
+        ?.cardData
+        ?.currentTemperature
 
 
-    val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
-    val isLoading by weatherViewModel.isLoadingApi.collectAsState()
+    // 필터가 적용된 코디 목록을 담을 상태
+    val filteredOutfits = remember(outfitsWithClothes, filterState, weatherCardState) {
+        outfitsWithClothes.filter { outfitWithClothes ->
+            val outfit = outfitWithClothes.outfit
+            val avg = outfit.temperatureAvg
+
+            // currentTemp 또는 avg 가 null이면 필터에서 탈락
+            val matchTemp = if (currentTemp != null && avg != null) {
+                val min = currentTemp - filterState.temperature
+                val max = currentTemp + filterState.temperature
+                avg in min..max
+            } else {
+                false
+            }
+
+            val matchWeather =
+                filterState.weather == null ||
+                        outfit.iconCode == filterState.weather //수정해야함
+
+            val matchOccasion =
+                filterState.occasion == null ||
+                        outfit.occasion.contains(filterState.occasion)
+
+            matchWeather && matchOccasion && matchTemp
+        }
+    }
+
+
+
+
 
 
     // ================== ui ==============
     LazyColumn (
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFE8F2FF))){
+            .background(Color(0xFFE8F2FF))
+    ){
 
         /* Section1. Weather Card */
         item {
@@ -144,37 +201,59 @@ fun HomeScreen(
             FilterButtonSection(showFilter, onChange = { showFilter = it })
         }
 
-
         item {
-            OutfitCardsListSection(
-                outfitsWithClothes = outfitsWithClothes,
-                onCardClick = { clickedOutfit ->
-                    selectedOutfit = clickedOutfit
+            WeatherOutfitList(
+                outfitsWithClothes = filteredOutfits,
+                onCardClick = { outfit ->
+                    selectedOutfit = outfit
                     showOutfit = true
                 }
             )
         }
+
+//        item {
+//            Dialog(
+//                onDismissRequest = { showOutfit = false },
+//                properties = DialogProperties(
+//                    usePlatformDefaultWidth = false
+//                )
+//            ) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(horizontal = 24.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    OutfitsCard(
+//                        outfitWithClothes = selectedOutfit!!,
+//                        onDismiss = { showOutfit = false }
+//                    )
+//                }
+//            }
+//        }
     }
 
     // 다이얼로그들
     if (showOutfit && selectedOutfit != null) {
-        OutfitDataScreen(
-            outfitData = selectedOutfit!!,
-            onDismiss = {
-                showOutfit = false
+        Dialog(
+            onDismissRequest = { showOutfit = false },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                OutfitsCard(
+                    outfitWithClothes = selectedOutfit!!,
+                    onDismiss = { showOutfit = false }
+                )
             }
-        )
+        }
     }
-//    if (showDatePicker) {
-//        DatePicker(
-//            onDismissRequest = { showDatePicker = false },
-//            onDateChange = { date ->
-//                onDateSelected(date)
-//                showDatePicker = false
-//            },
-//            initialDate = selectedDate
-//        )
-//    }
 }
 
 
@@ -291,8 +370,11 @@ fun FilterButtonSection(
             FilterSelectScreen(
                 initialFilter = FilterState(3.0, "Sunny", "Casual"),
                 onDismiss = { onChange(false) },
-                onSave = {
-                    // 로직 추가
+                onSave = {temp, weather, occasion ->
+                    val Temp = 3.0
+                    val Weather = "Sunny"
+                    val Occasion = "Casual"
+
                     onChange(false)
                 })
         }
@@ -300,12 +382,12 @@ fun FilterButtonSection(
 }
 
 
-@Composable
-fun OutfitCardsListSection(
-    outfitsWithClothes: List<OutfitWithClothes>, onCardClick: (OutfitWithClothes) -> Unit
-) {
-    WeatherOutfitList( outfitsWithClothes, onCardClick)
-}
+//@Composable
+//fun OutfitCardsListSection(
+//    outfitsWithClothes: List<OutfitWithClothes>, onCardClick: (OutfitWithClothes) -> Unit
+//) {
+//    WeatherOutfitList( outfitsWithClothes, onCardClick)
+//}
 
 
 @Composable
@@ -315,6 +397,8 @@ fun WeatherOutfitList(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
         //    .padding(horizontal = 33.dp)
     ) {
         if (outfitsWithClothes.isEmpty()) {
@@ -349,14 +433,15 @@ fun WeatherOutfitCard(
         border = BorderStroke(1.dp, Color.White)
     ) {
         Box(modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 20.dp),
+            //.padding(horizontal = 24.dp, vertical = 20.dp),
         ) {
             Column (
                 modifier = Modifier
-                    .fillMaxSize(),
-                //    .padding(12.dp),
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+            //    .padding(12.dp),
                         //start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -377,7 +462,7 @@ fun WeatherOutfitCard(
                         Box(modifier = Modifier.size(24.dp)) {
                             WeatherIcon(outfitsWithClothes.outfit.iconCode, "Weather Icon")
                         }
-                        //Spacer(Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         // temperature
                         Text(
                             text = String.format(
@@ -391,12 +476,14 @@ fun WeatherOutfitCard(
                 }
                 Row(
                     //horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 1. 표시할 아이템 개수 계산
                     // 옷이 4개 이하면 전부 다(size), 5개 이상이면 3개만 보여줌
-                    val displayCount = if (outfitsWithClothes.clothes.size > 4) 3 else outfitsWithClothes.clothes.size
-
+                    val totalSize = outfitsWithClothes.clothes.size
+                    val displayCount = if (totalSize > 4) 3 else totalSize
                     // 2. 계산된 개수만큼 앞에서부터 잘라서 보여줌
                     val visibleClothes = outfitsWithClothes.clothes.take(displayCount)
 
@@ -404,7 +491,8 @@ fun WeatherOutfitCard(
                         // 썸네일 박스
                         Box(
                             modifier = Modifier
-                                .size(46.dp) // 크기는 디자인에 맞게 조절
+                                .weight(1f)
+                                .aspectRatio(1f)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(Color(0xFFF5F5F5))
                         ) {
@@ -420,7 +508,7 @@ fun WeatherOutfitCard(
                                 Icon(
                                     imageVector = Icons.Default.ImageNotSupported,
                                     contentDescription = null,
-                                    modifier = Modifier.align(Alignment.Center).size(20.dp),
+                                    modifier = Modifier.align(Alignment.Center).size(36.dp),
                                     tint = Color.Gray
                                 )
                             }
@@ -433,7 +521,8 @@ fun WeatherOutfitCard(
 
                         Box(
                             modifier = Modifier
-                                .size(46.dp)
+                                .weight(1f)
+                                .aspectRatio(1f)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(Color(0xFFE0E0E0)),
                             contentAlignment = Alignment.Center
@@ -444,14 +533,12 @@ fun WeatherOutfitCard(
                                 fontWeight = FontWeight.Bold,
                                 color = Color.DarkGray
                             )
-                            // 만약 점 3개 아이콘을 원하면 아래 코드 사용
-                            /*
-                            Icon(
-                                imageVector = Icons.Default.MoreHoriz,
-                                contentDescription = "More",
-                                tint = Color.DarkGray
-                            )
-                            */
+                        }
+                    }
+                    val usedSlots = displayCount + if (totalSize > 4) 1 else 0
+                    if (usedSlots < 4) {
+                        repeat(4 - usedSlots) {
+                            Spacer(modifier = Modifier.weight(1f)) // 동일한 가중치를 주어 크기 유지
                         }
                     }
                 }
@@ -522,329 +609,3 @@ fun WeatherOutfitCard(
     }
 }
 
-
-
-@Preview(showBackground = true)
-@Composable
-fun WeatherOutfitCardPreview() {
-//    val sampleOutfit = OutfitEntity(
-//        oid = "001",
-//        ownerUid = "user01",
-//        clothesIds = listOf("c1", "c2"),
-//        createdAt = System.currentTimeMillis(),
-//        isSynced = true,
-//        lastModified = System.currentTimeMillis(),
-//        wornStartTime = System.currentTimeMillis(),
-//        wornEndTime = System.currentTimeMillis() + 2 * 60 * 60 * 1000, // 두시간 뒤
-//        latitude = 37.5665,
-//        longitude = 126.9780,
-//        temperatureAvg = 18.2,
-//        temperatureMin = 14.0,
-//        temperatureMax = 23.0,
-//        description = "맑음",
-//        iconCode = "10d",
-//        windSpeed = 4.2,
-//        precipitation = 0.0,
-//        weatherFetched = true
-//    )
-
-//    val mockClothesList = listOf(
-//        ClothesEntity(
-//            cid = "c1",
-//            ownerUid = "user01",
-//            imagePath = "https://via.placeholder.com/150",
-//            category = "상의",
-//            nickname = "티셔츠"
-//        ),
-//        ClothesEntity(
-//            cid = "c2",
-//            ownerUid = "user01",
-//            imagePath = "https://via.placeholder.com/150",
-//            category = "하의",
-//            nickname = "청바지"
-//        )
-//    )
-//
-//    val clothesImages = sampleOutfit.clothesIds.mapNotNull { cid ->
-//        mockClothesList.find { it.cid == cid }?.imagePath
-//    }
-//
-//    WeatherOutfitCard(
-//        showOutfit = true,
-//        cardData = sampleOutfit.copy(
-//        ),
-//        onClick = {}
-//    )
-}
-// 예시: 상단 날씨 섹션
-//@Composable
-//fun TopWeatherSection(
-//    date: String,
-//    temperature: String,
-//    minMax: String,
-//    weatherDesc: String,
-//    precipitation: String,
-//    windSpeed: String
-//) {
-//    Box(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(291.dp)
-//            .background(
-//                brush = Brush.verticalGradient(
-//                    colors = listOf(
-//                        Color(0xFFE8F2FF),
-//                        Color(0xFFFFFFFF)
-//                    )
-//                )
-//            )
-//    ) {
-////        Image(
-////            painter = painterResource(id = R.drawable.background_sample), // 예시: 뒷 배경 지정
-////            contentDescription = null,
-////            modifier = Modifier.fillMaxSize(),
-////            contentScale = ContentScale.Crop
-////        )
-//        Column(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(horizontal = 24.dp, vertical = 22.dp),
-//            verticalArrangement = Arrangement.spacedBy(10.dp)
-//        ) {
-//
-//            // 날씨 정보 행
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.SpaceBetween,
-//                verticalAlignment = Alignment.Top,
-//            ) {
-//                // 아이콘+온도+최고/최저+간단정보
-//                //  날씨 아이콘
-//                Icon(
-//                    imageVector = Icons.Default.Star, contentDescription = "Weather",
-//                    tint = Color(0xFF212547),
-//                    modifier = Modifier.size(36.dp)
-//                )
-//                Column(
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    Text(
-//                        text = temperature,
-//                        fontSize = 22.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color(0xFF212547)
-//                    )
-//                    Text(
-//                        text = minMax,
-//                        fontSize = 13.sp,
-//                        color = Color(0xFF8E8E93),
-//                        fontWeight = FontWeight.Medium
-//                    )
-//                }
-//                // 강수량, 풍속 등 정보
-//                Column(
-//                    horizontalAlignment = Alignment.End
-//                ) {
-//                    Text(
-//                        text = weatherDesc,
-//                        fontSize = 17.sp,
-//                        fontWeight = FontWeight.ExtraBold,
-//                        color = Color(0xFF3673E4)
-//                    )
-//                    Spacer(Modifier.height(4.dp))
-//                    Row { // 강수량
-//                        Text("Precipitation", fontSize = 13.sp, color = Color(0xFF8E8E93))
-//                        Spacer(Modifier.width(8.dp))
-//                        Text(
-//                            precipitation,
-//                            fontSize = 14.sp,
-//                            color = Color.Black,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                    }
-//                    Row { // 풍속
-//                        Text("Wind speed", fontSize = 13.sp, color = Color(0xFF8E8E93))
-//                        Spacer(Modifier.width(8.dp))
-//                        Text(
-//                            windSpeed,
-//                            fontSize = 14.sp,
-//                            color = Color.Black,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                    }
-//                }
-//            }
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth(),
-//                horizontalArrangement = Arrangement.Start
-//            ) {
-//                Box(
-//                    modifier = Modifier
-//                        .background(
-//                            color = Color.White,
-//                            shape = RoundedCornerShape(10.dp)
-//                        )
-//                        .padding(horizontal = 16.dp, vertical = 9.dp)
-//                ) {
-//                    Column(
-//                        horizontalAlignment = Alignment.CenterHorizontally
-//                    ) {
-//                        Row {
-//                            Text("Check your ", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-//                            Text(
-//                                "Fit-Fit",
-//                                color = Color(0xFF3673E4),
-//                                fontWeight = FontWeight.Bold,
-//                                fontSize = 18.sp
-//                            )
-//                            Text(" today", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-//                        }
-//                        Spacer(Modifier.height(5.dp))
-//                        Text(
-//                            text = date,
-//                            fontSize = 15.sp,
-//                            fontWeight = FontWeight.Bold,
-//                            color = Color.Black
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-
-//                DateSelector(
-//                    selectedDate = selectedDate, // LocalDate 타입
-//                    onDateSelected = { /* 날짜 갱신 로직 */ }
-//                )
-
-//@Composable
-//fun DateSelector(
-//    selectedDate: LocalDate,
-//    onDateSelected: (LocalDate) -> Unit
-//) {
-//    var showFilter by remember { mutableStateOf(false) }
-//
-//    Box(
-//        modifier = Modifier
-//            .background(Color.White, shape = RoundedCornerShape(10.dp))
-//            .clickable { showFilter = true }
-//            .padding(horizontal = 14.dp, vertical = 7.dp)
-//    ) {
-//        Text(
-//            text = selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-//            fontSize = 13.sp,
-//            fontWeight = FontWeight.Bold,
-//            color = Color.Black
-//        )
-//    }
-//
-//    if (showFilter) {
-//        DatePickerDialog(
-//            onDismissRequest = { showFilter = false },
-//            onDateChange = { date ->
-//                onDateSelected(date)
-//                showFilter = false
-//            },
-//            initialDate = selectedDate
-//        )
-//    }
-//}
-
-
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        LazyColumn(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(top = 35.dp, bottom = 74.dp)
-//        ) {
-//            // 상단 날씨·날짜 정보
-//            item {
-//                TopWeatherSection(
-//                    date = "2025-11-02",
-//                    temperature = "10.7°C",
-//                    minMax = "5.3°C - 15.7°C",
-//                    weatherDesc = "heavy intensity rain",
-//                    precipitation = "0.85",
-//                    windSpeed = "7 m/s"
-//                )
-//                Spacer(Modifier.height(18.dp))
-//
-//            }
-//            item {
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    Spacer(Modifier.weight(1f))
-//                    FloatingActionButton(
-//                        onClick = { showFilter = true }
-//                    ) {
-//                        Icon(Icons.Default.Search, contentDescription = "Filter")
-//                    }
-//
-//                    if (showFilter) {
-//                        Dialog(onDismissRequest = { showFilter = false })
-//                        {
-//                            FilterSelectScreen(
-//                                initialFilter = FilterState(3, "Sunny", "Casual"),
-//                                onDismiss = { showFilter = false },
-//                                onSave = {
-//                                    // 로직 추가
-//                                    showFilter = false
-//                                }
-//                            )
-//                        }
-//                    }
-//                }
-//            }
-//            item {
-//            }
-//            val filteredOutfits = listOf(
-//                FilteredOutfit(date = "20251117", name = "Casual Look"),
-//                FilteredOutfit(date = "20251114", name = "Business Style"),
-//                FilteredOutfit(date = "20251112", name = "Party Dress"),
-//                FilteredOutfit(date = "20251117", name = "Casual Look"),
-//                FilteredOutfit(date = "20251114", name = "Business Style"),
-//                FilteredOutfit(date = "20251112", name = "Party Dress")
-//            )
-//            // 날짜별 의상 추천 카드 리스트
-//            items(filteredOutfits) { outfit ->
-//                WeatherOutfitList(
-//                    items = listOf(
-//                        OutfitCardData(
-//                            date = outfit.date,
-//                            mainWeather = "cloud_and_rain",
-//                            temperature = "9.3°C",
-//                            occasions = listOf("Date", "School"),
-//                            clothesImages = listOf(
-//                                "https://api.builder.io/api/v1/image/assets/TEMP6b83aa181a37707ea2591d30a2c38fdce41e0c7c?width=100",
-//                                "https://api.builder.io/api/v1/image/assets/TEMP63e4ca762a5ae150c81c300763c0b8289a276fab?width=100"
-//                            )
-//                        )
-//                    ),
-//                    onCardClick = { selectedOutfit = it }
-//                )
-//            }
-//        }
-//    }
-//    if (selectedOutfit != null) {
-//        Dialog(onDismissRequest = { selectedOutfit = null }) {
-//            OutfitDataScreen(
-//                date = selectedOutfit!!.date,
-//                weatherIcon = painterResource(id = android.R.drawable.ic_menu_help),
-//                temperature = selectedOutfit!!.temperature,
-//                clothesImages = selectedOutfit!!.clothesImages,
-//                weatherDescription = "날씨 정보",
-//                precipitation = "0.85",
-//                windSpeed = "7 m/s",
-//                temperatureRange = "3 ~ 14°C",
-//                timeRange = "오전/오후",
-//                occasions = selectedOutfit!!.occasions,
-//                comment = "코멘트 예시",
-//                onDismiss = { selectedOutfit = null }
-//            )
-//        }
-//    }
