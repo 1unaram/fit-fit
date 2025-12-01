@@ -211,22 +211,10 @@ private fun UserDataCard(user: UserEntity) {
                 value = user.username
             )
 
-            // 2. UID (한 줄 정렬)
-            InfoRow(
-                label = "UID",
-                value = user.uid
-            )
-
             // 3. Created At
-            InfoRow(
+            InfoColumn(
                 label = "Created At",
                 value = createdAtText
-            )
-
-            // 4. Last Modified
-            InfoRow(
-                label = "Last Modified",
-                value = lastModifiedText
             )
         }
     }
