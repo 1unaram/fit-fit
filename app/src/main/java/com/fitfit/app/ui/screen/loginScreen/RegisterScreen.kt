@@ -18,9 +18,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,6 +72,11 @@ fun RegisterScreen(
             .fillMaxSize()
             .background(Color(0xFFE8F2FF))
     ) {
+
+        BackButton(
+            onClick = { navController.popBackStack() }
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -86,6 +94,28 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.weight(1f))
         }
+    }
+}
+
+@Composable
+private fun BackButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(start = 16.dp, top = 48.dp)
+            .size(40.dp)
+            .background(
+                color = Color.White.copy(alpha = 0.8f),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "back",
+            tint = Color(0xFF111111),
+            modifier = Modifier.size(24.dp)
+        )
     }
 }
 
