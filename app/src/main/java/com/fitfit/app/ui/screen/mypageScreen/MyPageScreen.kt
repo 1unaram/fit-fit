@@ -83,48 +83,29 @@ fun MyPageScreen(
             .fillMaxSize()
             .background(Color(0xFFE8F2FF))
     ) {
+        MyPageTopBar()
+
         when {
             isLoading -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
-
-//            currentUser == null -> {
-//                // 로그인 안 된 상태
-//                Column(
-//                    modifier = Modifier.align(Alignment.Center),
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//                    Text("You are not logged in.")
-//                    Spacer(Modifier.height(12.dp))
-//                    Button(onClick = {navController.navigate(Screens.LOGIN)}) {
-//                        Text("Go to Login")
-//                    }
-//                    Spacer(Modifier.height(8.dp))
-//                    OutlinedButton(onClick = { userViewModel.loadCurrentUser() }) {
-//                        Text("Retry")
-//                    }
-//                }
-//            }
-
             else -> {
                 // 로그인된 상태
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 34.dp),
+                        .padding(vertical = 15.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(30.dp) // 47dp에서 30dp로 조정
                 ){
-                    PageTitle()
 
-                    Spacer(Modifier.height(32.dp))
+                    Spacer(Modifier.height(36.dp))
 
                     ProfileIcon()
 
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(12.dp))
                     currentUser?.let { user ->
                         UserDataCard(user = user)
                     }
@@ -137,31 +118,13 @@ fun MyPageScreen(
                         )
                     }
 
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.height(20.dp))
 
                     LogoutButton(onLogoutClick = { userViewModel.logout() })
 
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun PageTitle() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp)
-            .padding(start = 33.dp, top = 8.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Text(
-            text = "My Page",
-            fontSize = 23.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.Black
-        )
     }
 }
 
@@ -189,7 +152,6 @@ fun ProfileIcon() {
 @Composable
 private fun UserDataCard(user: UserEntity) {
     val createdAtText = user.createdAt?.let { formatTimestampToDate(it) } ?: "-"
-    val lastModifiedText = user.lastModified?.let { formatTimestampToDate(it) } ?: "-"
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -211,7 +173,7 @@ private fun UserDataCard(user: UserEntity) {
                 value = user.username
             )
 
-            // 3. Created At
+            // 2. Created At
             InfoColumn(
                 label = "Created At",
                 value = createdAtText
@@ -220,33 +182,6 @@ private fun UserDataCard(user: UserEntity) {
     }
 }
 
-// 속성 ; 한 줄 정렬
-@Composable
-fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF8E8E93),
-            modifier = Modifier.weight(1.5f)
-        )
-        Spacer(Modifier.width(1.dp))
-        Text(
-            text = value,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1.5f)
-        )
-    }
-}
 // 속성 ; 두 줄 정렬
 @Composable
 fun InfoColumn(label: String, value: String) {
@@ -275,64 +210,37 @@ fun InfoColumn(label: String, value: String) {
 }
 @Composable
 private fun LogoutButton(onLogoutClick: () -> Unit) {
-//    Box(
-//        modifier = Modifier
-//            .padding(bottom = 16.dp)
-//            .fillMaxWidth(),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Box(modifier = Modifier
-//            .width(200.dp)
-//            .height(40.dp)
-//            .background(
-//                brush = Brush.linearGradient(
-//                    colors = listOf(
-//                        Color(0x99E8F2FF),
-//                        Color(0xCCE8F2FF)
-//                    )
-//                ),
-//                shape = RoundedCornerShape(13.dp)
-//            )
-//            .border(
-//                width = 1.dp,
-//                color = Color(0x26000000),
-//                shape = RoundedCornerShape(13.dp)
-//            )
-//            .clickable(onClick = onLogoutClick),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text(
-//                text = "Logout",
-//                fontSize = 17.sp,
-//                fontWeight = FontWeight.Bold,
-//                color = Color(0xFF3673E4)
-//            )
-//        }
-//    }
-    Card(
+    Box(
         modifier = Modifier
-            .width(294.dp)
-            .height(56.dp)
-            .clickable(onClick = onLogoutClick),
-        shape = RoundedCornerShape(17.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        ),
-        border = BorderStroke(1.dp, Color.White)
+            .padding(bottom = 16.dp)
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
+        Box(modifier = Modifier
+            .width(200.dp)
+            .height(40.dp)
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0x99E8F2FF),
+                        Color(0xCCE8F2FF)
+                    )
+                ),
+                shape = RoundedCornerShape(13.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = Color(0x26000000),
+                shape = RoundedCornerShape(13.dp)
+            )
+            .clickable(onClick = onLogoutClick),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Logout",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF3673E4),
-                textAlign = TextAlign.Center
+                color = Color(0xFF3673E4)
             )
         }
     }
