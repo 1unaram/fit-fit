@@ -1,6 +1,5 @@
 package com.fitfit.app.ui.screen.homeScreen.components
 
-import android.R.attr.text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +33,7 @@ import com.fitfit.app.viewmodel.WeatherCardUiState
 
 val WeatherBlue = Color(0xFF3B75E4) // 사진 속 파란색 텍스트
 val LabelGray = Color.DarkGray // 사진 속 회색 라벨
-val CardBackground = Color.White.copy(alpha = 0.5f) // 반투명 흰색 배경
+val CardBackground = Color.White.copy(alpha = 0.7f) // 반투명 흰색 배경
 
 @Composable
 fun WeatherCard(
@@ -123,7 +122,7 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             Text(
                 text = String.format("%.1f°C", cardData.currentTemperature),
                 fontSize = 28.sp, // 폰트 키움
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 color = Color.Black
             )
 
@@ -133,7 +132,8 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                         "${String.format("%.1f", cardData.todayMaxTemperature ?: 0.0)}°C",
                 fontSize = 12.sp,
                 color = LabelGray,
-                lineHeight = 14.sp
+                lineHeight = 14.sp,
+                fontWeight = FontWeight.Normal
             )
         }
 
@@ -151,9 +151,11 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             // 1. 날씨 설명 (파란색, 오른쪽 정렬)
             cardData.todayWeatherDescription?.let {
                 Text(
-                    text = it,
+                    text = it.replaceFirstChar { char ->
+                        if (char.isLowerCase()) char.titlecase() else char.toString()
+                    },
                     color = WeatherBlue,
-                    fontSize = 18.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.End, // 텍스트 자체를 오른쪽 정렬
                     lineHeight = 22.sp,
@@ -170,7 +172,7 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             ) {
                 // 2. 강수확률 (Probability of Precipitation)
                 StatRow(
-                    label = "PoP",
+                    label = "Probability of Precipitation",
                     value = String.format("%d%%", cardData.probabilityOfPrecipitation)
                 )
 

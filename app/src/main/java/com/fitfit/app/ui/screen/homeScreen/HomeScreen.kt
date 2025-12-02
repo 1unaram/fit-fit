@@ -161,6 +161,7 @@ fun HomeScreen(
         }
     }
 
+
     // 필터 적용된 코디 목록
     val filteredOutfits = remember(outfitsWithClothes, filterState, weatherCardState) {
         outfitsWithClothes.filter { outfitWithClothes ->
@@ -202,7 +203,7 @@ fun HomeScreen(
             /* Section1. Weather Card section*/
             item {
                 Box(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFFE8F2FF))
                 ) {
                     //배경 이미지
                     Image(
