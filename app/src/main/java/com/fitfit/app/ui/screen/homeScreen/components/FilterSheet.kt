@@ -315,7 +315,7 @@ fun WeatherSectionCompact(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = Color(0xFFEFF4F8), // 연한 회색 블루 (움푹 파인 느낌)
+                    color = Color(0xFFE8F2FF),
                     shape = RoundedCornerShape(12.dp)
                 )
                 .wrapContentHeight()

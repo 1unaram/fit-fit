@@ -112,8 +112,13 @@ fun HomeScreen(
 
 
     // 현재 적용 중인 필터 상태(온도 오차, 날씨, 상황)
-    var filterState by remember { mutableStateOf(FilterState()) }
-    //기준 날짜
+    var filterState by remember { mutableStateOf(
+        FilterState(
+            temperature = 3.0, //  ±3도 기본 오차
+            weather = null,
+            occasion = emptyList()
+        )
+    ) }    //기준 날짜
     var currentDate by remember {
         val now = Date()
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -229,14 +234,13 @@ fun HomeScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(end = 16.dp, top = 8.dp)
+                        .padding(16.dp)
                 ) {
                     FilterButtonSection(
                         showFilter,
                         onChange = { showFilter = it },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(16.dp),
                     )
                 }
             }
@@ -389,22 +393,16 @@ fun FilterButtonSection(
 ) {
     Box(
         modifier = modifier
-            .size(64.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-//            .shadow(
-//                elevation = 4.dp,
-//                shape = RoundedCornerShape(16.dp),
-//                ambientColor = Color.Black.copy(alpha = 0.15f),
-//                spotColor = Color.Black.copy(alpha = 0.15f)
-//            )
+            .size(24.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.Transparent)
             .clickable { onChange(true) },        // 전체 박스 클릭 가능
         contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_filter),
             contentDescription = "Filter",
-            modifier = Modifier.size(28.dp),
+            modifier = Modifier.size(21.dp),
             tint = Color.Black
         )
     }
@@ -448,7 +446,7 @@ fun WeatherOutfitList(
                 WeatherOutfitCard(
                     outfitWithClothes, onClick = { onCardClick(outfitWithClothes)}
                 )
-                Spacer(Modifier.height(23.dp))
+    //            Spacer(Modifier.height(12.dp))
             }
         }
     }
@@ -470,13 +468,12 @@ fun WeatherOutfitCard(
         border = BorderStroke(1.dp, Color.White)
     ) {
         Box(modifier = Modifier.fillMaxSize()
-            //.padding(horizontal = 24.dp, vertical = 20.dp),
+            .padding(horizontal = 24.dp, vertical = 12.dp),
         ) {
             Column (
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
-            //    .padding(12.dp),
+//                    .fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp),
+                .padding(top = 18.dp),
                         //start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
@@ -596,8 +593,8 @@ fun WeatherOutfitCard(
             }
             Row(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 10.dp, end = 16.dp),
+                    .align(Alignment.TopEnd),
+                //    .padding(top = 10.dp, end = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 outfitsWithClothes.outfit.occasion.forEach { it ->
