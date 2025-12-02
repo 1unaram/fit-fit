@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fitfit.app.BuildConfig
+import com.fitfit.app.data.local.entity.OutfitEntity
+import com.fitfit.app.data.local.entity.WeatherUpdateStatus
 import com.fitfit.app.data.repository.OpenWeatherRepository
 import com.fitfit.app.data.repository.OutfitRepository
 import com.fitfit.app.data.util.LocationManager
@@ -120,7 +122,15 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
 
         val pendingOutfits = repository.getPendingWeatherOutfits()
+
         pendingOutfits.forEach { outfit ->
+            // 1) 집계 시작 전에 상태를 UPDATING 으로 변경
+            val updatingOutfit: OutfitEntity = outfit.copy(
+                weatherUpdateStatus = WeatherUpdateStatus.UPDATING.name
+            )
+            repository.updateOutfitStatus(updatingOutfit)
+
+            // 2) 실제 날씨 조회 + 집계
             fetchAndAggregateWeatherForOutfit(
                 outfitId = outfit.oid,
                 wornStartTime = outfit.wornStartTime,
