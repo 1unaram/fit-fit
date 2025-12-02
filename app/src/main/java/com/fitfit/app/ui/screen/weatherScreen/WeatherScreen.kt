@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.viewmodel.DailyWeatherData
 import com.fitfit.app.viewmodel.HourlyWeatherData
@@ -54,13 +54,19 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherScreen(
-    weatherViewModel: WeatherViewModel = viewModel()
+    weatherViewModel: WeatherViewModel
 ) {
     val weatherScreenState by weatherViewModel.weatherScreenState.collectAsState()
     val locationName by weatherViewModel.locationName.collectAsState()
 
     LaunchedEffect(Unit) {
         weatherViewModel.getWeatherScreenData()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            weatherViewModel.resetWeatherScreenState()
+        }
     }
 
     Box(

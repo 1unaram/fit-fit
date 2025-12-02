@@ -2,7 +2,6 @@ package com.fitfit.app.ui.screen.homeScreen
 
 import FilterSelectScreen
 import FilterState
-import android.R.attr.onClick
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import androidx.compose.foundation.BorderStroke
@@ -30,13 +29,11 @@ import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePickerDefaults.dateFormatter
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -56,7 +52,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -64,9 +59,9 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.OutfitWithClothes
-import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.data.util.formatTimestampToDate
 import com.fitfit.app.data.util.mapIconCodeToWeather
+import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsCard
 import com.fitfit.app.viewmodel.ClothesViewModel
@@ -77,11 +72,9 @@ import com.fitfit.app.viewmodel.WeatherFilterUiState
 import com.fitfit.app.viewmodel.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,11 +119,7 @@ fun HomeScreen(
     }
     //기준 온도
     var currentTemp by remember {
-        mutableStateOf(
-            (weatherCardState as? WeatherCardUiState.Success)
-                ?.cardData
-                ?.currentTemperature
-        )
+        mutableStateOf<Double?>(null)
     }
 
 
@@ -142,6 +131,14 @@ fun HomeScreen(
         }
     }
 
+    // weatherCardState 변경 시 currentTemp 업데이트
+    LaunchedEffect(weatherCardState) {
+        val success = weatherCardState as? WeatherCardUiState.Success
+        if (currentTemp == null && success != null) {
+            currentTemp = success.cardData.currentTemperature
+        }
+    }
+
     LaunchedEffect(weatherFilterState) {
         val success = weatherFilterState as? WeatherFilterUiState.Success
         val value = success?.weatherFilterState
@@ -150,6 +147,17 @@ fun HomeScreen(
             filterState = filterState.copy(
                 weather = value.weather              // 날씨 조건만 여기서 세팅
             )
+        }
+    }
+
+
+    // 날씨 데이터 갱신
+    LaunchedEffect(Unit) {
+        weatherViewModel.getWeatherCardData()
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            weatherViewModel.resetWeatherCardState()
         }
     }
 
@@ -167,7 +175,7 @@ fun HomeScreen(
                 val max = baseTemp + range
                 avg in min..max
             } else {
-                false
+                true
             }
 
             val matchWeather =
@@ -180,9 +188,6 @@ fun HomeScreen(
             matchWeather && matchOccasion && matchTemp
         }
     }
-
-
-
 
 
 

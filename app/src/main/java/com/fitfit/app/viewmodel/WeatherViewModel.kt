@@ -44,9 +44,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val _isLoadingApi = MutableStateFlow(false)
     val isLoadingApi: StateFlow<Boolean> = _isLoadingApi
 
-    private val _currentLocation = MutableStateFlow<LocationManager.Coordinates?>(null)
-    val currentLocation: StateFlow<LocationManager.Coordinates?> = _currentLocation
-
     private val _locationName = MutableStateFlow<String?>(null)
     val locationName: StateFlow<String?> = _locationName.asStateFlow()
 
@@ -64,7 +61,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             // 1. 현재 위치 가져오기
             val lat = location.latitude
             val lon = location.longitude
-            _currentLocation.value = LocationManager.Coordinates(lat, lon)
 
             // 2. Weather Card용 날씨 정보 가져오기
             // Weather API와 Geo(위치명) API 병렬로 요청
@@ -86,12 +82,18 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
                 val cardData = WeatherCardData(
                     todayWeatherIconCode = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.icon,
-                    currentTemperature = weatherResponse.current.temp,
-                    todayMinTemperature = weatherResponse.daily?.firstOrNull()?.temp?.min,
-                    todayMaxTemperature = weatherResponse.daily?.firstOrNull()?.temp?.max,
+                    currentTemperature = String.format("%.1f", weatherResponse.current.temp).toDouble(),
+                    todayMinTemperature = weatherResponse.daily?.firstOrNull()?.temp?.min?.let {
+                        String.format("%.1f", it).toDouble()
+                    },
+                    todayMaxTemperature = weatherResponse.daily?.firstOrNull()?.temp?.max?.let {
+                        String.format("%.1f", it).toDouble()
+                    },
                     todayWeatherDescription = weatherResponse.daily?.firstOrNull()?.weather?.firstOrNull()?.description,
                     probabilityOfPrecipitation = (weatherResponse.daily?.firstOrNull()?.pop?.times(100))?.toInt() ?: 0,
-                    windSpeed = weatherResponse.daily?.firstOrNull()?.windSpeed,
+                    windSpeed = weatherResponse.daily?.firstOrNull()?.windSpeed?.let {
+                        String.format("%.1f", it).toDouble()
+                    },
                     locationName = fetchedLocationName ?: "Unknown Location"
                 )
                 _weatherCardState.value = WeatherCardUiState.Success(cardData)
@@ -169,7 +171,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     precipitation = aggregated.precipitationAvg
                 )
             }
-
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -242,10 +243,12 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
                     val targetDayWeather = forecastResponse.daily[dayIndex]
 
-                    val weatherFilterValue = WeatherFilterData(
-                        temperature = targetDayWeather.temp.day,
-                        weather = targetDayWeather.weather.firstOrNull()?.main
-                    )
+                val weatherFilterValue = WeatherFilterData(
+                    temperature = targetDayWeather.temp.day.let {
+                        String.format("%.1f", it).toDouble()
+                    },
+                    weather = targetDayWeather.weather.firstOrNull()?.main
+                )
 
                     _weatherFilterState.value = WeatherFilterUiState.Success(weatherFilterValue)
                     _isLoadingApi.value = false
@@ -278,7 +281,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
         locationResult.onSuccess { location ->
             val coordinates = LocationManager.Coordinates.fromLocation(location)
-            _currentLocation.value = coordinates
 
             openWeatherRepository.getTodayAndWeeklyWeather(
                 coordinates.latitude,
@@ -335,14 +337,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // ========= Location Handling =========
-    // ### 현재 위치 가져오기 ###
-    fun getCurrentLocation() = viewModelScope.launch {
-        val result = locationManager.getCurrentLocation()
-        result.onSuccess { location ->
-            _currentLocation.value = LocationManager.Coordinates.fromLocation(location)
-        }
-    }
-
     // ### 위치 권한 확인 ###
     fun hasLocationPermission(): Boolean {
         return locationManager.hasLocationPermission()

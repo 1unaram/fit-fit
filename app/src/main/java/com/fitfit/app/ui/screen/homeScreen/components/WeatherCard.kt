@@ -167,9 +167,9 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                     .padding(start = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // 2. 강수량 (Precipitation)
+                // 2. 강수확률 (Probability of Precipitation)
                 StatRow(
-                    label = "Precipitation",
+                    label = "PoP",
                     value = String.format("%d%%", cardData.probabilityOfPrecipitation)
                 )
 
