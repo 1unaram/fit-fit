@@ -236,7 +236,8 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
                 Text(
                     text = current.weatherDescription,
                     style = MaterialTheme.typography.titleMedium,
-                    color = textColor.copy(alpha = 0.9f)
+                    color = textColor.copy(alpha = 0.9f),
+                    textAlign = TextAlign.Center
                 )
 
                 Spacer(Modifier.height(8.dp))

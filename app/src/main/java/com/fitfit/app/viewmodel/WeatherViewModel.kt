@@ -278,7 +278,6 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             )
             _isLoadingApi.value = false
         }
-
     }
 
     // ========= Case 4: Weather Screen =========

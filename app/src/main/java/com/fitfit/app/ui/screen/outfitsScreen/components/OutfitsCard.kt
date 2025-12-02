@@ -182,7 +182,9 @@ fun OutfitsCard(
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF8E8E93),
-                    modifier = Modifier.weight(0.7f)
+                    modifier = Modifier.weight(0.7f),
+                    maxLines = 1,
+                    softWrap = false
                 )
                 Row(
                     modifier = Modifier.weight(2.3f),
