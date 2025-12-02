@@ -206,8 +206,8 @@ fun OutfitsCard(
 private fun getWeatherDisplayValue(weatherStatus: String, actualValue: String?): String {
     return when (weatherStatus) {
         WeatherUpdateStatus.FETCHED.name -> actualValue ?: "-"
-        WeatherUpdateStatus.UPDATING.name -> "updating..."
-        WeatherUpdateStatus.PENDING.name -> "to be updated..."
+        WeatherUpdateStatus.UPDATING.name -> "Updating..."
+        WeatherUpdateStatus.PENDING.name -> "To be updated..."
         else -> "-"
     }
 }
