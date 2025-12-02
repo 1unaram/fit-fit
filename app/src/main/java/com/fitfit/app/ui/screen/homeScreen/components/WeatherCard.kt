@@ -1,5 +1,6 @@
 package com.fitfit.app.ui.screen.homeScreen.components
 
+import android.R.attr.text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -106,7 +107,7 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(24.dp)) // 1. 둥근 모서리 (원형을 원하면 CircleShape 사용)
-                    .background(Color.White)
+                    .background(Color(0xFF3B75E4).copy(alpha = 0.5f))
                     .padding(12.dp)
             ) {
                 WeatherIcon(
