@@ -7,6 +7,7 @@ import com.fitfit.app.data.local.dao.OutfitDao
 import com.fitfit.app.data.local.entity.OutfitClothesCrossRef
 import com.fitfit.app.data.local.entity.OutfitEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
+import com.fitfit.app.data.local.entity.WeatherUpdateStatus
 import com.fitfit.app.data.local.userPrefsDataStore
 import com.fitfit.app.data.model.Outfit
 import com.fitfit.app.data.util.IdGenerator
@@ -57,6 +58,25 @@ class OutfitRepository(
         }
     }
 
+    // ========== 날씨 상태 결정 로직 ==========
+    private fun determineWeatherUpdateStatus(
+        wornStartTime: Long,
+        weatherFetched: Boolean
+    ): String {
+        val now = System.currentTimeMillis()
+
+        return when {
+            // 1. 날씨 조회 완료됨
+            weatherFetched -> WeatherUpdateStatus.FETCHED.name
+
+            // 2. 입력 시간이 미래라면 -> PENDING (기다리는 중)
+            wornStartTime > now -> WeatherUpdateStatus.PENDING.name
+
+            // 3. 입력 시간이 과거이지만 아직 조회 안 됨 -> UPDATING (계산 중)
+            else -> WeatherUpdateStatus.UPDATING.name
+        }
+    }
+
     // 코디 생성 (날씨 정보 없이)
     suspend fun createOutfit(
         clothesIds: List<String>,
@@ -75,6 +95,8 @@ class OutfitRepository(
             val oid = idGenerator.generateNextOutfitId()
 
             // 1. Outfit 생성
+            val weatherStatus = determineWeatherUpdateStatus(wornStartTime, false)
+
             val outfit = OutfitEntity(
                 oid = oid,
                 ownerUid = currentUid,
@@ -86,6 +108,7 @@ class OutfitRepository(
                 latitude = latitude,
                 longitude = longitude,
                 weatherFetched = false,
+                weatherUpdateStatus = weatherStatus,
                 isSynced = false
             )
 
@@ -133,6 +156,7 @@ class OutfitRepository(
                 windSpeed = windSpeed,
                 precipitation = precipitation,
                 weatherFetched = true,
+                weatherUpdateStatus = WeatherUpdateStatus.FETCHED.name,
                 isSynced = false,
                 lastModified = System.currentTimeMillis()
             )
@@ -149,6 +173,17 @@ class OutfitRepository(
             Result.failure(e)
         }
     }
+    suspend fun updateOutfitStatus(outfit: OutfitEntity) {
+        try {
+            // 1) 로컬(Room) 업데이트
+            outfitDao.updateOutfit(outfit)
+
+            // 2) Firebase까지 맞추고 싶으면 주석 해제 -> 일단 안 함
+            // syncToFirebase(outfit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     // 날씨 미조회 Outfit 목록 조회
     suspend fun getOutfitsWithUnfetchedWeather(): List<OutfitEntity> {
@@ -162,7 +197,7 @@ class OutfitRepository(
         return outfitDao.getPendingWeatherOutfits(currentTime)
     }
 
-    // Oufit 수정
+    // Outfit 수정
     suspend fun updateOutfit(
         oid: String,
         clothesIds: List<String>,
@@ -172,10 +207,17 @@ class OutfitRepository(
         wornEndTime: Long,
         latitude: Double,
         longitude: Double
-    ): Result<Unit>{
+    ): Result<Unit> {
         return try {
             val outfit = outfitDao.getOutfitById(oid)
                 ?: return Result.failure(Exception("Outfit not found"))
+
+            // 시간 변경 시 날씨 상태 재결정
+            val weatherStatus = if (outfit.weatherFetched) {
+                WeatherUpdateStatus.FETCHED.name
+            } else {
+                determineWeatherUpdateStatus(wornStartTime, false)
+            }
 
             val updatedOutfit = outfit.copy(
                 clothesIds = clothesIds,
@@ -185,7 +227,7 @@ class OutfitRepository(
                 wornEndTime = wornEndTime,
                 latitude = latitude,
                 longitude = longitude,
-                weatherFetched = false,  // 시간/위치 바뀌었으니 다시 가져오도록
+                weatherUpdateStatus = weatherStatus,
                 isSynced = false,
                 lastModified = System.currentTimeMillis()
             )
@@ -332,6 +374,7 @@ class OutfitRepository(
                     windSpeed = windSpeed,
                     precipitation = precipitation,
                     weatherFetched = weatherFetched,
+                    weatherUpdateStatus = if (weatherFetched) WeatherUpdateStatus.FETCHED.name else WeatherUpdateStatus.PENDING.name,
                     createdAt = createdAt,
                     isSynced = true,
                     lastModified = lastModified

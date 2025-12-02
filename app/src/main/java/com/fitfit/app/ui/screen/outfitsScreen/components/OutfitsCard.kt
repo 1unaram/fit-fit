@@ -43,6 +43,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
+import com.fitfit.app.data.local.entity.WeatherUpdateStatus
 import com.fitfit.app.data.util.formatTimestampToDate
 import com.fitfit.app.data.util.formatTimestampToTime
 import com.fitfit.app.ui.components.WeatherIcon
@@ -55,6 +56,9 @@ fun OutfitsCard(
     onDelete: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null
 ) {
+    val weatherStatus = outfitWithClothes.outfit.weatherUpdateStatus
+    val isWeatherFetched = weatherStatus == WeatherUpdateStatus.FETCHED.name
+
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -72,7 +76,7 @@ fun OutfitsCard(
             // ( 아이콘 ) + ( 날짜/날씨 )만 별도 Column으로 묶어서 간격을 더 작게
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(0.dp) // 해당 간격 조정 중
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 // 1. 우측 상단 편집&삭제 아이콘 Row
                 Row(
@@ -108,17 +112,24 @@ fun OutfitsCard(
                         fontSize = 24.sp,
                         color = Color.Black
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        WeatherIcon(outfitWithClothes.outfit.iconCode, "Weather Icon")
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "${outfitWithClothes.outfit.temperatureAvg?.let { String.format("%.1f", it) } ?: "-"}°",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp,
-                            color = Color.Black
-                        )
+
+                    // 날씨 상태에 따라 아이콘과 온도 표시
+                    if (isWeatherFetched) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            WeatherIcon(outfitWithClothes.outfit.iconCode, "Weather Icon")
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "${outfitWithClothes.outfit.temperatureAvg?.let { String.format("%.1f", it) } ?: "-"}°",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp,
+                                color = Color.Black
+                            )
+                        }
+                    } else {
+                        // 아이콘과 온도 둘 다 공백
+                        Spacer(modifier = Modifier.width(80.dp))
                     }
                 }
             }
@@ -127,24 +138,43 @@ fun OutfitsCard(
             ClothesGrid(outfitWithClothes.clothes)
 
             // 열 3 . contents
-            InfoColumn("Weather Description", outfitWithClothes.outfit.description ?: "-")
+            InfoColumn(
+                "Weather Description",
+                getWeatherDisplayValue(weatherStatus, outfitWithClothes.outfit.description)
+            )
             InfoRow(
                 "Precipitation",
-                outfitWithClothes.outfit.precipitation?.let { prec ->
-                    "${String.format(Locale.KOREA, "%.2f", prec)} mm"} ?: "-"
+                getWeatherDisplayValue(
+                    weatherStatus,
+                    outfitWithClothes.outfit.precipitation?.let { prec ->
+                        "${String.format(Locale.KOREA, "%.2f", prec)} mm"
+                    }
+                )
             )
-            InfoRow("Wind Speed", "${outfitWithClothes.outfit.windSpeed?.let { String.format("%.1f", it) } ?: "-"} m/s")
+            InfoRow(
+                "Wind Speed",
+                getWeatherDisplayValue(
+                    weatherStatus,
+                    "${outfitWithClothes.outfit.windSpeed?.let { String.format("%.1f", it) } ?: "-"} m/s"
+                )
+            )
             InfoRow(
                 "Temperature Range",
-                "${outfitWithClothes.outfit.temperatureMin ?: "-"}° - ${outfitWithClothes.outfit.temperatureMax ?: "-"}°"
+                getWeatherDisplayValue(
+                    weatherStatus,
+                    "${outfitWithClothes.outfit.temperatureMin ?: "-"}° - ${outfitWithClothes.outfit.temperatureMax ?: "-"}°"
+                )
             )
             InfoRow(
                 "Time Range",
                 "${formatTimestampToTime(outfitWithClothes.outfit.wornStartTime)} - ${formatTimestampToTime(outfitWithClothes.outfit.wornEndTime)}"
             )
+
             // Occasion
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -166,6 +196,17 @@ fun OutfitsCard(
             }
             InfoColumn("Comment", outfitWithClothes.outfit.comment ?: "-")
         }
+    }
+}
+
+// 날씨 상태에 따른 표시 값 결정
+@Composable
+private fun getWeatherDisplayValue(weatherStatus: String, actualValue: String?): String {
+    return when (weatherStatus) {
+        WeatherUpdateStatus.FETCHED.name -> actualValue ?: "-"
+        WeatherUpdateStatus.UPDATING.name -> "updating..."
+        WeatherUpdateStatus.PENDING.name -> "to be updated..."
+        else -> "-"
     }
 }
 
@@ -324,7 +365,6 @@ fun OccasionChip(text: String) {
         )
     }
 }
-
 
 @Composable
 private fun EditDeleteIcons(
