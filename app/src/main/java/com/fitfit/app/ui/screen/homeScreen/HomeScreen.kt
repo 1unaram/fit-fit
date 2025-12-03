@@ -43,12 +43,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -362,7 +366,14 @@ fun DatePicker(    selectedDate: String,
                 withStyle(style = SpanStyle(color = textBlack)) { append(" today") }
             },
             fontSize = 28.sp, // 크기 키움
-            fontWeight = FontWeight.Bold // 굵게
+            fontWeight = FontWeight.Bold, // 굵게
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.3f),
+                    offset = Offset(2f, 2f),
+                    blurRadius = 4f
+                )
+            )
         )
 
         Spacer(modifier = Modifier.height(12.dp)) // 텍스트와 버튼 사이 간격
