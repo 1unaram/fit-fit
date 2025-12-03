@@ -1,5 +1,6 @@
 package com.fitfit.app.ui.screen.homeScreen.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,6 +87,7 @@ fun WeatherCard(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 private fun WeatherMainContent(cardData: WeatherCardData) {
     Row(
@@ -128,7 +130,7 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
 
             // 3. 최저/최고 온도 (작고 회색)
             Text(
-                text = "${String.format("%.1f", cardData.todayMinTemperature ?: 0.0)}°C - " +
+                text = "${String.format("%.1f", cardData.todayMinTemperature ?: 0.0)}°C ~ " +
                         "${String.format("%.1f", cardData.todayMaxTemperature ?: 0.0)}°C",
                 fontSize = 12.sp,
                 color = LabelGray,

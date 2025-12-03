@@ -191,26 +191,32 @@ fun HomeScreen(
     }
 
 
-
     // ================== ui ==============
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFE8F2FF))
+                .padding(bottom = 40.dp)
         ) {
 
             /* Section1. Weather Card section*/
             item {
                 Box(
-                    modifier = Modifier.fillMaxWidth().background(Color(0xFFE8F2FF))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFE8F2FF))
                 ) {
                     //배경 이미지
                     Image(
                         painter = painterResource(id = R.drawable.bg_weather_home),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.matchParentSize()
+                        modifier = Modifier
+                            .fillMaxWidth()
                     )
                     Column(
                         modifier = Modifier
