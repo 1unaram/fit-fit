@@ -23,7 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,7 +47,7 @@ fun WeatherCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp), // 카드 외부 여백
+            .padding(horizontal = 12.dp, vertical = 8.dp), // 카드 외부 여백
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = CardBackground
@@ -56,7 +59,7 @@ fun WeatherCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp), // 로딩 높이 확보
+                        .height(189.dp), // 로딩 높이 확보
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = WeatherBlue)
@@ -66,7 +69,7 @@ fun WeatherCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp),
+                        .height(189.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(state.message, color = Color.Red)
@@ -77,7 +80,7 @@ fun WeatherCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp),
+                        .height(189.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("Load weather information.", textAlign = TextAlign.Center)
@@ -125,7 +128,14 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                 text = String.format("%.1f°C", cardData.currentTemperature),
                 fontSize = 28.sp, // 폰트 키움
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.Black
+                color = Color.Black,
+                style = TextStyle(
+                    shadow = Shadow(
+                        color = Color.Black.copy(alpha = 0.3f),
+                        offset = Offset(2f, 2f),
+                        blurRadius = 4f
+                    )
+                )
             )
 
             // 3. 최저/최고 온도 (작고 회색)
@@ -135,7 +145,14 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                 fontSize = 12.sp,
                 color = LabelGray,
                 lineHeight = 14.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.Normal,
+                style = TextStyle(
+                    shadow = Shadow(
+                        color = Color.Black.copy(alpha = 0.3f),
+                        offset = Offset(2f, 2f),
+                        blurRadius = 4f
+                    )
+                )
             )
         }
 
@@ -157,15 +174,23 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                         if (char.isLowerCase()) char.titlecase() else char.toString()
                     },
                     color = WeatherBlue,
-                    fontSize = 22.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.End, // 텍스트 자체를 오른쪽 정렬
                     lineHeight = 22.sp,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    style = TextStyle(
+                        shadow = Shadow(
+                            color = Color.Black.copy(alpha = 0.3f),
+                            offset = Offset(2f, 2f),
+                            blurRadius = 4f
+                        )
+                    ),
                 )
             }
 
-            //Spacer(modifier = Modifier.height(12.dp)) // 설명과 수치 사이 간격
+            Spacer(modifier = Modifier.height(10.dp)) // 설명과 수치 사이 간격
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -203,15 +228,29 @@ private fun StatRow(label: String, value: String) {
     ) {
         Text(
             text = label,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             color = LabelGray,
-            fontWeight = FontWeight.Normal
+            fontWeight = FontWeight.Normal,
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.3f),
+                    offset = Offset(2f, 2f),
+                    blurRadius = 4f
+                )
+            )
         )
         Text(
             text = value,
-            fontSize = 13.sp,
+            fontSize = 15.sp,
             color = Color.Black,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.3f),
+                    offset = Offset(2f, 2f),
+                    blurRadius = 4f
+                )
+            )
         )
     }
 }
