@@ -27,7 +27,7 @@ fun OutfitsTopBar() {
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
-            text = "My Outfits",
+            text = "🥼 Outfits",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
