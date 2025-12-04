@@ -38,10 +38,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.viewmodel.DailyWeatherData
 import com.fitfit.app.viewmodel.HourlyWeatherData
@@ -159,10 +161,16 @@ fun WeatherScreenContent(
         // 주간 날씨 (세로 리스트)
         item {
             Text(
-                "Weekly Weather",
-                style = MaterialTheme.typography.titleMedium,
+                text = "Weekly Weather",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    shadow = Shadow(
+                        color = Color.Black.copy(alpha = 0.3f),
+                        offset = Offset(2f, 2f),
+                        blurRadius = 4f
+                    )
+                ),
                 color = textColor,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(10.dp))
         }
@@ -214,6 +222,26 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
         verticalAlignment = Alignment.CenterVertically
     ) {
 
+        // 오늘 날짜
+        Column(
+            modifier = Modifier.weight(0.5f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = SimpleDateFormat("MMM", Locale.ENGLISH).format(Date(current.dt * 1000)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = textColor.copy(alpha = 0.7f),
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp
+            )
+            Text(
+                text = SimpleDateFormat("dd", Locale.ENGLISH).format(Date(current.dt * 1000)),
+                style = MaterialTheme.typography.headlineMedium,
+                color = textColor,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
         // 날씨 아이콘
         Box(
             modifier = Modifier.weight(1f),
@@ -222,8 +250,9 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
             WeatherIcon(current.weatherIcon, modifier = Modifier.size(80.dp))
         }
 
+
         Row(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1.5f),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -235,7 +264,8 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
                     text = "${current.temp.toInt()}°",
                     style = MaterialTheme.typography.displayLarge,
                     color = textColor,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
 
                 // 날씨 설명
@@ -246,23 +276,36 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(Modifier.height(8.dp))
             }
+
+            Spacer(Modifier.height(8.dp))
 
             // 최고/최저 기온
             Column (
-                modifier = Modifier.weight(0.8f),
+                modifier = Modifier.weight(0.8f)
             ) {
                 Text(
                     text = "H: ${todayDaily.tempMax.toInt()}°  ",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        shadow = Shadow(
+                            color = Color.Black.copy(alpha = 0.1f),
+                            offset = Offset(1f, 1f),
+                            blurRadius = 2f
+                        )
+                    ),
                     color = textColor.copy(alpha = 0.6f),
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = "L: ${todayDaily.tempMin.toInt()}°",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        shadow = Shadow(
+                            color = Color.Black.copy(alpha = 0.1f),
+                            offset = Offset(1f, 1f),
+                            blurRadius = 2f
+                        )
+                    ),
                     color = textColor.copy(alpha = 0.3f),
                     fontWeight = FontWeight.Bold
                 )
@@ -320,7 +363,8 @@ fun HourlyWeatherItem(hourly: HourlyWeatherData) {
             text = formatHour(hourly.dt),
             style = MaterialTheme.typography.bodySmall,
             color = textColor,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp
         )
 
         Spacer(Modifier.height(4.dp))
@@ -335,7 +379,8 @@ fun HourlyWeatherItem(hourly: HourlyWeatherData) {
             text = "${hourly.temp.toInt()}°",
             style = MaterialTheme.typography.titleMedium,
             color = textColor,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp
         )
     }
 }
@@ -370,13 +415,17 @@ fun DailyWeatherRow(daily: DailyWeatherData) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+                Spacer(Modifier.width(4.dp))
+
                 // 요일
                 Text(
                     text = formatDayOfWeek(daily.dt),
                     style = MaterialTheme.typography.bodyLarge,
                     color = textColor,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.weight(2f)
+                    modifier = Modifier.weight(2f),
+                    fontSize = 17.sp
                 )
 
                 // 날씨 아이콘
@@ -394,12 +443,14 @@ fun DailyWeatherRow(daily: DailyWeatherData) {
                         text = "${daily.tempMax.toInt()}°",
                         style = MaterialTheme.typography.titleMedium,
                         color = textColor,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
                     )
                     Text(
                         text = "${daily.tempMin.toInt()}°",
                         style = MaterialTheme.typography.titleMedium,
-                        color = textColor.copy(alpha = 0.6f)
+                        color = textColor.copy(alpha = 0.6f),
+                        fontSize = 18.sp
                     )
                 }
 

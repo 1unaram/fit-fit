@@ -68,7 +68,7 @@ fun WeatherCard(
                         .height(200.dp), // 로딩 높이 확보
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = WeatherBlue)
+                    CircularProgressIndicator(color = Color.Black)
                 }
             }
             is WeatherCardUiState.Failure -> {
@@ -116,8 +116,8 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(91.dp)
-                    .clip(RoundedCornerShape(24.dp)) // 1. 둥근 모서리 (원형을 원하면 CircleShape 사용)
-                    .background(Color(0xFF3B75E4).copy(alpha = 0.5f))
+                    .clip(RoundedCornerShape(24.dp)) // 1. 둥근 모서리
+                    .background(Color(0xFF3B75E4).copy(alpha = 0.3f))
 //                    .padding(12.dp)
             ) {
                 WeatherIcon(

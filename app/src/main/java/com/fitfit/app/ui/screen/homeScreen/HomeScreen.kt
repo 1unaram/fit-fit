@@ -469,7 +469,7 @@ fun WeatherOutfitList(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        color = Color(0xFF4285F4)
+                        color = Color.Black
                     )
                 }
             }
