@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -53,6 +54,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun OutfitsAddDialog(
@@ -705,10 +707,12 @@ fun ClothesMultiSelectDialog(
                 ) {
                     Text("Select Clothes", fontWeight = FontWeight.Bold, fontSize = 17.sp)
                     Spacer(Modifier.height(15.dp))
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.heightIn(max = 400.dp)
                     ) {
-                        allClothes.forEach { clothes ->
+                        // [변경 3] forEach -> items() 함수 사용
+                        items(allClothes) { clothes ->
                             val selected = selectedClothes.contains(clothes)
                             Row(
                                 modifier = Modifier
