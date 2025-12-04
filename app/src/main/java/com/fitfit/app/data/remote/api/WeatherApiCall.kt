@@ -75,7 +75,7 @@ class WeatherApiCall {
             Result.success(response.body()!!)
         } else {
             Result.failure(
-                Exception("API 오류: ${response.code()} - ${response.message()}")
+                Exception("API call failed..")
             )
         }
     }

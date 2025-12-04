@@ -118,7 +118,6 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                     .size(91.dp)
                     .clip(RoundedCornerShape(24.dp)) // 1. 둥근 모서리
                     .background(Color(0xFF3B75E4).copy(alpha = 0.3f))
-//                    .padding(12.dp)
             ) {
                 WeatherIcon(
                     iconCode = cardData.todayWeatherIconCode,

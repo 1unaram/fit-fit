@@ -40,7 +40,7 @@ data class OutfitEntity(
 
     // ========== 날씨 업데이트 상태 ==========
     // FETCHED: 완료됨
-    // UPDATING: API 계산 중 (곧 업데이트 예정)
+    // UPDATING: API 계산 중
     // PENDING: 미래 시간이라 기다려야 함
     val weatherUpdateStatus: String = "PENDING"
 )

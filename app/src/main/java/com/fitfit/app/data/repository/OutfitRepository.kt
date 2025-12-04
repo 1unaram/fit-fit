@@ -38,16 +38,6 @@ class OutfitRepository(
         }.first()
     }
 
-    // 현재 사용자의 코디 목록 가져오기
-    suspend fun getOutfitsByCurrentUser(): Flow<List<OutfitEntity>>? {
-        return try {
-            val uid = getCurrentUid() ?: return null
-            outfitDao.getOutfitsByUser(uid)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
     // 현재 사용자의 코디와 옷 정보 함께 가져오기
     suspend fun getOutfitsWithClothesByCurrentUser(): Flow<List<OutfitWithClothes>>? {
         return try {
@@ -183,12 +173,6 @@ class OutfitRepository(
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    // 날씨 미조회 Outfit 목록 조회
-    suspend fun getOutfitsWithUnfetchedWeather(): List<OutfitEntity> {
-        val currentUid = getCurrentUid() ?: return emptyList()
-        return outfitDao.getOutfitsWithUnfetchedWeather(currentUid)
     }
 
     // 날씨 업데이트 대기 중인 Outfit 목록 조회

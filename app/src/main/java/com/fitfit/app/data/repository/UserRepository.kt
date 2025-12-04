@@ -154,7 +154,7 @@ class UserRepository(
 
         // 필요시 Room 데이터 삭제
         currentUid?.let {
-            // userDao.deleteUserById(it) // 필요하면 활성화
+            // userDao.deleteUserById(it)
         }
     }
 

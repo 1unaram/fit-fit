@@ -4,12 +4,7 @@ import java.util.concurrent.TimeUnit
 
 object WeatherAggregator {
 
-    /**
-     * 시작 시간부터 종료 시간까지 1시간 간격으로 타임스탬프 생성
-     * @param startTime 시작 시간 (Unix timestamp millis)
-     * @param endTime 종료 시간 (Unix timestamp millis)
-     * @return 1시간 간격 타임스탬프 리스트
-     */
+    //시작 시간부터 종료 시간까지 1시간 간격으로 타임스탬프 생성
     fun generateHourlyTimestamps(startTime: Long, endTime: Long): List<Long> {
         val timestamps = mutableListOf<Long>()
         var currentTime = startTime
@@ -28,9 +23,7 @@ object WeatherAggregator {
         return timestamps
     }
 
-    /**
-     * 여러 날씨 데이터를 집계
-     */
+    // 여러 날씨 데이터 집계
     data class WeatherData(
         val temperature: Double,
         val weatherDescription: String?,
@@ -49,9 +42,7 @@ object WeatherAggregator {
         val mostCommonIcon: String
     )
 
-    /**
-     * 날씨 데이터 집계
-     */
+    // 날씨 데이터 집계
     fun aggregateWeatherData(weatherDataList: List<WeatherData>): AggregatedWeather? {
         if (weatherDataList.isEmpty()) return null
 

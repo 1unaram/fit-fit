@@ -48,15 +48,4 @@ class IdGenerator(context: Context) {
         prefs.edit { putInt(WEATHER_COUNTER_KEY, nextCount) }
         return "w$nextCount"
     }
-
-    // 현재 카운터 값 조회 (필요 시)
-    fun getCurrentUserCount(): Int = prefs.getInt(USER_COUNTER_KEY, 0)
-    fun getCurrentClothesCount(): Int = prefs.getInt(CLOTHES_COUNTER_KEY, 0)
-    fun getCurrentOutfitCount(): Int = prefs.getInt(OUTFIT_COUNTER_KEY, 0)
-    fun getCurrentWeatherCount(): Int = prefs.getInt(WEATHER_COUNTER_KEY, 0)
-
-    // 카운터 초기화 (테스트용)
-    fun resetCounters() {
-        prefs.edit { clear() }
-    }
 }
