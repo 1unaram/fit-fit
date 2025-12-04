@@ -1,5 +1,6 @@
 package com.fitfit.app.viewmodel
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -52,6 +53,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
     // ========== Case 1: HomeScreen WeatherCard ==========
     // ### Weather Card용 날씨 정보 조회 ###
+    @SuppressLint("DefaultLocale")
     fun getWeatherCardData() = viewModelScope.launch {
         _isLoadingApi.value = true
         _weatherCardState.value = WeatherCardUiState.Loading
@@ -229,6 +231,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
     // ========= Case 3: Outfit Screen - Weather Filter =========
     // ### 특정 미래 날짜의 날씨 정보 조회 ###
+    @SuppressLint("DefaultLocale")
     fun getWeatherFilterData(selectedDate: LocalDate) = viewModelScope.launch {
         _isLoadingApi.value = true
         _weatherFilterState.value = WeatherFilterUiState.Loading
@@ -346,12 +349,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    // ========= Location Handling =========
-    // ### 위치 권한 확인 ###
-    fun hasLocationPermission(): Boolean {
-        return locationManager.hasLocationPermission()
-    }
-
+    // ========= Reset Handling =========
     fun resetWeatherCardState() {
         _weatherCardState.value = WeatherCardUiState.Idle
     }
