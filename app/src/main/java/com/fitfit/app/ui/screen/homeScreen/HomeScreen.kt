@@ -2,6 +2,7 @@ package com.fitfit.app.ui.screen.homeScreen
 
 import FilterSelectScreen
 import FilterState
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import androidx.compose.foundation.BorderStroke
@@ -106,8 +107,6 @@ fun HomeScreen(
     var showOutfit by remember { mutableStateOf(false) }
     // 현재 선택된 코디(카드 클릭 시 담김)
     var selectedOutfit by remember { mutableStateOf<OutfitWithClothes?>(null) }
-    // 날짜 선택 다이얼로그 표시 여부
-    var showDatePicker by remember { mutableStateOf(false) }
 
 
     // 현재 적용 중인 필터 상태(온도 오차, 날씨, 상황)
@@ -258,7 +257,6 @@ fun HomeScreen(
                         .padding(16.dp)
                 ) {
                     FilterButtonSection(
-                        showFilter,
                         onChange = { showFilter = it },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -328,10 +326,11 @@ fun HomeScreen(
 }
 
 
+@SuppressLint("DefaultLocale")
 @Composable
-fun DatePicker(    selectedDate: String,
-                   onDateSelected: (String) -> Unit,
-                   modifier: Modifier = Modifier
+fun DatePicker(
+    selectedDate: String,
+    onDateSelected: (String) -> Unit
 ) {
     // 색상 정의
     val fitFitBlue = Color(0xFF4285F4) // 파란색
@@ -427,7 +426,8 @@ fun DatePicker(    selectedDate: String,
 
 @Composable
 fun FilterButtonSection(
-    showFilter: Boolean, onChange: (Boolean) -> Unit, modifier: Modifier = Modifier
+    onChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
@@ -508,6 +508,7 @@ fun WeatherOutfitList(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun WeatherOutfitCard(
     outfitsWithClothes: OutfitWithClothes, onClick: (OutfitWithClothes) -> Unit
@@ -586,7 +587,7 @@ fun WeatherOutfitCard(
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(Color(0xFFF5F5F5))
                         ) {
-                            if (!clothes.imagePath.isNullOrBlank()) {
+                            if (clothes.imagePath.isNotBlank()) {
                                 Image(
                                     painter = rememberAsyncImagePainter(clothes.imagePath),
                                     contentDescription = null,
@@ -632,20 +633,6 @@ fun WeatherOutfitCard(
                         }
                     }
                 }
-
-//                // Clothes images
-//                LazyVerticalGrid(
-//                    columns = GridCells.Fixed(4),           // 4열
-//                    modifier = Modifier
-//                        .padding(20.dp, 10.dp, 25.dp, 10.dp),
-//                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-//                    verticalArrangement = Arrangement.spacedBy(8.dp)
-//
-//                ) {
-//                    items(outfitsWithClothes.clothes) { clothesItem ->
-//                        ClothesCard(clothes = clothesItem)
-//                    }
-//                }
             }
             Row(
                 modifier = Modifier

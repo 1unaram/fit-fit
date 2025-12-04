@@ -88,7 +88,6 @@ fun RegisterScreen(
             // Sign Up Main Card
             RegisterMainCard(
                 userViewModel = userViewModel,
-                navController = navController,
                 registerState = registerState
             )
 
@@ -122,7 +121,6 @@ private fun BackButton(onClick: () -> Unit) {
 @Composable
 private fun RegisterMainCard(
     userViewModel: UserViewModel,
-    navController: NavController,
     registerState: RegisterState
 ) {
     // State Hoisting: 상태를 여기서 관리
@@ -211,7 +209,6 @@ private fun RegisterInputFields(
         // User Name Input
         RegisterInputField(
             label = "User Name",
-            placeholder = "",
             value = username,
             onValueChange = onUsernameChange
         )
@@ -219,7 +216,6 @@ private fun RegisterInputFields(
         // Password Input
         RegisterInputField(
             label = "Password",
-            placeholder = "",
             value = password,
             onValueChange = onPasswordChange,
             isPassword = true
@@ -231,7 +227,6 @@ private fun RegisterInputFields(
 @Composable
 private fun RegisterInputField(
     label: String,
-    placeholder: String,
     value: String,
     onValueChange: (String) -> Unit,
     isPassword: Boolean = false

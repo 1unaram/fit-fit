@@ -214,7 +214,6 @@ fun LoginInputFields(
         // User Name Input
         InputField(
             label = "User Name",
-            placeholder = "",
             value = username,
             onValueChange = onUsernameChange,
             enabled = enabled
@@ -223,7 +222,6 @@ fun LoginInputFields(
         // Password Input
         InputField(
             label = "Password",
-            placeholder = "",
             value = password,
             onValueChange = onPasswordChange,
             isPassword = true,
@@ -235,7 +233,6 @@ fun LoginInputFields(
 @Composable
 fun InputField(
     label: String,
-    placeholder: String,
     value: String,
     onValueChange: (String) -> Unit,
     isPassword: Boolean = false,
