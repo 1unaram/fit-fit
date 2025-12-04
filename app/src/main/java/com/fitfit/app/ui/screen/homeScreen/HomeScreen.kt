@@ -43,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -86,7 +85,8 @@ fun HomeScreen(
     userViewModel: UserViewModel,
     clothesViewModel: ClothesViewModel,
     outfitViewModel: OutfitViewModel,
-    weatherViewModel: WeatherViewModel
+    weatherViewModel: WeatherViewModel,
+    onNavigateToWeather: () -> Unit
 ) {
     val currentUser by userViewModel.currentUser.collectAsState()
     // 전체 코디 + 옷 목록 리스트(저장된 옷,온도 등등)
@@ -115,7 +115,7 @@ fun HomeScreen(
             weather = null,
             occasion = emptyList()
         )
-    ) }    //기준 날짜
+    ) }    // 기준 날짜
     var currentDate by remember {
         val now = Date()
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -204,7 +204,6 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFE8F2FF))
-                .padding(bottom = 40.dp)
         ) {
 
             /* Section1. Weather Card section*/
@@ -227,8 +226,11 @@ fun HomeScreen(
                             .fillMaxSize()
                             .padding(16.dp)
                     ) {
-                        WeatherCard(state = weatherCardState)
-                        Spacer(Modifier.height(8.dp))
+                        WeatherCard(
+                            state = weatherCardState,
+                            onClick = { onNavigateToWeather() },
+                        )
+//                        Spacer(Modifier.height(8.dp))
                         DatePicker(
                             selectedDate = currentDate,
                             onDateSelected = { newDate ->
@@ -257,6 +259,7 @@ fun HomeScreen(
                         onChange = { showFilter = it },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
+                            .padding(horizontal = 6.dp)
                     )
                 }
             }
@@ -271,6 +274,11 @@ fun HomeScreen(
                         showOutfit = true
                     }
                 )
+            }
+
+            // 여백
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
 

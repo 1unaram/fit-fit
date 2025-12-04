@@ -2,6 +2,7 @@ package com.fitfit.app.ui.screen.homeScreen.components
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,9 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,12 +46,14 @@ val CardBackground = Color.White.copy(alpha = 0.7f) // 반투명 흰색 배경
 @Composable
 fun WeatherCard(
     state: WeatherCardUiState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp), // 카드 외부 여백
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .clickable {onClick()},
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = CardBackground
@@ -59,7 +65,7 @@ fun WeatherCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(189.dp), // 로딩 높이 확보
+                        .height(200.dp), // 로딩 높이 확보
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = WeatherBlue)
@@ -109,15 +115,15 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(91.dp)
                     .clip(RoundedCornerShape(24.dp)) // 1. 둥근 모서리 (원형을 원하면 CircleShape 사용)
                     .background(Color(0xFF3B75E4).copy(alpha = 0.5f))
-                    .padding(12.dp)
+//                    .padding(12.dp)
             ) {
                 WeatherIcon(
                     iconCode = cardData.todayWeatherIconCode,
                     contentDescription = "Weather",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize().size(90.dp)
                 )
             }
 
@@ -156,7 +162,7 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             )
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(10.dp))
 
         // [오른쪽 영역] 설명 + 강수량 + 풍속
         Column(
@@ -165,7 +171,41 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             horizontalAlignment = Alignment.End, // 오른쪽 정렬
             verticalArrangement = Arrangement.Bottom
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+
+            // 현재 위치 정보
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                Icon(
+                    Icons.Default.LocationOn,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(18.dp)
+                )
+
+                Spacer(Modifier.width(6.dp))
+
+                cardData.locationName?.let { location ->
+                    Text(
+                        text = location,
+                        color = LabelGray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.End,
+                        style = TextStyle(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.2f),
+                                offset = Offset(2f, 2f),
+                                blurRadius = 4f
+                            )
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // 1. 날씨 설명 (파란색, 오른쪽 정렬)
             cardData.todayWeatherDescription?.let {
@@ -178,10 +218,10 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.End, // 텍스트 자체를 오른쪽 정렬
                     lineHeight = 22.sp,
-                    modifier = Modifier.fillMaxWidth(),
+//                    modifier = Modifier.fillMaxWidth(),
                     style = TextStyle(
                         shadow = Shadow(
-                            color = Color.Black.copy(alpha = 0.3f),
+                            color = Color.Black.copy(alpha = 0.2f),
                             offset = Offset(2f, 2f),
                             blurRadius = 4f
                         )
@@ -199,7 +239,7 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             ) {
                 // 2. 강수확률 (Probability of Precipitation)
                 StatRow(
-                    label = "Probability of Precipitation",
+                    label = "Probability of\nPrecipitation",
                     value = String.format("%d%%", cardData.probabilityOfPrecipitation)
                 )
 
@@ -228,7 +268,7 @@ private fun StatRow(label: String, value: String) {
     ) {
         Text(
             text = label,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             color = LabelGray,
             fontWeight = FontWeight.Normal,
             style = TextStyle(
@@ -241,7 +281,7 @@ private fun StatRow(label: String, value: String) {
         )
         Text(
             text = value,
-            fontSize = 15.sp,
+            fontSize = 16.sp,
             color = Color.Black,
             fontWeight = FontWeight.Bold,
             style = TextStyle(

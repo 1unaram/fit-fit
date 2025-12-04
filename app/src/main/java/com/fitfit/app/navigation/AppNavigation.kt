@@ -124,7 +124,17 @@ fun AppNavigation(
                     userViewModel = userViewModel,
                     clothesViewModel = clothesViewModel,
                     outfitViewModel = outfitViewModel,
-                    weatherViewModel = weatherViewModel
+                    weatherViewModel = weatherViewModel,
+                    onNavigateToWeather = {
+                        navController.navigate(Screens.WEATHER) {
+                            popUpTo(Screens.HOME) {
+                                saveState = true
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
             composable(Screens.CLOTHES) {
