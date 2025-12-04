@@ -479,9 +479,6 @@ fun formatDayOfWeek(timestamp: Long): String {
     return sdf.format(Date(timestamp * 1000))
 }
 
-fun Double.format(digits: Int) = "%.${digits}f".format(this)
-
-
 @Preview(showBackground = true, backgroundColor = 0xFFC9E6FF)
 @Composable
 fun WeatherScreenContentPreview() {
