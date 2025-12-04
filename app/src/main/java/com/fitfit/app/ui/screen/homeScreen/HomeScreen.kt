@@ -1,7 +1,5 @@
 package com.fitfit.app.ui.screen.homeScreen
 
-import FilterSelectScreen
-import FilterState
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.widget.DatePicker
@@ -67,6 +65,8 @@ import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.data.util.formatTimestampToDate
 import com.fitfit.app.data.util.mapIconCodeToWeather
 import com.fitfit.app.ui.components.WeatherIcon
+import com.fitfit.app.ui.screen.homeScreen.components.FilterSelectScreen
+import com.fitfit.app.ui.screen.homeScreen.components.FilterState
 import com.fitfit.app.ui.screen.homeScreen.components.WeatherCard
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsCard
 import com.fitfit.app.viewmodel.ClothesViewModel
@@ -100,7 +100,6 @@ fun HomeScreen(
 
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
 
-
     // 필터 다이얼로그 표시 여부
     var showFilter by remember { mutableStateOf(false) }
     // 코디 상세 다이얼로그 표시 여부
@@ -110,13 +109,15 @@ fun HomeScreen(
 
 
     // 현재 적용 중인 필터 상태(온도 오차, 날씨, 상황)
-    var filterState by remember { mutableStateOf(
-        FilterState(
-            temperature = 3.0, //  ±3도 기본 오차
-            weather = null,
-            occasion = emptyList()
+    var filterState by remember {
+        mutableStateOf(
+            FilterState(
+                temperature = 3.0, //  ±3도 기본 오차
+                weather = null,
+                occasion = emptyList()
+            )
         )
-    ) }    // 기준 날짜
+    }    // 기준 날짜
     var currentDate by remember {
         val now = Date()
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -335,7 +336,7 @@ fun DatePicker(
     // 색상 정의
     val fitFitBlue = Color(0xFF4285F4) // 파란색
     val textBlack = Color(0xFF1E1E1E)  // 진한 검은색
-    val buttonBackground =  Color.White.copy(alpha = 0.5f) // 반투명 흰색 배경
+    val buttonBackground = Color.White.copy(alpha = 0.5f) // 반투명 흰색 배경
 
     // 날짜 상태 관리
     val context = LocalContext.current
@@ -354,6 +355,10 @@ fun DatePicker(
         }
     } catch (e: Exception) {
         // 파싱 실패 시 오늘 날짜 사용
+        calendar.timeInMillis = System.currentTimeMillis()
+        year = calendar.get(Calendar.YEAR)
+        month = calendar.get(Calendar.MONTH)
+        day = calendar.get(Calendar.DAY_OF_MONTH)
     }
     val datePickerDialog = DatePickerDialog(
         context,
@@ -447,7 +452,6 @@ fun FilterButtonSection(
 }
 
 
-
 @Composable
 fun WeatherOutfitList(
     outfitsWithClothes: List<OutfitWithClothes>,
@@ -500,7 +504,7 @@ fun WeatherOutfitList(
             else -> {
                 outfitsWithClothes.forEach { outfitWithClothes ->
                     WeatherOutfitCard(
-                        outfitWithClothes, onClick = { onCardClick(outfitWithClothes)}
+                        outfitWithClothes, onClick = { onCardClick(outfitWithClothes) }
                     )
                 }
             }
@@ -518,20 +522,20 @@ fun WeatherOutfitCard(
             .fillMaxWidth()
             .wrapContentHeight()
             //    .padding(horizontal = 24.dp)
-        .clickable { onClick(outfitsWithClothes) },
+            .clickable { onClick(outfitsWithClothes) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         border = BorderStroke(1.dp, Color.White)
     ) {
-        Box(modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 12.dp),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
         ) {
-            Column (
+            Column(
                 modifier = Modifier
-//                    .fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp),
-                .padding(top = 18.dp),
-                        //start = 10.dp, end = 10.dp, top = 20.dp, bottom = 10.dp),
+                    .padding(top = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Row(
@@ -558,7 +562,8 @@ fun WeatherOutfitCard(
                         Text(
                             text = String.format(
                                 "%.1f°C",
-                                outfitsWithClothes.outfit.temperatureAvg),
+                                outfitsWithClothes.outfit.temperatureAvg
+                            ),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
@@ -599,7 +604,9 @@ fun WeatherOutfitCard(
                                 Icon(
                                     imageVector = Icons.Default.ImageNotSupported,
                                     contentDescription = null,
-                                    modifier = Modifier.align(Alignment.Center).size(36.dp),
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(36.dp),
                                     tint = Color.Gray
                                 )
                             }
@@ -637,7 +644,6 @@ fun WeatherOutfitCard(
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd),
-                //    .padding(top = 10.dp, end = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 outfitsWithClothes.outfit.occasion.forEach { it ->
