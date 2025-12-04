@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsAddDialog
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsCard
@@ -32,20 +31,14 @@ import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsFloatingButton
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsTopBar
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
-import com.fitfit.app.viewmodel.WeatherViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OutfitsScreen(
-    navController: NavController,
     outfitViewModel: OutfitViewModel,
-    clothesViewModel: ClothesViewModel,
-    weatherViewModel: WeatherViewModel
+    clothesViewModel: ClothesViewModel
 ) {
     val outfits by outfitViewModel.outfitsWithClothes.collectAsState()
-    val createState by outfitViewModel.createState.collectAsState()
-    val updateState by outfitViewModel.updateState.collectAsState()
-    val deleteState by outfitViewModel.deleteState.collectAsState()
     val clothesList by clothesViewModel.clothesList.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }

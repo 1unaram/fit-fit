@@ -144,10 +144,8 @@ fun AppNavigation(
             }
             composable(Screens.OUTFITS) {
                 OutfitsScreen(
-                    navController = navController,
                     outfitViewModel = outfitViewModel,
-                    clothesViewModel=clothesViewModel,
-                    weatherViewModel = weatherViewModel
+                    clothesViewModel=clothesViewModel
                 )
             }
             composable(Screens.REGISTER) {
