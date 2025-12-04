@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -95,6 +96,7 @@ fun HomeScreen(
     val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
     // 선택된 날짜의 날씨 정보(온도, 날씨)
     val weatherFilterState by weatherViewModel.weatherFilterState.collectAsState()
+
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
 
 
@@ -269,6 +271,7 @@ fun HomeScreen(
             item {
                 WeatherOutfitList(
                     outfitsWithClothes = filteredOutfits,
+                    isLoading = isLoading,
                     onCardClick = { outfit ->
                         selectedOutfit = outfit
                         showOutfit = true
@@ -443,7 +446,9 @@ fun FilterButtonSection(
 
 @Composable
 fun WeatherOutfitList(
-    outfitsWithClothes: List<OutfitWithClothes>, onCardClick: (OutfitWithClothes) -> Unit
+    outfitsWithClothes: List<OutfitWithClothes>,
+    isLoading: Boolean = false,
+    onCardClick: (OutfitWithClothes) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -451,33 +456,49 @@ fun WeatherOutfitList(
             .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (outfitsWithClothes.isEmpty()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = "No outfits found.",
-                    color = Color(0xFF757575),
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = "Try changing your filter or add a new outfit.",
-                    color = Color(0xFFBDBDBD),
-                    fontSize = 14.sp
-                )
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = Color(0xFF4285F4)
+                    )
+                }
             }
-        } else {
-            outfitsWithClothes.forEach { outfitWithClothes ->
-                WeatherOutfitCard(
-                    outfitWithClothes, onClick = { onCardClick(outfitWithClothes)}
-                )
-    //            Spacer(Modifier.height(12.dp))
+
+            outfitsWithClothes.isEmpty() -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = "No outfits found.",
+                        color = Color(0xFF757575),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "Try changing your filter or add a new outfit.",
+                        color = Color(0xFFBDBDBD),
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            else -> {
+                outfitsWithClothes.forEach { outfitWithClothes ->
+                    WeatherOutfitCard(
+                        outfitWithClothes, onClick = { onCardClick(outfitWithClothes)}
+                    )
+                }
             }
         }
     }
