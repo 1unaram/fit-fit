@@ -3,7 +3,6 @@ package com.fitfit.app.ui.screen.clothesScreen.components
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,12 +55,7 @@ fun ClothesEditDialog(
     onDismiss: () -> Unit,
     onSave: (category: String, nickname: String, storeUrl: String?) -> Unit
 ) {
-    var selectedCategory by remember { mutableStateOf(clothes.category) }
-    var nickname by remember { mutableStateOf(clothes.nickname) }
     var storeUrl by remember { mutableStateOf(clothes.storeUrl ?: "") }
-
-    val categories = listOf("Tops", "Bottoms", "Outerwear")
-
     val updateState by clothesViewModel.updateState.collectAsState()
     val context = LocalContext.current
 
@@ -103,7 +97,7 @@ fun ClothesEditDialog(
                         .background(Color(0xFFF5F5F5)),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (!clothes.imagePath.isNullOrBlank()) {
+                    if (clothes.imagePath.isNotBlank()) {
                         androidx.compose.foundation.Image(
                             painter = coil.compose.rememberAsyncImagePainter(clothes.imagePath),
                             contentDescription = clothes.nickname,
@@ -326,54 +320,6 @@ fun ClothesEditDialog(
             }
             else -> {}
         }
-    }
-}
-
-@Composable
-private fun EditFieldSection(
-    label: String,
-    content: @Composable () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = label,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF8E8E93)
-        )
-        content()
-    }
-}
-
-@Composable
-private fun CategoryEditChip(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .background(
-                color = if (selected) Color(0xFF3673E4) else Color.Transparent,
-                shape = RoundedCornerShape(20.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = if (selected) Color(0xFF3673E4) else Color(0xFFD1D1D6),
-                shape = RoundedCornerShape(20.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Text(
-            text = text,
-            fontSize = 14.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) Color.White else Color(0xFF8E8E93)
-        )
     }
 }
 

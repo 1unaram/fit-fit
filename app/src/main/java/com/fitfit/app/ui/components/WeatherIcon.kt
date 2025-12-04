@@ -1,5 +1,6 @@
 package com.fitfit.app.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -10,7 +11,7 @@ import coil.compose.AsyncImage
 fun WeatherIcon(
     iconCode: String?,
     contentDescription: String = "Weather Icon",
-    modifier: Modifier = Modifier
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
     AsyncImage(
         model = "https://openweathermap.org/img/wn/$iconCode@2x.png",

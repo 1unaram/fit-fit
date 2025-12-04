@@ -66,7 +66,7 @@ fun ClothesCard(
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5))
             ) {
-                if (!clothes.imagePath.isNullOrBlank()) {
+                if (clothes.imagePath.isNotBlank()) {
                     Image(
                         painter = rememberAsyncImagePainter(clothes.imagePath),
                         contentDescription = clothes.nickname,
