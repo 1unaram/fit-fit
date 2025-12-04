@@ -239,13 +239,13 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             ) {
                 // 2. 강수확률 (Probability of Precipitation)
                 StatRow(
-                    label = "Probability of\nPrecipitation",
+                    label = "☔",
                     value = String.format("%d%%", cardData.probabilityOfPrecipitation)
                 )
 
                 // 3. 풍속 (Wind speed)
                 StatRow(
-                    label = "Wind speed",
+                    label = "💨",
                     value = "${
                         String.format(
                             "%.0f",
@@ -258,12 +258,11 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
     }
 }
 
-// [공통 컴포넌트] 라벨과 값을 양끝으로 배치하는 행
 @Composable
 private fun StatRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween, // 양끝 정렬
+        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -271,26 +270,13 @@ private fun StatRow(label: String, value: String) {
             fontSize = 16.sp,
             color = LabelGray,
             fontWeight = FontWeight.Normal,
-            style = TextStyle(
-                shadow = Shadow(
-                    color = Color.Black.copy(alpha = 0.3f),
-                    offset = Offset(2f, 2f),
-                    blurRadius = 4f
-                )
-            )
         )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = value,
             fontSize = 16.sp,
             color = Color.Black,
             fontWeight = FontWeight.Bold,
-            style = TextStyle(
-                shadow = Shadow(
-                    color = Color.Black.copy(alpha = 0.3f),
-                    offset = Offset(2f, 2f),
-                    blurRadius = 4f
-                )
-            )
         )
     }
 }
