@@ -396,7 +396,7 @@ fun DatePicker(    selectedDate: String,
                 .clip(RoundedCornerShape(12.dp)) // 둥근 모서리
                 .background(buttonBackground)    // 배경색
                 .clickable { datePickerDialog.show() } // 클릭 시 달력 띄우기
-                .padding(horizontal = 16.dp, vertical = 8.dp) // 내부 여백
+                .padding(horizontal = 16.dp, vertical = 4.dp) // 내부 여백
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -420,6 +420,9 @@ fun DatePicker(    selectedDate: String,
             }
         }
     }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
 }
 
 @Composable
