@@ -103,6 +103,7 @@ fun LoginMainCard(
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val isLoading = loginState is LoginState.Loading
 
     Card(
         modifier = Modifier
@@ -132,7 +133,8 @@ fun LoginMainCard(
                 username = username,
                 password = password,
                 onUsernameChange = { username = it },
-                onPasswordChange = { password = it }
+                onPasswordChange = { password = it },
+                enabled = !isLoading
             )
 
             // 에러 메시지 표시
@@ -154,7 +156,8 @@ fun LoginMainCard(
                 username = username,
                 password = password,
                 userViewModel = userViewModel,
-                isLoading = loginState is LoginState.Loading
+                isLoading = isLoading,
+                enabled = username.isNotBlank() && password.isNotBlank() && !isLoading
             )
         }
     }
@@ -200,7 +203,8 @@ fun LoginInputFields(
     username: String,
     password: String,
     onUsernameChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit
+    onPasswordChange: (String) -> Unit,
+    enabled: Boolean = true
 ) {
     Column(
         modifier = Modifier
@@ -212,7 +216,8 @@ fun LoginInputFields(
             label = "User Name",
             placeholder = "",
             value = username,
-            onValueChange = onUsernameChange
+            onValueChange = onUsernameChange,
+            enabled = enabled
         )
 
         // Password Input
@@ -221,7 +226,8 @@ fun LoginInputFields(
             placeholder = "",
             value = password,
             onValueChange = onPasswordChange,
-            isPassword = true
+            isPassword = true,
+            enabled = enabled
         )
     }
 }
@@ -232,7 +238,8 @@ fun InputField(
     placeholder: String,
     value: String,
     onValueChange: (String) -> Unit,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    enabled: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -254,16 +261,26 @@ fun InputField(
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
+            enabled = enabled,
             modifier = Modifier
                 .width(163.dp)
                 .height(30.dp)
                 .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color(0x99E8F2FF),
-                            Color(0xCCE8F2FF)
+                    brush = if (enabled) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color(0x99E8F2FF),
+                                Color(0xCCE8F2FF)
+                            )
                         )
-                    ),
+                    } else {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color(0x66E8F2FF),
+                                Color(0x99E8F2FF)
+                            )
+                        )
+                    },
                     shape = RoundedCornerShape(7.dp)
                 )
                 .border(
@@ -275,7 +292,7 @@ fun InputField(
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             textStyle = TextStyle(
                 fontSize = 16.sp,
-                color = Color.Black
+                color = if (enabled) Color.Black else Color(0xFF8E8E93)
             ),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -291,19 +308,29 @@ fun LoginButton(
     username: String,
     password: String,
     userViewModel: UserViewModel,
-    isLoading: Boolean
+    isLoading: Boolean,
+    enabled: Boolean
 ) {
     Box(
         modifier = Modifier
             .width(200.dp)
             .height(40.dp)
             .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0x99E8F2FF),
-                        Color(0xCCE8F2FF)
+                brush = if (enabled) {
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0x99E8F2FF),
+                            Color(0xCCE8F2FF)
+                        )
                     )
-                ),
+                } else {
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0x66E8F2FF),
+                            Color(0x99E8F2FF)
+                        )
+                    )
+                },
                 shape = RoundedCornerShape(13.dp)
             )
             .border(
@@ -311,7 +338,7 @@ fun LoginButton(
                 color = Color(0x26000000),
                 shape = RoundedCornerShape(13.dp)
             )
-            .clickable(enabled = !isLoading) {
+            .clickable(enabled = enabled) {
                 userViewModel.loginUser(username, password)
             },
         contentAlignment = Alignment.Center
@@ -327,7 +354,7 @@ fun LoginButton(
                 text = "Login",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF3673E4)
+                color = if (enabled) Color(0xFF3673E4) else Color(0xFFBDBDBD)
             )
         }
     }

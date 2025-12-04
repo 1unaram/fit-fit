@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.fitfit.app.data.local.database.AppDatabase
 import com.fitfit.app.data.local.entity.UserEntity
 import com.fitfit.app.data.repository.UserRepository
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 class UserViewModel(
     application: Application,
@@ -63,7 +65,8 @@ class UserViewModel(
         }
 
         if (password.length < 4) {
-            _registerState.value = RegisterState.Failure("Password must be at least 4 characters long.")
+            _registerState.value =
+                RegisterState.Failure("Password must be at least 4 characters long.")
             return@launch
         }
 
@@ -81,25 +84,32 @@ class UserViewModel(
     fun loginUser(username: String, password: String) = viewModelScope.launch {
         _loginState.value = LoginState.Loading
 
-        // 입력 검증
-        if (username.isBlank()) {
-            _loginState.value = LoginState.Failure("Fill in your username.")
-            return@launch
-        }
+        try {
+            withTimeout(10000L) {
+                // 입력 검증
+                if (username.isBlank()) {
+                    _loginState.value = LoginState.Failure("Fill in your username.")
+                    return@withTimeout
+                }
 
-        if (password.isBlank()) {
-            _loginState.value = LoginState.Failure("Fill in your password.")
-            return@launch
-        }
+                if (password.isBlank()) {
+                    _loginState.value = LoginState.Failure("Fill in your password.")
+                    return@withTimeout
+                }
 
-        // 로그인 시도
-        val result = repository.loginUser(username, password)
-
-        result.onSuccess { user ->
-            _currentUser.value = user
-            _loginState.value = LoginState.Success(user)
-        }.onFailure { exception ->
-            _loginState.value = LoginState.Failure(exception.message ?: "Login failed")
+                // 로그인 시도
+                val result = repository.loginUser(username, password)
+                result.onSuccess { user ->
+                    _currentUser.value = user
+                    _loginState.value = LoginState.Success(user)
+                }.onFailure { exception ->
+                    _loginState.value = LoginState.Failure(exception.message ?: "Login failed")
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            _loginState.value = LoginState.Failure("Connection timeout. Please try again.")
+        } catch (e: Exception) {
+            _loginState.value = LoginState.Failure("Network error. Please check your connection.")
         }
     }
 
