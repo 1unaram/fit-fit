@@ -122,7 +122,7 @@ fun ProfileIcon() {
 
 @Composable
 private fun UserDataCard(user: UserEntity) {
-    val createdAtText = user.createdAt?.let { formatTimestampToDate(it) } ?: "-"
+    val createdAtText = formatTimestampToDate(user.createdAt)
     Card(
         modifier = Modifier
             .fillMaxWidth()
