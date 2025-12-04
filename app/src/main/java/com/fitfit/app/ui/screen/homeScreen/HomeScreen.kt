@@ -149,10 +149,13 @@ fun HomeScreen(
         val success = weatherFilterState as? WeatherFilterUiState.Success
         val value = success?.weatherFilterState
         if (value != null) {
-            currentTemp = value.temperature          // 기준 온도
-            filterState = filterState.copy(
-                weather = value.weather              // 날씨 조건만 여기서 세팅
-            )
+            currentTemp = value.temperature
+            // 날씨가 있을 때만 필터 업데이트
+            if (value.weather != null) {
+                filterState = filterState.copy(
+                    weather = value.weather
+                )
+            }
         }
     }
 
@@ -169,30 +172,28 @@ fun HomeScreen(
 
 
     // 필터 적용된 코디 목록
-    val filteredOutfits = remember(outfitsWithClothes, filterState, weatherCardState) {
+    val filteredOutfits = remember(outfitsWithClothes, filterState, currentTemp) {
         outfitsWithClothes.filter { outfitWithClothes ->
             val outfit = outfitWithClothes.outfit
             val avg = outfit.temperatureAvg
             val baseTemp = currentTemp
             val range = filterState.temperature
-            val selectedOccasions = filterState.occasion
 
-            val matchTemp = if (baseTemp != null && range != null && avg != null) {
-                val min = baseTemp - range
-                val max = baseTemp + range
-                avg in min..max
-            } else {
-                true
-            }
+            // 온도 필터: baseTemp가 없으면 필터링 안함
+            val matchTemp = baseTemp == null || avg == null || range == null ||
+                    avg in (baseTemp - range)..(baseTemp + range)
 
-            val matchWeather =
-                filterState.weather == null ||
-                        mapIconCodeToWeather(outfit.iconCode) == filterState.weather
+            // 날씨 필터
+            val matchWeather = filterState.weather == null ||
+                    mapIconCodeToWeather(outfit.iconCode) == filterState.weather
 
-            val matchOccasion = selectedOccasions.isNullOrEmpty() ||
-                    selectedOccasions.any { selected -> outfit.occasion.contains(selected) }
+            // 상황 필터
+            val matchOccasion = filterState.occasion?.isEmpty() == true ||
+                    filterState.occasion?.any { selected ->
+                        outfit.occasion.contains(selected)
+                    } == true
 
-            matchWeather && matchOccasion && matchTemp
+            matchTemp && matchWeather && matchOccasion
         }
     }
 
