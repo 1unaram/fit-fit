@@ -74,7 +74,7 @@ fun WeatherScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White.copy(alpha = 0.8f))
+            .background(Color(0xFFE8F2FF))
     ) {
         when (weatherScreenState) {
             is WeatherScreenState.Loading -> {
