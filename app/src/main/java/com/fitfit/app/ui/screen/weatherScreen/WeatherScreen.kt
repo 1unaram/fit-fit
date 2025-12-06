@@ -164,13 +164,14 @@ fun WeatherScreenContent(
                 text = "Weekly Weather",
                 style = MaterialTheme.typography.titleMedium.copy(
                     shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.3f),
-                        offset = Offset(2f, 2f),
+                        color = Color.Black.copy(alpha = 0.2f),
+                        offset = Offset(1f, 1f),
                         blurRadius = 4f
                     )
                 ),
                 color = textColor,
                 fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
             )
             Spacer(Modifier.height(10.dp))
         }

@@ -38,8 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -92,7 +95,7 @@ fun FilterSelectScreen(
                     color = Color.White,
                     shape = RoundedCornerShape(16.dp)
                 )
-                .padding(top = 20.dp, bottom = 28.dp, start = 24.dp, end = 24.dp)
+                .padding(top = 10.dp, bottom = 28.dp, start = 24.dp, end = 24.dp)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -105,7 +108,7 @@ fun FilterSelectScreen(
                 ) {
                     CloseIcon(onDismiss = onDismiss)
                 }
-                Spacer(modifier = Modifier.height(10.dp))
+//                Spacer(modifier = Modifier.height(10.dp))
 
                 // Main Content
 
@@ -124,7 +127,7 @@ fun FilterSelectScreen(
                         selectedWeather = if (selectedWeather == weather) null else weather
                     }
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(30.dp))
                 // Occasion Section
                 OccasionSectionCompact(
                     selectedOccasions = selectedOccasions,
@@ -169,7 +172,14 @@ private fun AddFieldSection(
             text = label,
             fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF8E8E93)
+            color = Color(0xFF8E8E93),
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.1f),
+                    offset = Offset(1f, 1f),
+                    blurRadius = 2f
+                )
+            )
         )
         Spacer(modifier = Modifier.height(10.dp))
         content()
@@ -197,6 +207,9 @@ fun TemperatureSectionCompact(
             horizontalAlignment = Alignment.CenterHorizontally,
             //    verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             // 1. 상단 라벨 영역 표시
             SliderLabels(
                 currentValue = sliderPosition,
@@ -205,6 +218,7 @@ fun TemperatureSectionCompact(
                 // 슬라이더 썸의 중심과 라벨 위치를 맞추기 위해 양옆 패딩 조정
                 modifier = Modifier.padding(horizontal = labelHorizontalPadding)
             )
+
 
             // 2. 커스텀 슬라이더
             Slider(
@@ -216,7 +230,9 @@ fun TemperatureSectionCompact(
                 },
                 valueRange = valueRange,
                 steps = steps,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 // 기본 트랙과 썸 색상을 투명하게 처리하여 커스텀 디자인 적용 준비
                 colors = SliderDefaults.colors(
                     thumbColor = Color.Transparent,
@@ -293,7 +309,14 @@ fun SliderLabels(
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center,
                     // 텍스트 영역의 너비를 고정하여 정렬이 틀어지지 않게 함
-                    modifier = Modifier.width(24.dp)
+                    modifier = Modifier.width(24.dp),
+                    style = TextStyle(
+                        shadow = Shadow(
+                            color = Color.Black.copy(alpha = 0.3f),
+                            offset = Offset(2f, 2f),
+                            blurRadius = 4f
+                        )
+                    )
                 )
             }
         }
@@ -476,7 +499,8 @@ private fun CloseIcon(
             modifier = Modifier
                 .size(21.dp)
                 .clickable { onDismiss() },
-            tint = Color(0xFF8E8E93)
+            tint = Color(0xFF8E8E93),
+
         )
     }
 }

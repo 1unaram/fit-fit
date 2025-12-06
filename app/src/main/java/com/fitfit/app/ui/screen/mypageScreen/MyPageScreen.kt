@@ -72,7 +72,7 @@ fun MyPageScreen(
                     verticalArrangement = Arrangement.spacedBy(30.dp) // 47dp에서 30dp로 조정
                 ){
 
-                    Spacer(Modifier.height(36.dp))
+                    Spacer(Modifier.height(120.dp))
 
                     ProfileIcon()
 
@@ -113,7 +113,7 @@ fun ProfileIcon() {
         Icon(
             painter = painterResource(id = R.drawable.ic_user),
             contentDescription = "Profile",
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(150.dp),
             tint = Color.Black
         )
     }

@@ -9,7 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,7 +31,15 @@ fun MyPageTopBar() {
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
-            modifier = Modifier.padding(start = 24.dp)
+            modifier = Modifier.padding(start = 24.dp),
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.3f),
+                    offset = Offset(2f, 2f),
+                    blurRadius = 4f
+                )
+            )
+
         )
     }
 }

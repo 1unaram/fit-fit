@@ -69,6 +69,10 @@ fun OutfitsScreen(
                     .padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 // 아웃핏 카드 리스트
                 items(outfits, key = { it.outfit.oid }) { outfitWithClothes ->
                     OutfitsCard(

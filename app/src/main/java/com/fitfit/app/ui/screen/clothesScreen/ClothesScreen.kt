@@ -82,6 +82,7 @@ fun ClothesScreen(
             ) {
                 // 카테고리 버튼들
                 item {
+                    Spacer(modifier = Modifier.height(8.dp))
                     CategoryChips(
                         selectedCategory = selectedCategory,
                         onCategorySelected = { selectedCategory = it }
