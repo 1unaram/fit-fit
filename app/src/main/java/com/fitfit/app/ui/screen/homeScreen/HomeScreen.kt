@@ -90,6 +90,8 @@ fun HomeScreen(
     weatherViewModel: WeatherViewModel,
     onNavigateToWeather: () -> Unit
 ) {
+    // ================== state ==================
+    // 현재 사용자 정보
     val currentUser by userViewModel.currentUser.collectAsState()
     // 전체 코디 + 옷 목록 리스트(저장된 옷,온도 등등)
     val outfitsWithClothes by outfitViewModel.outfitsWithClothes.collectAsState()
@@ -97,7 +99,7 @@ fun HomeScreen(
     val weatherCardState by weatherViewModel.weatherCardState.collectAsState()
     // 선택된 날짜의 날씨 정보(온도, 날씨)
     val weatherFilterState by weatherViewModel.weatherFilterState.collectAsState()
-
+    // 날씨 데이터 로딩 처리 state
     val isLoading by weatherViewModel.isLoadingApi.collectAsState()
 
     // 필터 다이얼로그 표시 여부
@@ -106,7 +108,6 @@ fun HomeScreen(
     var showOutfit by remember { mutableStateOf(false) }
     // 현재 선택된 코디(카드 클릭 시 담김)
     var selectedOutfit by remember { mutableStateOf<OutfitWithClothes?>(null) }
-
 
     // 현재 적용 중인 필터 상태(온도 오차, 날씨, 상황)
     var filterState by remember {
@@ -117,19 +118,23 @@ fun HomeScreen(
                 occasion = emptyList()
             )
         )
-    }    // 기준 날짜
+    }
+
+    // 사용자가 필터를 변경했는지 여부
+    var isFilteredChangedByUser by remember { mutableStateOf(false) }
+
+    // 기준 날짜
     var currentDate by remember {
         val now = Date()
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         mutableStateOf(formatter.format(now))
     }
-    //기준 온도
-    var currentTemp by remember {
-        mutableStateOf<Double?>(null)
-    }
 
+    // 필터링 기준 온도
+    var filterBaseTemp by remember { mutableStateOf<Double?>(null) }
 
-    // 데이터 로드
+    // ================== 1. 초기 화면 진입 시 ==================
+    // 1-1. Outfit 데이터 로드
     LaunchedEffect(currentUser) {
         currentUser?.let {
             clothesViewModel.loadClothes()
@@ -137,21 +142,37 @@ fun HomeScreen(
         }
     }
 
-    // weatherCardState 변경 시 currentTemp 업데이트
+    // 1-2. 날씨 데이터 갱신
+    LaunchedEffect(Unit) {
+        weatherViewModel.getWeatherCardData()
+    }
+
+    // 1-3. 현재 날씨 기반 자동 필터링
     LaunchedEffect(weatherCardState) {
-        val success = weatherCardState as? WeatherCardUiState.Success
-        if (currentTemp == null && success != null) {
-            currentTemp = success.cardData.currentTemperature
+        if (!isFilteredChangedByUser) {
+            val success = weatherCardState as? WeatherCardUiState.Success
+            success?.let {
+                // 기준 온도 설정
+                filterBaseTemp = it.cardData.currentTemperature
+                filterState = filterState.copy(
+                    temperature = 3.0,
+                    weather = null,
+                    occasion = emptyList()
+                )
+            }
         }
     }
 
+    // ================== 2. DatePicker로 날짜 선택 시 ==================
+    // getWeatherFilterData()에 의해 weatherFilterState 변경됨
+
+    // 2-1. 해당 날짜의 날씨로 필터 업데이트
     LaunchedEffect(weatherFilterState) {
-        val success = weatherFilterState as? WeatherFilterUiState.Success
-        val value = success?.weatherFilterState
-        if (value != null) {
-            currentTemp = value.temperature
-            // 날씨가 있을 때만 필터 업데이트
-            if (value.weather != null) {
+        if (!isFilteredChangedByUser) {
+            val success = weatherFilterState as? WeatherFilterUiState.Success
+            val value = success?.weatherFilterState
+            if (value != null) {
+                filterBaseTemp = value.temperature
                 filterState = filterState.copy(
                     weather = value.weather
                 )
@@ -159,11 +180,37 @@ fun HomeScreen(
         }
     }
 
+    // =================== 3. 필터링된 코디 목록 load ===================
+    // 필터 적용된 코디 목록
+    val filteredOutfits = remember(outfitsWithClothes, filterState, filterBaseTemp) {
+        outfitsWithClothes.filter { outfitWithClothes ->
+            val outfit = outfitWithClothes.outfit
+            val avg = outfit.temperatureAvg
+            val baseTemp = filterBaseTemp
+            val range = filterState.temperature
 
-    // 날씨 데이터 갱신
-    LaunchedEffect(Unit) {
-        weatherViewModel.getWeatherCardData()
+            // 온도 필터: baseTemp와 avg가 모두 있을 때만 필터링
+            val matchTemp = if (baseTemp != null && avg != null) {
+                avg in (baseTemp - range)..(baseTemp + range)
+            } else {
+                true // 데이터가 없으면 통과
+            }
+            // 날씨 필터: 사용자가 명시적으로 선택한 경우에만 필터링
+            val matchWeather = filterState.weather?.let { selectedWeather ->
+                mapIconCodeToWeather(outfit.iconCode) == selectedWeather
+            } ?: true
+
+            // 상황 필터
+            val matchOccasion = filterState.occasion.isEmpty() ||
+                    filterState.occasion.any { selected ->
+                        outfit.occasion.contains(selected)
+                    }
+
+            matchTemp && matchWeather && matchOccasion
+        }
     }
+
+    // ================== 4. 화면 떠날 때 데이터 리셋 ==================
     DisposableEffect(Unit) {
         onDispose {
             weatherViewModel.resetWeatherCardState()
@@ -171,34 +218,7 @@ fun HomeScreen(
     }
 
 
-    // 필터 적용된 코디 목록
-    val filteredOutfits = remember(outfitsWithClothes, filterState, currentTemp) {
-        outfitsWithClothes.filter { outfitWithClothes ->
-            val outfit = outfitWithClothes.outfit
-            val avg = outfit.temperatureAvg
-            val baseTemp = currentTemp
-            val range = filterState.temperature
-
-            // 온도 필터: baseTemp가 없으면 필터링 안함
-            val matchTemp = baseTemp == null || avg == null || range == null ||
-                    avg in (baseTemp - range)..(baseTemp + range)
-
-            // 날씨 필터
-            val matchWeather = filterState.weather == null ||
-                    mapIconCodeToWeather(outfit.iconCode) == filterState.weather
-
-            // 상황 필터
-            val matchOccasion = filterState.occasion?.isEmpty() == true ||
-                    filterState.occasion?.any { selected ->
-                        outfit.occasion.contains(selected)
-                    } == true
-
-            matchTemp && matchWeather && matchOccasion
-        }
-    }
-
-
-    // ================== ui ==============
+    // ================== ui ==================
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -233,7 +253,7 @@ fun HomeScreen(
                             state = weatherCardState,
                             onClick = { onNavigateToWeather() },
                         )
-//                        Spacer(Modifier.height(8.dp))
+
                         DatePicker(
                             selectedDate = currentDate,
                             onDateSelected = { newDate ->
@@ -241,6 +261,7 @@ fun HomeScreen(
                                 runCatching {
                                     LocalDate.parse(newDate)
                                 }.onSuccess { localDate ->
+                                    isFilteredChangedByUser = false
                                     weatherViewModel.getWeatherFilterData(localDate)
                                 }
                             }
@@ -307,12 +328,19 @@ fun HomeScreen(
                 }
             }
         }
+
+        // 사용자 필터 변경 시
         if (showFilter) {
             Dialog(onDismissRequest = { showFilter = false }) {
                 FilterSelectScreen(
                     initialFilter = filterState,
                     onDismiss = { showFilter = false },
                     onSave = { temp, weather, occasion ->
+                        // 사용자가 필터를 변경했음을 표시
+                        isFilteredChangedByUser = true
+
+                        // 기준 온도 설정
+                        // (현재 날짜면 weatherCardState의 온도, 선택된 날짜면 weatherFilterState의 온도)
                         filterState = filterState.copy(
                             temperature = temp,
                             weather = weather,
@@ -487,7 +515,7 @@ fun WeatherOutfitList(
                 ) {
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        text = "No outfits found.",
+                        text = "No matched outfits found.",
                         color = Color(0xFF757575),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold

@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,21 +50,27 @@ import com.fitfit.app.ui.components.WeatherIcon
 import kotlin.math.roundToInt
 
 data class FilterState(
-    val temperature: Double? = null,
+    val temperature: Double = 3.0,
     val weather: String? = null,
-    val occasion: List<String>? = null
+    val occasion: List<String> = emptyList()
 )
 
 @Composable
 fun FilterSelectScreen(
     initialFilter: FilterState = FilterState(),
     onDismiss: () -> Unit,
-    onSave: (Double?, String?, List<String>?) -> Unit
+    onSave: (Double, String?, List<String>) -> Unit
 ) {
-    var selectedWeather by remember { mutableStateOf(initialFilter.weather) }
-    var selectedOccasions by remember {
-        mutableStateOf(initialFilter.occasion ?: emptyList()) }
-    var selectedTemp by remember { mutableStateOf(initialFilter.temperature) }
+    var selectedWeather by remember(initialFilter.weather) {
+        mutableStateOf(initialFilter.weather)
+    }
+    var selectedOccasions by remember(initialFilter.occasion) {
+        mutableStateOf(initialFilter.occasion)
+    }
+    var selectedTemp by remember(initialFilter.temperature) {
+        mutableDoubleStateOf(initialFilter.temperature)
+    }
+
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -180,7 +187,7 @@ fun TemperatureSectionCompact(
         mutableFloatStateOf(selectedValue?.toFloat() ?: 3f)
     }
     val valueRange = 1f..10f
-    val steps = 8
+    val steps = 10 - 2 // 총 10단계, 1과 10 제외한 8단계
     val thumbSize = 24.dp
     val labelHorizontalPadding = 12.dp
 
@@ -380,7 +387,7 @@ fun WeatherIconCompact(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OccasionSectionCompact(
-    selectedOccasions: List<String>?,
+    selectedOccasions: List<String>,
     onOccasionToggle: (String) -> Unit
 ) {
     val allOccasions = listOf(
@@ -403,7 +410,7 @@ fun OccasionSectionCompact(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 allOccasions.forEach { occasion ->
-                    val selected = selectedOccasions?.contains(occasion) == true
+                    val selected = selectedOccasions.contains(occasion)
 
                     Box(
                         modifier = Modifier
