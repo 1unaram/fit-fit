@@ -256,11 +256,23 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
                     val targetDayWeather = forecastResponse.daily[dayIndex]
 
-                val weatherFilterValue = WeatherFilterData(
-                    temperature = targetDayWeather.temp.day.let {
+                val weatherFilterValue = WeatherCardData(
+                    todayWeatherIconCode = targetDayWeather.weather.firstOrNull()?.icon,
+                    currentTemperature = targetDayWeather.temp.day.let {
                         String.format("%.1f", it).toDouble()
                     },
-                    weather = targetDayWeather.weather.firstOrNull()?.main
+                    todayMinTemperature = targetDayWeather.temp.min.let {
+                        String.format("%.1f", it).toDouble()
+                    },
+                    todayMaxTemperature = targetDayWeather.temp.max.let {
+                        String.format("%.1f", it).toDouble()
+                    },
+                    todayWeatherDescription = targetDayWeather.weather.firstOrNull()?.main,
+                    probabilityOfPrecipitation = (targetDayWeather.pop * 100).toInt(),
+                    windSpeed = targetDayWeather.windSpeed.let {
+                        String.format("%.1f", it).toDouble()
+                    },
+                    locationName = _locationName.value
                 )
 
                     _weatherFilterState.value = WeatherFilterUiState.Success(weatherFilterValue)
@@ -405,10 +417,11 @@ data class DailyWeatherData(
     val pop: Double
 )
 
-data class WeatherFilterData(
-    val temperature: Double?,
-    val weather: String?,
-)
+//data class WeatherFilterData(
+//    val temperature: Double?,
+//    val weather: String?,
+//    val iconCode: String? = null
+//)
 
 sealed class WeatherCardUiState {
     object Idle : WeatherCardUiState()
@@ -420,6 +433,6 @@ sealed class WeatherCardUiState {
 sealed class WeatherFilterUiState {
     object Idle : WeatherFilterUiState()
     object Loading : WeatherFilterUiState()
-    data class Success(val weatherFilterState: WeatherFilterData) : WeatherFilterUiState()
+    data class Success(val weatherFilterState: WeatherCardData) : WeatherFilterUiState()
     data class Failure(val message: String) : WeatherFilterUiState()
 }

@@ -1,5 +1,6 @@
 package com.fitfit.app.ui.screen.outfitsScreen.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -49,6 +50,7 @@ import com.fitfit.app.data.util.formatTimestampToTime
 import com.fitfit.app.ui.components.WeatherIcon
 import java.util.Locale
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun OutfitsCard(
     outfitWithClothes: OutfitWithClothes,
@@ -237,7 +239,7 @@ fun ClothesThumbnailCard(clothes: ClothesEntity) {
             .background(Color(0xFFF5F5F5)),
         contentAlignment = Alignment.Center
     ) {
-        if (!clothes.imagePath.isNullOrBlank()) {
+        if (clothes.imagePath.isNotBlank()) {
             androidx.compose.foundation.Image(
                 painter = rememberAsyncImagePainter(clothes.imagePath),
                 contentDescription = clothes.nickname,

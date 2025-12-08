@@ -109,6 +109,37 @@ fun HomeScreen(
     // 현재 선택된 코디(카드 클릭 시 담김)
     var selectedOutfit by remember { mutableStateOf<OutfitWithClothes?>(null) }
 
+    // 날짜 선택 여부 추가
+    var isDateSelected by remember { mutableStateOf(false) }
+
+    // WeatherCard에 표시할 날씨 상태
+    val displayWeatherState: WeatherCardUiState = when {
+        isDateSelected -> {
+            when (val state = weatherFilterState) {
+                is WeatherFilterUiState.Success -> {
+                    val filterData = state.weatherFilterState
+                    WeatherCardUiState.Success(
+                        cardData = com.fitfit.app.viewmodel.WeatherCardData(
+                            todayWeatherIconCode = filterData.todayWeatherIconCode ?: "",
+                            currentTemperature = filterData.currentTemperature,
+                            todayMinTemperature = filterData.todayMinTemperature ?: 0.0,
+                            todayMaxTemperature = filterData.todayMaxTemperature ?: 0.0,
+                            todayWeatherDescription = filterData.todayWeatherDescription ?: "",
+                            probabilityOfPrecipitation = filterData.probabilityOfPrecipitation,
+                            windSpeed = filterData.windSpeed,
+                            locationName = filterData.locationName
+                        )
+                    )
+                }
+                is WeatherFilterUiState.Loading -> WeatherCardUiState.Loading
+                is WeatherFilterUiState.Failure -> WeatherCardUiState.Failure(state.message)
+                else -> WeatherCardUiState.Loading
+            }
+        }
+        else -> weatherCardState
+    }
+
+
     // 현재 적용 중인 필터 상태(온도 오차, 날씨, 상황)
     var filterState by remember {
         mutableStateOf(
@@ -132,6 +163,7 @@ fun HomeScreen(
 
     // 필터링 기준 온도
     var filterBaseTemp by remember { mutableStateOf<Double?>(null) }
+
 
     // ================== 1. 초기 화면 진입 시 ==================
     // 1-1. Outfit 데이터 로드
@@ -172,9 +204,9 @@ fun HomeScreen(
             val success = weatherFilterState as? WeatherFilterUiState.Success
             val value = success?.weatherFilterState
             if (value != null) {
-                filterBaseTemp = value.temperature
+                filterBaseTemp = value.currentTemperature
                 filterState = filterState.copy(
-                    weather = value.weather
+                    weather = value.todayWeatherDescription
                 )
             }
         }
@@ -250,8 +282,8 @@ fun HomeScreen(
                             .padding(16.dp)
                     ) {
                         WeatherCard(
-                            state = weatherCardState,
-                            onClick = { onNavigateToWeather() },
+                            state = displayWeatherState,
+                            onClick = { onNavigateToWeather() }
                         )
 
                         DatePicker(
@@ -262,6 +294,11 @@ fun HomeScreen(
                                     LocalDate.parse(newDate)
                                 }.onSuccess { localDate ->
                                     isFilteredChangedByUser = false
+
+                                    // 오늘 날짜인지 확인
+                                    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                                    isDateSelected = (newDate != today)
+
                                     weatherViewModel.getWeatherFilterData(localDate)
                                 }
                             }
