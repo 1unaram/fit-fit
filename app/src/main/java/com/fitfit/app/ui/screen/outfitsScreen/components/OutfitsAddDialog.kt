@@ -314,10 +314,19 @@ fun OutfitsAddDialog(
                     DatePickerDialog(
                         context,
                         { _, y, m, d ->
+                            val now = Calendar.getInstance()
+                            val currentHour = now.get(Calendar.HOUR_OF_DAY)
+                            val currentMinute = now.get(Calendar.MINUTE)
                             calendar.set(y, m, d)
+                            calendar.set(Calendar.HOUR_OF_DAY, currentHour)
+                            calendar.set(Calendar.MINUTE, currentMinute)
+                            calendar.set(Calendar.SECOND, 0)
+
                             wornDate = calendar.timeInMillis
-                            wornStartTime = calendar.timeInMillis + 9 * 60 * 60 * 1000
+
+                            wornStartTime = calendar.timeInMillis
                             wornEndTime = wornStartTime + 2 * 60 * 60 * 1000
+
                             showDatePicker = false
                         },
                         calendar.get(Calendar.YEAR),
