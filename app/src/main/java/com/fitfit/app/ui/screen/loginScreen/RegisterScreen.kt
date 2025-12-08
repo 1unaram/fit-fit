@@ -1,5 +1,6 @@
 package com.fitfit.app.ui.screen.loginScreen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -48,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.fitfit.app.viewmodel.RegisterState
 import com.fitfit.app.viewmodel.UserViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun RegisterScreen(
@@ -56,10 +59,22 @@ fun RegisterScreen(
 ) {
     // 회원가입 상태 관찰
     val registerState by userViewModel.registerState.collectAsState()
+    val toastMessage by userViewModel.toastMessage.collectAsState()
+    val context = LocalContext.current // 추가
 
-    // 회원가입 성공 시 로그인 화면으로 이동
+    // Toast 메시지 표시
+    LaunchedEffect(toastMessage) {
+        toastMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            userViewModel.clearToastMessage()
+        }
+    }
+
+    // 회원가입 성공 시 Toast 표시 후 로그인 화면으로 이동
     LaunchedEffect(registerState) {
         if (registerState is RegisterState.Success) {
+            userViewModel.showToast("Registration Successful! Please log in.")
+            delay(1000) // Toast가 표시될 시간 제공
             navController.navigate("login") {
                 popUpTo("register") { inclusive = true }
             }
@@ -102,10 +117,10 @@ private fun BackButton(onClick: () -> Unit) {
         modifier = Modifier
             .padding(start = 16.dp, top = 48.dp)
             .size(40.dp)
-            .background(
-                color = Color.White.copy(alpha = 0.8f),
-                shape = RoundedCornerShape(20.dp)
-            )
+//            .background(
+//                color = Color.White.copy(alpha = 0.8f),
+//                shape = RoundedCornerShape(20.dp)
+//            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -145,10 +160,12 @@ private fun RegisterMainCard(
                 .fillMaxSize()
                 .padding(vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(30.dp)
+            verticalArrangement = Arrangement.Top
         ) {
             // Page Title
             RegisterTitle()
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Sign Up Input Fields
             RegisterInputFields(
@@ -168,6 +185,8 @@ private fun RegisterMainCard(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.height(120.dp))
 
             // Sign Up Submit Button
             RegisterSubmitButton(
@@ -191,6 +210,7 @@ private fun RegisterTitle() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 24.dp)
+            .padding(top = 20.dp)
     )
 }
 

@@ -70,6 +70,7 @@ class UserViewModel(
             return@launch
         }
 
+
         // 회원가입 시도
         val result = repository.registerUser(username, password)
 
@@ -78,6 +79,17 @@ class UserViewModel(
         }.onFailure { exception ->
             _registerState.value = RegisterState.Failure(exception.message ?: "Registration failed")
         }
+    }
+
+    private val _toastMessage = MutableStateFlow<String?>(null)
+    val toastMessage: StateFlow<String?> = _toastMessage.asStateFlow()
+
+    fun showToast(message: String) {
+        _toastMessage.value = message
+    }
+
+    fun clearToastMessage() {
+        _toastMessage.value = null
     }
 
     // ### 로그인 ###

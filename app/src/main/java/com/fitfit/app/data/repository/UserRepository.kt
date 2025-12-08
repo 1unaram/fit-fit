@@ -97,7 +97,7 @@ class UserRepository(
             val uidSnapshot = firebaseUsernamesRef.child(username).get().await()
 
             if (!uidSnapshot.exists()) {
-                return Result.failure(Exception("No username found."))
+                return Result.failure(Exception("No Account found."))
             }
 
             val uid = uidSnapshot.value as? String
