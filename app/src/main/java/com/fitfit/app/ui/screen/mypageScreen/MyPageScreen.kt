@@ -48,6 +48,7 @@ fun MyPageScreen(
     val currentUser by userViewModel.currentUser.collectAsStateWithLifecycle()
     val loginState by userViewModel.loginState.collectAsStateWithLifecycle()
     val isLoading by userViewModel.isLoading.collectAsStateWithLifecycle()
+    val isFahrenheit by userViewModel.isFahrenheit.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -88,6 +89,11 @@ fun MyPageScreen(
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
+
+                    TemperatureUnitToggle(
+                        isFahrenheit = isFahrenheit,
+                        onToggle = { userViewModel.toggleTemperatureUnit() }
+                    )
 
                     Spacer(Modifier.height(20.dp))
 
@@ -217,3 +223,68 @@ private fun LogoutButton(onLogoutClick: () -> Unit) {
     }
 }
 
+
+@Composable
+private fun TemperatureUnitToggle(
+    isFahrenheit: Boolean,
+    onToggle: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 33.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(13.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color(0x26000000),
+                    shape = RoundedCornerShape(13.dp)
+                )
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TemperatureUnitButton(
+                text = "°C",
+                isSelected = !isFahrenheit,
+                onClick = { if (isFahrenheit) onToggle() }
+            )
+            TemperatureUnitButton(
+                text = "°F",
+                isSelected = isFahrenheit,
+                onClick = { if (!isFahrenheit) onToggle() }
+            )
+        }
+    }
+}
+
+@Composable
+private fun TemperatureUnitButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .width(80.dp)
+            .height(36.dp)
+            .background(
+                color = if (isSelected) Color(0xFF3673E4) else Color.Transparent,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isSelected) Color.White else Color(0xFF8E8E93)
+        )
+    }
+}

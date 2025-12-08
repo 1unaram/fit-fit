@@ -31,6 +31,19 @@ class UserViewModel(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isFahrenheit = MutableStateFlow(false)
+    val isFahrenheit: StateFlow<Boolean> = _isFahrenheit.asStateFlow()
+
+    // ### 온도 단위 토글 ###
+    fun toggleTemperatureUnit() {
+        _isFahrenheit.value = !_isFahrenheit.value
+
+        // Toast 메시지 표시
+        val unit = if (_isFahrenheit.value) "Fahrenheit" else "Celsius"
+        showToast("Temperature unit set to $unit.")
+    }
+
+
     init {
         loadCurrentUser()
     }
