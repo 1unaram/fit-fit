@@ -112,7 +112,7 @@ class OutfitViewModel(application: Application) : AndroidViewModel(application) 
             return@launch
         }
 
-        // 위치 정보 가져오기 (수정 시에도 현재 위치 기준으로 다시 날씨 반영하고 싶다면 사용)
+        // 위치 정보 가져오기
         val locationResult = locationManager.getCurrentLocation()
 
         locationResult.onSuccess { location ->

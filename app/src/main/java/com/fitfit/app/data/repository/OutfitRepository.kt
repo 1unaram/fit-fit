@@ -197,7 +197,12 @@ class OutfitRepository(
                 ?: return Result.failure(Exception("Outfit not found"))
 
             // 시간 변경 시 날씨 상태 재결정
-            val weatherStatus = if (outfit.weatherFetched) {
+            val timeChanged = outfit.wornStartTime != wornStartTime || outfit.wornEndTime != wornEndTime
+            val weatherStatus = if (timeChanged) {
+                // 시간이 변경되면 날씨 데이터 무효화
+                determineWeatherUpdateStatus(wornStartTime, false)
+            } else if (outfit.weatherFetched) {
+                // 시간이 그대로면 기존 날씨 상태 유지
                 WeatherUpdateStatus.FETCHED.name
             } else {
                 determineWeatherUpdateStatus(wornStartTime, false)
@@ -212,6 +217,14 @@ class OutfitRepository(
                 latitude = latitude,
                 longitude = longitude,
                 weatherUpdateStatus = weatherStatus,
+                weatherFetched = if (timeChanged) false else outfit.weatherFetched,
+                temperatureAvg = if (timeChanged) 0.0 else outfit.temperatureAvg,
+                temperatureMin = if (timeChanged) 0.0 else outfit.temperatureMin,
+                temperatureMax = if (timeChanged) 0.0 else outfit.temperatureMax,
+                description = if (timeChanged) "" else outfit.description,
+                iconCode = if (timeChanged) "" else outfit.iconCode,
+                windSpeed = if (timeChanged) 0.0 else outfit.windSpeed,
+                precipitation = if (timeChanged) 0.0 else outfit.precipitation,
                 isSynced = false,
                 lastModified = System.currentTimeMillis()
             )
