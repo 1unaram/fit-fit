@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fitfit.app.data.util.TemperatureUnitManager
 import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.viewmodel.WeatherCardData
 import com.fitfit.app.viewmodel.WeatherCardUiState
@@ -46,6 +47,7 @@ val CardBackground = Color.White.copy(alpha = 0.7f) // 반투명 흰색 배경
 @Composable
 fun WeatherCard(
     state: WeatherCardUiState,
+    isFahrenheit: Boolean = false,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
@@ -81,7 +83,10 @@ fun WeatherCard(
                     Text(state.message, color = Color.Red)
                 }
             }
-            is WeatherCardUiState.Success -> WeatherMainContent(state.cardData)
+            is WeatherCardUiState.Success -> WeatherMainContent(
+                cardData = state.cardData,
+                isFahrenheit = isFahrenheit
+            )
             WeatherCardUiState.Idle -> {
                 Box(
                     modifier = Modifier
@@ -98,7 +103,10 @@ fun WeatherCard(
 
 @SuppressLint("DefaultLocale")
 @Composable
-private fun WeatherMainContent(cardData: WeatherCardData) {
+private fun WeatherMainContent(
+    cardData: WeatherCardData,
+    isFahrenheit: Boolean
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -130,7 +138,7 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
 
             // 2. 온도 텍스트 (크고 굵게)
             Text(
-                text = String.format("%.1f°C", cardData.currentTemperature),
+                text = TemperatureUnitManager.formatTemperature(cardData.currentTemperature, isFahrenheit),
                 fontSize = 28.sp, // 폰트 키움
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.Black,
@@ -144,9 +152,10 @@ private fun WeatherMainContent(cardData: WeatherCardData) {
             )
 
             // 3. 최저/최고 온도 (작고 회색)
+            val minTemp = TemperatureUnitManager.formatTemperature(cardData.todayMinTemperature, isFahrenheit)
+            val maxTemp = TemperatureUnitManager.formatTemperature(cardData.todayMaxTemperature, isFahrenheit)
             Text(
-                text = "${String.format("%.1f", cardData.todayMinTemperature ?: 0.0)}°C ~ " +
-                        "${String.format("%.1f", cardData.todayMaxTemperature ?: 0.0)}°C",
+                text = "$minTemp ~ $maxTemp",
                 fontSize = 12.sp,
                 color = LabelGray,
                 lineHeight = 14.sp,

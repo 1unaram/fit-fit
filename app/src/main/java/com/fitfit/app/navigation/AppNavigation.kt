@@ -145,7 +145,8 @@ fun AppNavigation(
             composable(Screens.OUTFITS) {
                 OutfitsScreen(
                     outfitViewModel = outfitViewModel,
-                    clothesViewModel=clothesViewModel
+                    clothesViewModel= clothesViewModel,
+                    userViewModel = userViewModel
                 )
             }
             composable(Screens.REGISTER) {
@@ -156,7 +157,8 @@ fun AppNavigation(
             }
             composable (Screens.WEATHER) {
                 WeatherScreen(
-                    weatherViewModel = weatherViewModel
+                    weatherViewModel = weatherViewModel,
+                    userViewModel = userViewModel
                 )
             }
             composable (Screens.MYPAGE) {

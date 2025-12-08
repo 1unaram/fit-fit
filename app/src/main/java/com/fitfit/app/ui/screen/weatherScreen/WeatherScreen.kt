@@ -44,9 +44,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fitfit.app.ui.components.WeatherIcon
 import com.fitfit.app.viewmodel.DailyWeatherData
 import com.fitfit.app.viewmodel.HourlyWeatherData
+import com.fitfit.app.viewmodel.UserViewModel
 import com.fitfit.app.viewmodel.WeatherScreenState
 import com.fitfit.app.viewmodel.WeatherViewModel
 import java.text.SimpleDateFormat
@@ -56,10 +58,12 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherScreen(
-    weatherViewModel: WeatherViewModel
+    weatherViewModel: WeatherViewModel,
+    userViewModel: UserViewModel
 ) {
     val weatherScreenState by weatherViewModel.weatherScreenState.collectAsState()
     val locationName by weatherViewModel.locationName.collectAsState()
+    val isFahrenheit by userViewModel.isFahrenheit.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         weatherViewModel.getWeatherScreenData()
@@ -91,7 +95,8 @@ fun WeatherScreen(
                 WeatherScreenContent(
                     hourlyList = state.hourlyList,
                     dailyList = state.dailyList,
-                    locationName = locationName
+                    locationName = locationName,
+                    isFahrenheit = isFahrenheit
                 )
             }
 
@@ -124,7 +129,8 @@ fun WeatherScreen(
 fun WeatherScreenContent(
     hourlyList: List<HourlyWeatherData>,
     dailyList: List<DailyWeatherData>,
-    locationName: String?
+    locationName: String?,
+    isFahrenheit: Boolean
 ) {
     val textColor = Color(0xFF111111)
 
@@ -144,7 +150,8 @@ fun WeatherScreenContent(
             item {
                 CurrentWeatherSummary(
                     current = hourlyList.first(),
-                    todayDaily = dailyList.first()
+                    todayDaily = dailyList.first(),
+                    isFahrenheit = isFahrenheit
                 )
 
                 Spacer(Modifier.height(24.dp))
@@ -153,7 +160,7 @@ fun WeatherScreenContent(
 
         // 시간별 날씨 (가로 스크롤)
         item {
-            HourlyWeatherRow(hourlyList)
+            HourlyWeatherRow(hourlyList, isFahrenheit)
 
             Spacer(Modifier.height(40.dp))
         }
@@ -177,7 +184,7 @@ fun WeatherScreenContent(
         }
 
         items(dailyList, key = { it.dt }) { daily ->
-            DailyWeatherRow(daily)
+            DailyWeatherRow(daily, isFahrenheit)
             Spacer(Modifier.height(20.dp))
         }
     }
@@ -214,8 +221,17 @@ fun WeatherHeader(
 }
 
 @Composable
-fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherData) {
+fun CurrentWeatherSummary(
+    current: HourlyWeatherData,
+    todayDaily: DailyWeatherData,
+    isFahrenheit: Boolean
+) {
     val textColor = Color(0xFF111111)
+    val tempUnit = if (isFahrenheit) "°" else "°"
+    val currentTemp = if (isFahrenheit) current.temp * 9 / 5 + 32 else current.temp
+    val maxTemp = if (isFahrenheit) todayDaily.tempMax * 9 / 5 + 32 else todayDaily.tempMax
+    val minTemp = if (isFahrenheit) todayDaily.tempMin * 9 / 5 + 32 else todayDaily.tempMin
+
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -262,7 +278,7 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
             ) {
                 // 현재 온도
                 Text(
-                    text = "${current.temp.toInt()}°",
+                    text = "${currentTemp.toInt()}$tempUnit",
                     style = MaterialTheme.typography.displayLarge,
                     color = textColor,
                     fontWeight = FontWeight.Bold,
@@ -286,7 +302,7 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
                 modifier = Modifier.weight(0.8f)
             ) {
                 Text(
-                    text = "H: ${todayDaily.tempMax.toInt()}°  ",
+                    text = "H: ${maxTemp.toInt()}$tempUnit  ",
                     style = MaterialTheme.typography.titleLarge.copy(
                         shadow = Shadow(
                             color = Color.Black.copy(alpha = 0.1f),
@@ -299,7 +315,7 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "L: ${todayDaily.tempMin.toInt()}°",
+                    text = "L: ${minTemp.toInt()}$tempUnit",
                     style = MaterialTheme.typography.titleLarge.copy(
                         shadow = Shadow(
                             color = Color.Black.copy(alpha = 0.1f),
@@ -317,7 +333,7 @@ fun CurrentWeatherSummary(current: HourlyWeatherData, todayDaily: DailyWeatherDa
 }
 
 @Composable
-fun HourlyWeatherRow(hourlyList: List<HourlyWeatherData>) {
+fun HourlyWeatherRow(hourlyList: List<HourlyWeatherData>, isFahrenheit: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -344,7 +360,7 @@ fun HourlyWeatherRow(hourlyList: List<HourlyWeatherData>) {
                 contentPadding = PaddingValues(horizontal = 16.dp)
             ) {
                 items(hourlyList, key = { it.dt }) { hourly ->
-                    HourlyWeatherItem(hourly)
+                    HourlyWeatherItem(hourly, isFahrenheit)
                 }
             }
         }
@@ -352,8 +368,10 @@ fun HourlyWeatherRow(hourlyList: List<HourlyWeatherData>) {
 }
 
 @Composable
-fun HourlyWeatherItem(hourly: HourlyWeatherData) {
+fun HourlyWeatherItem(hourly: HourlyWeatherData, isFahrenheit: Boolean) {
     val textColor = Color(0xFF111111)
+    val tempUnit = if (isFahrenheit) "°" else "°"
+    val temp = if (isFahrenheit) hourly.temp * 9 / 5 + 32 else hourly.temp
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -377,7 +395,7 @@ fun HourlyWeatherItem(hourly: HourlyWeatherData) {
 
         // 온도
         Text(
-            text = "${hourly.temp.toInt()}°",
+            text = "${temp.toInt()}$tempUnit",
             style = MaterialTheme.typography.titleMedium,
             color = textColor,
             fontWeight = FontWeight.Bold,
@@ -387,8 +405,12 @@ fun HourlyWeatherItem(hourly: HourlyWeatherData) {
 }
 
 @Composable
-fun DailyWeatherRow(daily: DailyWeatherData) {
+fun DailyWeatherRow(daily: DailyWeatherData, isFahrenheit: Boolean) {
     val textColor = Color(0xFF111111)
+    val tempUnit = if (isFahrenheit) "°" else "°"
+    val maxTemp = if (isFahrenheit) daily.tempMax * 9 / 5 + 32 else daily.tempMax
+    val minTemp = if (isFahrenheit) daily.tempMin * 9 / 5 + 32 else daily.tempMin
+
 
     Box(
         modifier = Modifier
@@ -441,14 +463,14 @@ fun DailyWeatherRow(daily: DailyWeatherData) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${daily.tempMax.toInt()}°",
+                        text = "${maxTemp.toInt()}$tempUnit",
                         style = MaterialTheme.typography.titleMedium,
                         color = textColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
                     Text(
-                        text = "${daily.tempMin.toInt()}°",
+                        text = "${minTemp.toInt()}$tempUnit",
                         style = MaterialTheme.typography.titleMedium,
                         color = textColor.copy(alpha = 0.6f),
                         fontSize = 18.sp
@@ -517,6 +539,7 @@ fun WeatherScreenContentPreview() {
     WeatherScreenContent(
         hourlyList = hourlyList,
         dailyList = dailyList,
-        "Seoul"
+        "Seoul",
+        isFahrenheit = false
     )
 }

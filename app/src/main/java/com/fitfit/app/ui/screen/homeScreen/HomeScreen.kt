@@ -62,6 +62,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberAsyncImagePainter
 import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.OutfitWithClothes
+import com.fitfit.app.data.util.TemperatureUnitManager
 import com.fitfit.app.data.util.formatTimestampToDate
 import com.fitfit.app.data.util.mapIconCodeToWeather
 import com.fitfit.app.ui.components.WeatherIcon
@@ -164,6 +165,7 @@ fun HomeScreen(
     // 필터링 기준 온도
     var filterBaseTemp by remember { mutableStateOf<Double?>(null) }
 
+    val isFahrenheit by userViewModel.isFahrenheit.collectAsState()
 
     // ================== 1. 초기 화면 진입 시 ==================
     // 1-1. Outfit 데이터 로드
@@ -283,6 +285,7 @@ fun HomeScreen(
                     ) {
                         WeatherCard(
                             state = displayWeatherState,
+                            isFahrenheit = isFahrenheit,
                             onClick = { onNavigateToWeather() }
                         )
 
@@ -330,6 +333,7 @@ fun HomeScreen(
                 WeatherOutfitList(
                     outfitsWithClothes = filteredOutfits,
                     isLoading = isLoading,
+                    isFahrenheit = isFahrenheit,
                     onCardClick = { outfit ->
                         selectedOutfit = outfit
                         showOutfit = true
@@ -360,7 +364,8 @@ fun HomeScreen(
                 ) {
                     OutfitsCard(
                         outfitWithClothes = selectedOutfit!!,
-                        onDismiss = { showOutfit = false }
+                        onDismiss = { showOutfit = false },
+                        isFahrenheit = isFahrenheit
                     )
                 }
             }
@@ -521,6 +526,7 @@ fun FilterButtonSection(
 fun WeatherOutfitList(
     outfitsWithClothes: List<OutfitWithClothes>,
     isLoading: Boolean = false,
+    isFahrenheit: Boolean = false,
     onCardClick: (OutfitWithClothes) -> Unit
 ) {
     Column(
@@ -569,7 +575,7 @@ fun WeatherOutfitList(
             else -> {
                 outfitsWithClothes.forEach { outfitWithClothes ->
                     WeatherOutfitCard(
-                        outfitWithClothes, onClick = { onCardClick(outfitWithClothes) }
+                        outfitWithClothes, onClick = { onCardClick(outfitWithClothes) }, isFahrenheit = isFahrenheit
                     )
                 }
             }
@@ -580,7 +586,7 @@ fun WeatherOutfitList(
 @SuppressLint("DefaultLocale")
 @Composable
 fun WeatherOutfitCard(
-    outfitsWithClothes: OutfitWithClothes, onClick: (OutfitWithClothes) -> Unit
+    outfitsWithClothes: OutfitWithClothes, onClick: (OutfitWithClothes) -> Unit, isFahrenheit: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -625,9 +631,9 @@ fun WeatherOutfitCard(
                         Spacer(modifier = Modifier.width(6.dp))
                         // temperature
                         Text(
-                            text = String.format(
-                                "%.1f°C",
-                                outfitsWithClothes.outfit.temperatureAvg
+                            text = TemperatureUnitManager.formatTemperature(
+                                temp = outfitsWithClothes.outfit.temperatureAvg,
+                                isFahrenheit = isFahrenheit
                             ),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,

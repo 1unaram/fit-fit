@@ -45,6 +45,7 @@ import com.fitfit.app.R
 import com.fitfit.app.data.local.entity.ClothesEntity
 import com.fitfit.app.data.local.entity.OutfitWithClothes
 import com.fitfit.app.data.local.entity.WeatherUpdateStatus
+import com.fitfit.app.data.util.TemperatureUnitManager
 import com.fitfit.app.data.util.formatTimestampToDate
 import com.fitfit.app.data.util.formatTimestampToTime
 import com.fitfit.app.ui.components.WeatherIcon
@@ -54,6 +55,7 @@ import java.util.Locale
 @Composable
 fun OutfitsCard(
     outfitWithClothes: OutfitWithClothes,
+    isFahrenheit: Boolean = false,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null
@@ -123,8 +125,10 @@ fun OutfitsCard(
                             WeatherIcon(outfitWithClothes.outfit.iconCode, "Weather Icon")
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "${outfitWithClothes.outfit.temperatureAvg?.let { String.format("%.1f", it) } ?: "-"}°",
-                                fontWeight = FontWeight.Bold,
+                                text = TemperatureUnitManager.formatTemperature(
+                                    outfitWithClothes.outfit.temperatureAvg,
+                                    isFahrenheit
+                                ),fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp,
                                 color = Color.Black
                             )
@@ -164,7 +168,8 @@ fun OutfitsCard(
                 "Temperature Range",
                 getWeatherDisplayValue(
                     weatherStatus,
-                    "${outfitWithClothes.outfit.temperatureMin ?: "-"}° - ${outfitWithClothes.outfit.temperatureMax ?: "-"}°"
+                    "${TemperatureUnitManager.formatTemperature(outfitWithClothes.outfit.temperatureMin, isFahrenheit)} - ${TemperatureUnitManager.formatTemperature(
+                        outfitWithClothes.outfit.temperatureMax, isFahrenheit)}"
                 )
             )
             InfoRow(

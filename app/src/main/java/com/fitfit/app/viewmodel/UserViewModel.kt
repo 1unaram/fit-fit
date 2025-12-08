@@ -43,7 +43,6 @@ class UserViewModel(
         showToast("Temperature unit set to $unit.")
     }
 
-
     init {
         loadCurrentUser()
     }

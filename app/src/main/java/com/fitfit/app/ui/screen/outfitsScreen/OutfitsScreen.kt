@@ -31,18 +31,22 @@ import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsFloatingButton
 import com.fitfit.app.ui.screen.outfitsScreen.components.OutfitsTopBar
 import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
+import com.fitfit.app.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OutfitsScreen(
     outfitViewModel: OutfitViewModel,
-    clothesViewModel: ClothesViewModel
+    clothesViewModel: ClothesViewModel,
+    userViewModel: UserViewModel
 ) {
     val outfits by outfitViewModel.outfitsWithClothes.collectAsState()
     val clothesList by clothesViewModel.clothesList.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var editingOutfit by remember { mutableStateOf<OutfitWithClothes?>(null) }
+
+    val isFahrenheit by userViewModel.isFahrenheit.collectAsState()
 
     // 코디 목록 항상 새로고침
     LaunchedEffect(Unit) {
@@ -80,7 +84,8 @@ fun OutfitsScreen(
                         onEdit = { editingOutfit = outfitWithClothes },
                         onDelete = {
                             outfitViewModel.deleteOutfit(outfitWithClothes.outfit.oid)
-                        }
+                        },
+                        isFahrenheit = isFahrenheit
                         // onDismiss 는 이 화면에서는 사용하지 않으므로 전달하지 않음
                     )
                 }
