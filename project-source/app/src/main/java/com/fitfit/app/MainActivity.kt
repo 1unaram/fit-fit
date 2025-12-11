@@ -1,5 +1,6 @@
 package com.fitfit.app
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,10 +21,13 @@ import com.fitfit.app.viewmodel.ClothesViewModel
 import com.fitfit.app.viewmodel.OutfitViewModel
 import com.fitfit.app.viewmodel.UserViewModel
 import com.fitfit.app.viewmodel.WeatherViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.delay
 
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -40,6 +44,21 @@ class MainActivity : ComponentActivity() {
                     .build()
             }
 
+            // 위치 권한 상태 관리
+            val locationPermissionsState = rememberMultiplePermissionsState(
+                permissions = listOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+
+            // 권한 요청
+            LaunchedEffect(Unit) {
+                if (!locationPermissionsState.allPermissionsGranted) {
+                    locationPermissionsState.launchMultiplePermissionRequest()
+                }
+            }
+
             FitFitTheme {
 
                 val userViewModel: UserViewModel = viewModel()
@@ -47,6 +66,11 @@ class MainActivity : ComponentActivity() {
                 val outfitViewModel: OutfitViewModel = viewModel()
                 val weatherViewModel: WeatherViewModel = viewModel()
                 val currentUser by userViewModel.currentUser.collectAsState()
+
+                // 권한 상태를 ViewModel에 전달
+                LaunchedEffect(locationPermissionsState.allPermissionsGranted) {
+                    weatherViewModel.updateLocationPermission(locationPermissionsState.allPermissionsGranted)
+                }
 
                 // Outfit Repository 설정
                 LaunchedEffect(Unit) {

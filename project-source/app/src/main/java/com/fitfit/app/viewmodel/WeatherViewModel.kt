@@ -50,6 +50,19 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val _locationName = MutableStateFlow<String?>(null)
     val locationName: StateFlow<String?> = _locationName.asStateFlow()
 
+    private val _hasLocationPermission = MutableStateFlow(false)
+    val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
+    fun updateLocationPermission(hasPermission: Boolean) {
+        _hasLocationPermission.value = hasPermission
+        if (hasPermission) {
+            // 권한이 부여되면 날씨 업데이트
+            viewModelScope.launch {
+                updatePendingOutfitWeather()
+            }
+        }
+    }
+
 
     // ========== Case 1: HomeScreen WeatherCard ==========
     // ### Weather Card용 날씨 정보 조회 ###
