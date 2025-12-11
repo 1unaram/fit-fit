@@ -21,13 +21,13 @@ It combines a **digital closet**, **outfit history**, and **weather integration*
 
 ## Demo Video
 
-<img src="demo/1.gif" width="600" alt="1-login">
+<img src="demo/1.gif" width="200" alt="1-login">
 
-<img src="demo/2.gif" width="600" alt="2-clothes">
+<img src="demo/2.gif" width="200" alt="2-clothes">
 
-<img src="demo/3.gif" width="600" alt="3-outfit-case1">
+<img src="demo/3.gif" width="200" alt="3-outfit-case1">
 
-<img src="demo/4.gif" width="600" alt="4-outfit-case2">
+<img src="demo/4.gif" width="200" alt="4-outfit-case2">
 
 <br>
 
