@@ -1,117 +1,139 @@
 # FitFit – Weather-based Outfit Management App
 
-FitFit is an Android application that helps users **record what they wore**, **plan what to wear**, and **connect outfits with real weather data**.  
+## #0. Summary
+
+FitFit is an Android application that helps users **record what they wore**, **plan what to wear**, and **connect outfits with real weather data**.
 It combines a **digital closet**, **outfit history**, and **weather integration** to support both retrospective tracking and future planning.
 
 <br>
 
+## Team Members
+
 2025-2 Mobile Application Development Course Project
 
-by 김하람 나정원 이가연
+| name   | role               |
+| ------ | ------------------ |
+| 김하람 | PM / Back-end      |
+| 나정원 | Design / Front-end |
+| 이가연 | Design / Front-end |
 
----
+<br>
 
-## 1. Project Overview
+## Demo Video
+
+<img src="demo/1.gif" width="600" alt="1-login">
+
+<img src="demo/2.gif" width="600" alt="2-clothes">
+
+<img src="demo/3.gif" width="600" alt="3-outfit-case1">
+
+<img src="demo/4.gif" width="600" alt="4-outfit-case2">
+
+<br>
+
+## #1. Project Overview
 
 FitFit is designed around two core ideas:
 
-- Not just “What did I wear today?”, but also **“What should I wear next?”**
-- Outfits are not stored as simple notes: each outfit is tied to **time, location, and weather**.
+-   Not just “What did I wear today?”, but also **“What should I wear next?”**
+-   Outfits are not stored as simple notes: each outfit is tied to **time, location, and weather**.
 
 Key user scenarios:
 
-- Record today’s outfit right after coming home.
-- Manage a digital closet (Outerwear / Tops / Bottoms).
-- Plan an outfit for a future date (e.g., a wedding) based on weather forecasts.
-- Automatically attach **actual past weather** to outfits after the day has passed.
+-   Record today’s outfit right after coming home.
+-   Manage a digital closet (Outerwear / Tops / Bottoms).
+-   Plan an outfit for a future date (e.g., a wedding) based on weather forecasts.
+-   Automatically attach **actual past weather** to outfits after the day has passed.
 
 ### Project Structure
 
+```
 .
-├── project-source/             # Android app source code
-│ ├── app/                      # Main Android module
-│ └── ...                       # Other Gradle / config files
-├── fit-fit.apk                 # Built APK for demo / installation
-├── presentation-file.pdf       # Project presentation slides
-└── README.md                   # Project documentation (this file)
+├── project-source/ # Android app source code
+│ ├── app/ # Main Android module
+│ └── ... # Other Gradle / config files
+├── fit-fit.apk # Built APK for demo / installation
+├── presentation-file.pdf # Project presentation slides
+└── README.md # Project documentation (this file)
+```
 
----
+<br>
 
-## 2. Main Features
+## #2. Main Features
 
 ### 2.1 Authentication
 
-- Sign up from the initial screen using the **Sign Up** button.
-- Log in with ID and password.
-- Authentication is handled via Firebase Authentication.
+-   Sign up from the initial screen using the **Sign Up** button.
+-   Log in with ID and password.
+-   Authentication is handled via Firebase Authentication.
 
 ### 2.2 Digital Closet (Clothes)
 
 The **Clothes** screen works like a digital wardrobe.
 
-- **Read**
-    - View all clothes you own.
-    - Categorize items as **Outerwear**, **Tops**, or **Bottoms**.
-    - Filter by category using chips at the top.
-    - Tap a card to see detailed information.
-- **Create**
-    - Tap the **+ button** (bottom-right) and fill in details to register a new item.
-- **Update**
-    - If you forgot to enter the URL or other information, you can edit it later.
-    - Tap the edit button in the top-right to update details.
-- **Delete**
-    - Remove clothes you no longer need.
+-   **Read**
+    -   View all clothes you own.
+    -   Categorize items as **Outerwear**, **Tops**, or **Bottoms**.
+    -   Filter by category using chips at the top.
+    -   Tap a card to see detailed information.
+-   **Create**
+    -   Tap the **+ button** (bottom-right) and fill in details to register a new item.
+-   **Update**
+    -   If you forgot to enter the URL or other information, you can edit it later.
+    -   Tap the edit button in the top-right to update details.
+-   **Delete**
+    -   Remove clothes you no longer need.
 
 ### 2.3 Outfit Management (Today’s Outfit)
 
-- On the **Outfit** screen, users can record what they wore today.
-- Example: After coming home, **Alice** saves today’s outfit:
-    - Tap the **+ button**, select clothes, set time and occasion.
-    - Add a **comment** (e.g., “I was cold because I didn’t bring outerwear”) for future reference.
+-   On the **Outfit** screen, users can record what they wore today.
+-   Example: After coming home, **Alice** saves today’s outfit:
+    -   Tap the **+ button**, select clothes, set time and occasion.
+    -   Add a **comment** (e.g., “I was cold because I didn’t bring outerwear”) for future reference.
 
 ### 2.4 Future Outfit Planning
 
 FitFit is also for **planning future outfits**:
 
-- Users can create outfits for **future dates**.
-- Example: Alice is attending a wedding three days later:
+-   Users can create outfits for **future dates**.
+-   Example: Alice is attending a wedding three days later:
     1. On the **Home** screen, tap the **Weather Card** to view the **7-day forecast**.
     2. Return to Home and select the wedding date.
     3. Based on the predicted **temperature and weather** of that day, the app automatically **filters suitable outfits**.
     4. Alice further filters by the **“wedding” occasion** and chooses an outfit.
     5. She saves the outfit for that future day.
-- Since the day hasn’t happened yet:
-    - The weather field is shown as **“to be updated”**.
-    - After that day passes, the app updates the outfit with the **actual weather** using OpenWeather’s historical data.
+-   Since the day hasn’t happened yet:
+    -   The weather field is shown as **“to be updated”**.
+    -   After that day passes, the app updates the outfit with the **actual weather** using OpenWeather’s historical data.
 
----
+<br>
 
-## 3. Mobile Development
+## #3. Mobile Development
 
 From a mobile development perspective, FitFit uses a **modern Android stack** centered on **Kotlin** and **Jetpack Compose**.
 
-- UI is composed of small **Composable** units.
-- Reusable components are extracted to improve **collaboration** and **maintenance**.
+-   UI is composed of small **Composable** units.
+-   Reusable components are extracted to improve **collaboration** and **maintenance**.
 
 **UI structure:**
 
-- `ui/screen`
-    - Full-screen composables (e.g., `HomeScreen`, `ClothesScreen`, `OutfitScreen`, `WeatherScreen`).
-- `ui/screen/.../components`
-    - Screen-specific UI components.
-- `ui/components`
-    - Shared, reusable components across multiple screens.
+-   `ui/screen`
+    -   Full-screen composables (e.g., `HomeScreen`, `ClothesScreen`, `OutfitScreen`, `WeatherScreen`).
+-   `ui/screen/.../components`
+    -   Screen-specific UI components.
+-   `ui/components`
+    -   Shared, reusable components across multiple screens.
 
----
+<br>
 
-## 4. Design Pattern – MVVM
+## #4. Design Pattern – MVVM
 
 The project follows the Android-recommended **MVVM (Model–View–ViewModel)** architecture.
 
-- Codebase is organized into three main layers:
-    - `data`
-    - `viewmodel`
-    - `ui`
+-   Codebase is organized into three main layers:
+    -   `data`
+    -   `viewmodel`
+    -   `ui`
 
 **Flow:**
 
@@ -125,13 +147,13 @@ The project follows the Android-recommended **MVVM (Model–View–ViewModel)** 
 
 This design provides:
 
-- Clear separation of concerns.
-- Testable business logic in ViewModels.
-- A unidirectional data flow: `data → viewmodel → ui`.
+-   Clear separation of concerns.
+-   Testable business logic in ViewModels.
+-   A unidirectional data flow: `data → viewmodel → ui`.
 
----
+<br>
 
-## 5. Data Management
+## #5. Data Management
 
 FitFit uses an **offline-first + cloud sync** strategy.
 
@@ -149,79 +171,80 @@ When a user saves an outfit:
 
 This approach ensures:
 
-- The app works reliably **offline** (local DB is always the primary source).
-- Firebase is kept up-to-date **asynchronously**.
-- Sync status is explicitly tracked with `isSynced`.
+-   The app works reliably **offline** (local DB is always the primary source).
+-   Firebase is kept up-to-date **asynchronously**.
+-   Sync status is explicitly tracked with `isSynced`.
 
----
+<br>
 
-## 6. RESTful Weather API Integration
+## #6. RESTful Weather API Integration
 
 FitFit integrates weather data using **Retrofit** and **OpenWeather’s REST API**.
 
 ### 6.1 Current & Forecast Weather
 
-- `OpenWeatherRepository` wraps Retrofit calls to OpenWeather.
-- The app uses the **One Call API** to retrieve:
-    - Current weather
-    - Hourly forecast (today)
-    - Daily forecast (7 days)
-- `WeatherViewModel`:
-    - Fetches data based on the user’s current location.
-    - Produces UI-friendly models:
-        - Hourly weather list (for today).
-        - Daily weather list (for a week).
-    - Used in:
-        - Home **Weather Card**.
-        - Detailed **WeatherScreen** (hourly + weekly).
+-   `OpenWeatherRepository` wraps Retrofit calls to OpenWeather.
+-   The app uses the **One Call API** to retrieve:
+    -   Current weather
+    -   Hourly forecast (today)
+    -   Daily forecast (7 days)
+-   `WeatherViewModel`:
+    -   Fetches data based on the user’s current location.
+    -   Produces UI-friendly models:
+        -   Hourly weather list (for today).
+        -   Daily weather list (for a week).
+    -   Used in:
+        -   Home **Weather Card**.
+        -   Detailed **WeatherScreen** (hourly + weekly).
 
 ### 6.2 Historical Weather & Outfit Aggregation
 
-- The app uses OpenWeather’s **Time Machine API** to fetch **past weather** for specific timestamps.
-- When an outfit has a start/end time and location:
-    - The app samples hourly weather for that period.
-    - Aggregates metrics (min/max/average temperature, wind, precipitation).
-    - Stores a summarized weather description with the outfit.
+-   The app uses OpenWeather’s **Time Machine API** to fetch **past weather** for specific timestamps.
+-   When an outfit has a start/end time and location:
+    -   The app samples hourly weather for that period.
+    -   Aggregates metrics (min/max/average temperature, wind, precipitation).
+    -   Stores a summarized weather description with the outfit.
 
 This allows the app to later answer:
-- “What was the weather like when I wore this outfit?”
 
----
+-   “What was the weather like when I wore this outfit?”
 
-## 7. Technologies & Tools
+<br>
+
+## #7. Technologies & Tools
 
 ### 7.1 Core Technologies
 
-- **Language**: Kotlin
-- **UI**: Jetpack Compose, Material Design 3
-- **Architecture**: MVVM, Repository pattern
-- **Async**: Kotlin Coroutines, Flow / StateFlow
-- **Local Storage**: Room Database, DataStore
-- **Backend / Cloud**:
-    - Firebase Realtime Database
-- **Networking**:
-    - Retrofit
-    - OkHttp
-- **Weather API**:
-    - OpenWeather One Call API (current, hourly, daily)
-    - OpenWeather Time Machine API (historical)
+-   **Language**: Kotlin
+-   **UI**: Jetpack Compose, Material Design 3
+-   **Architecture**: MVVM, Repository pattern
+-   **Async**: Kotlin Coroutines, Flow / StateFlow
+-   **Local Storage**: Room Database, DataStore
+-   **Backend / Cloud**:
+    -   Firebase Realtime Database
+-   **Networking**:
+    -   Retrofit
+    -   OkHttp
+-   **Weather API**:
+    -   OpenWeather One Call API (current, hourly, daily)
+    -   OpenWeather Time Machine API (historical)
 
 ### 7.2 Collaboration & Project Management Tools
 
-- **Figma** – UI/UX design, wireframes, component design.
-- **GitHub** – Version control, branch-based development, pull requests, code review.
-- **Notion** – Requirements, task tracking, documentation, meeting notes.
+-   **Figma** – UI/UX design, wireframes, component design.
+-   **GitHub** – Version control, branch-based development, pull requests, code review.
+-   **Notion** – Requirements, task tracking, documentation, meeting notes.
 
----
+<br>
 
-## 8. Firebase Configuration (`google-services.json`)
+## #8. Firebase Configuration (`google-services.json`)
 
 This project uses Firebase for authentication and Realtime Database.
 
-The actual `google-services.json` file is **not** included in this repository for security reasons.  
+The actual `google-services.json` file is **not** included in this repository for security reasons.
 Instead, there is a template file:
 
-- `app/google-services.json.example`
+-   `app/google-services.json.example`
 
 ### How to set up Firebase locally
 
@@ -238,21 +261,21 @@ Instead, there is a template file:
 
 After this, you can build and run the app with your own Firebase configuration.
 
----
+<br>
 
-## 9. High-level Architecture
+## #9. High-level Architecture
 
-- **UI Layer (`ui`)**
-- Jetpack Compose screens and components.
-- Observes `StateFlow` from ViewModels.
-- Responsible for rendering and user interaction.
+-   **UI Layer (`ui`)**
+-   Jetpack Compose screens and components.
+-   Observes `StateFlow` from ViewModels.
+-   Responsible for rendering and user interaction.
 
-- **ViewModel Layer (`viewmodel`)**
-- Screen-specific ViewModels (e.g., `ClothesViewModel`, `OutfitViewModel`, `WeatherViewModel`).
-- Holds UI state and handles screen-level business logic.
-- Communicates with repositories.
+-   **ViewModel Layer (`viewmodel`)**
+-   Screen-specific ViewModels (e.g., `ClothesViewModel`, `OutfitViewModel`, `WeatherViewModel`).
+-   Holds UI state and handles screen-level business logic.
+-   Communicates with repositories.
 
-- **Data Layer (`data`)**
-- **Local**: Room entities, DAOs, database.
-- **Remote**: Firebase, OpenWeather API (Retrofit interfaces).
-- **Repositories**: Abstract data sources and expose clean APIs to ViewModels.
+-   **Data Layer (`data`)**
+-   **Local**: Room entities, DAOs, database.
+-   **Remote**: Firebase, OpenWeather API (Retrofit interfaces).
+-   **Repositories**: Abstract data sources and expose clean APIs to ViewModels.
