@@ -3,6 +3,8 @@
 FitFit is an Android application that helps users **record what they wore**, **plan what to wear**, and **connect outfits with real weather data**.  
 It combines a **digital closet**, **outfit history**, and **weather integration** to support both retrospective tracking and future planning.
 
+<br>
+
 2025-2 Mobile Application Development Course Project
 
 by 김하람 나정원 이가연
@@ -22,6 +24,16 @@ Key user scenarios:
 - Manage a digital closet (Outerwear / Tops / Bottoms).
 - Plan an outfit for a future date (e.g., a wedding) based on weather forecasts.
 - Automatically attach **actual past weather** to outfits after the day has passed.
+
+### Project Structure
+
+.
+├── project-source/             # Android app source code
+│ ├── app/                      # Main Android module
+│ └── ...                       # Other Gradle / config files
+├── fit-fit.apk                 # Built APK for demo / installation
+├── presentation-file.pdf       # Project presentation slides
+└── README.md                   # Project documentation (this file)
 
 ---
 
