@@ -1,0 +1,113 @@
+# ═══════════════════════════════════════════════════════════
+# *Git Attributes for Kotlin/Android Project
+# ═══════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────
+# Line Ending Normalization
+# ───────────────────────────────────────────────────────────
+* text=auto eol=lf
+
+# ───────────────────────────────────────────────────────────
+# Source Code
+# ───────────────────────────────────────────────────────────
+*.kt text eol=lf diff=kotlin
+*.kts text eol=lf
+*.java text eol=lf diff=java
+*.xml text eol=lf
+*.gradle text eol=lf
+*.gradle.kts text eol=lf
+
+# ───────────────────────────────────────────────────────────
+# Configuration Files
+# ───────────────────────────────────────────────────────────
+*.properties text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.pro text eol=lf
+*.proguard text eol=lf
+
+# ───────────────────────────────────────────────────────────
+# Documentation
+# ───────────────────────────────────────────────────────────
+*.md text eol=lf
+*.txt text eol=lf
+*.adoc text eol=lf
+
+# ───────────────────────────────────────────────────────────
+# Scripts
+# ───────────────────────────────────────────────────────────
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+gradlew text eol=lf
+*.bash text eol=lf
+
+# ───────────────────────────────────────────────────────────
+# Binary Files (No Line Ending Conversion)
+# ───────────────────────────────────────────────────────────
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.svg binary
+
+# Archives
+*.jar binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.aar binary
+*.ap_ binary
+*.apk binary
+*.aab binary
+
+# Fonts
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+
+# Documents
+*.pdf binary
+
+# Media
+*.mp3 binary
+*.mp4 binary
+*.wav binary
+*.ogg binary
+
+# Keystore
+*.jks binary
+*.keystore binary
+
+# Native Libraries
+*.so binary
+*.dll binary
+*.dylib binary
+
+# ───────────────────────────────────────────────────────────
+# Android Studio / IntelliJ IDEA
+# ───────────────────────────────────────────────────────────
+*.iml text eol=lf
+
+# ───────────────────────────────────────────────────────────
+# Git
+# ───────────────────────────────────────────────────────────
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.gitmodules text eol=lf
+
+# ───────────────────────────────────────────────────────────
+# Linguist (GitHub Language Stats)
+# ───────────────────────────────────────────────────────────
+# Exclude generated files from language statistics
+**/build/** linguist-generated=true
+**/generated/** linguist-generated=true
+*.pb.kt linguist-generated=true
