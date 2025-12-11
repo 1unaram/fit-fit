@@ -1,2 +1,0 @@
-[*.{kt,kts,java,xml,gradle,md,txt,properties,json,yml,yaml,toml}]
-end_of_line = lf
